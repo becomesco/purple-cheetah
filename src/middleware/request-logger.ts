@@ -18,6 +18,7 @@ import { Logger } from '../logging';
 })
 export class RequestLoggerMiddleware implements MiddlewarePrototype {
   uri?: string;
+  logger: Logger;
   after: boolean;
   handler: RequestHandler | RequestHandler[] | ErrorRequestHandler;
 }

@@ -9,7 +9,7 @@ import { Middleware } from '../decorators';
 })
 export class BodyParserMiddleware implements MiddlewarePrototype {
   uri?: string;
-  logger?: Logger;
+  logger: Logger;
   after: boolean;
   handler: RequestHandler | RequestHandler[] | ErrorRequestHandler;
 }

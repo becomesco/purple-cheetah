@@ -6,7 +6,7 @@ import { Logger } from '../../logging';
 
 export class QLMiddleware implements MiddlewarePrototype {
   uri?: string;
-  logger?: Logger;
+  logger: Logger;
   after: boolean = false;
   handler: RequestHandler | RequestHandler[] | ErrorRequestHandler;
 

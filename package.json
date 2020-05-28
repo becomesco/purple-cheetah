@@ -12,7 +12,6 @@
     "publish": "node tools.js --publish",
     "link": "node tools.js --link",
     "unlink": "node tools.js --unlink",
-
     "dev-ks": "nodemon test/key-store/main.ts",
     "test-ks": "ts-node test/key-store/main.ts",
     "dev-reg": "nodemon test/registry/main.ts",
@@ -25,7 +24,6 @@
     "test-ms2": "env-cmd -f test/ms2.env ts-node test/ms2/main.ts",
     "dev-ms22": "env-cmd -f test/ms22.env nodemon test/ms2/main.ts",
     "test-ms22": "env-cmd -f test/ms22.env ts-node test/ms2/main.ts",
-    
     "typedoc-generate": "typedoc",
     "test": "mocha ./test --recursive --exit"
   },

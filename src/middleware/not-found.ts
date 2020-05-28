@@ -6,10 +6,19 @@ import {
   Request,
   Response,
 } from 'express';
+import { Logger } from 'src/logging';
 
 @Middleware({
   after: true,
-  handler: (request: Request, response: Response) => {
+})
+export class NotFoundMiddleware implements MiddlewarePrototype {
+  uri?: string;
+  after: boolean;
+  logger: Logger;
+  handler: RequestHandler | RequestHandler[] | ErrorRequestHandler = (
+    request: Request,
+    response: Response,
+  ) => {
     this.logger.warn('.404', {
       path: `${request.method}: ${request.originalUrl}`,
       message: 'Endpoint does not exist.',
@@ -18,10 +27,5 @@ import {
       path: `${request.method}: ${request.originalUrl}`,
       message: 'Endpoint does not exist.',
     });
-  },
-})
-export class NotFoundMiddleware implements MiddlewarePrototype {
-  uri?: string;
-  after: boolean;
-  handler: RequestHandler | RequestHandler[] | ErrorRequestHandler;
+  }
 }

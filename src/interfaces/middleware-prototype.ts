@@ -3,7 +3,7 @@ import { Logger } from '../logging';
 
 export interface MiddlewarePrototype {
   uri?: string;
-  logger?: Logger;
+  logger: Logger;
   after: boolean;
   handler: RequestHandler | RequestHandler[] | ErrorRequestHandler;
 }

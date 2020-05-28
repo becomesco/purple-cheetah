@@ -1,7 +1,7 @@
 import { Model } from 'mongoose';
 import { IEntity } from './models/entry';
 
-export class MongoRepositoryCache {
+export class MongoDBRepositoryCache {
   private static cache: Array<{
     name: string;
     repo: Model<IEntity>;
@@ -10,6 +10,11 @@ export class MongoRepositoryCache {
   public static add(name: string, repo: Model<IEntity>) {
     if (this.cache.find((e) => e.name === name)) {
       throw Error(`Mongo repository with name '${name}' already exist.`);
+    } else {
+      this.cache.push({
+        name,
+        repo,
+      });
     }
   }
 
@@ -17,7 +22,10 @@ export class MongoRepositoryCache {
     return this.cache.find((e) => e.name === name) ? true : false;
   }
 
-  public static get(name: string) {
-    return this.cache.find((e) => e.name === name);
+  public static get(name: string): Model<IEntity> {
+    const cache = this.cache.find((e) => e.name === name);
+    if (cache) {
+      return cache.repo;
+    }
   }
 }

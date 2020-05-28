@@ -2,6 +2,8 @@ const Listr = require('listr');
 const childProcess = require('child_process');
 const path = require('path');
 const fse = require('fs-extra');
+const fs = require('fs');
+const util = require('util');
 
 const exec = async (cmd, output) => {
   return new Promise((resolve, reject) => {
@@ -65,9 +67,19 @@ const bundle = async () => {
     {
       title: 'Copy package.json',
       task: async () => {
-        await fse.copy(
-          path.join(__dirname, 'package.json'),
+        const data = JSON.parse(
+          (
+            await util.promisify(fs.readFile)(
+              path.join(__dirname, 'package.json'),
+            )
+          ).toString(),
+        );
+        data.devDependencies = undefined;
+        data.nodemonConfig = undefined;
+        data.scripts = undefined;
+        await util.promisify(fs.writeFile)(
           path.join(__dirname, 'dist', 'package.json'),
+          JSON.stringify(data, null, '  '),
         );
       },
     },

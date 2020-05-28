@@ -1,4 +1,6 @@
 export interface MongoDBConfig {
+  onConnection?: () => void;
+  onInitialize?: () => void;
   selfHosted?: {
     user: {
       name: string;

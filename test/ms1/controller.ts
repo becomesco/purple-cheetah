@@ -9,6 +9,7 @@ import {
   Post,
 } from '../../src';
 import { Router, Request } from 'express';
+import { CacheController } from './cache-controller';
 
 @Controller('')
 export class Test implements ControllerPrototype {
@@ -35,6 +36,10 @@ export class Test implements ControllerPrototype {
 
   @Get('/test2')
   async test2() {
+    // await CacheController.Repo.add(
+    //   new Repo(new Types.ObjectId(), Date.now(), Date.now(), 'Test 1'),
+    // );
+    console.log(CacheController.Repo.findAll());
     return {
       message: 'This is test from ms1.',
     };

@@ -5,7 +5,7 @@ import { Logger } from '../logging';
 
 export class CORSMiddleware implements MiddlewarePrototype {
   uri?: string;
-  logger?: Logger;
+  logger: Logger;
   after: boolean = false;
   handler: RequestHandler | RequestHandler[] | ErrorRequestHandler;
 

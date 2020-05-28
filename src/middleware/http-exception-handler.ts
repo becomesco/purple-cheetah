@@ -40,6 +40,7 @@ import { Middleware } from '../decorators';
 })
 export class HttpExceptionHandlerMiddleware implements MiddlewarePrototype {
   uri?: string;
+  logger: Logger;
   after: boolean;
   handler: RequestHandler | RequestHandler[] | ErrorRequestHandler;
 }

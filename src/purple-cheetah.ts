@@ -40,14 +40,26 @@ export abstract class PurpleCheetah {
       if (!this.queue.find((e) => e.state === false)) {
         this.logger.info('', 'Queue empty, continue with mounting.');
         this.controllers.forEach((controller) => {
-          controller.initRouter();
+          if (controller) {
+            controller.initRouter();
+          }
         });
         this.start();
         this.initializeMiddleware(this.middleware, false);
         this.middle();
         this.initializeControllers(this.controllers);
-        this.initializeMiddleware(this.middleware, true);
         this.finalize();
+        this.initializeMiddleware(this.middleware, true);
+        // this.app.use('', (request: express.Request, response: express.Response) => {
+        //   this.logger.warn('.404', {
+        //     path: `${request.method}: ${request.originalUrl}`,
+        //     message: 'Endpoint does not exist.',
+        //   });
+        //   response.status(404).json({
+        //     path: `${request.method}: ${request.originalUrl}`,
+        //     message: 'Endpoint does not exist.',
+        //   });
+        // });
         clearInterval(waitForQueue);
       }
     }, 50);
@@ -58,17 +70,19 @@ export abstract class PurpleCheetah {
     after: boolean,
   ) {
     middleware.forEach((e) => {
-      if (e.after === after) {
-        if (e.uri) {
-          if (e.handler instanceof Array) {
-            e.handler.forEach((h) => {
-              this.app.use(e.uri, h);
-            });
+      if (e) {
+        if (e.after === after) {
+          if (e.uri) {
+            if (e.handler instanceof Array) {
+              e.handler.forEach((h) => {
+                this.app.use(e.uri, h);
+              });
+            } else {
+              this.app.use(e.uri, e.handler);
+            }
           } else {
-            this.app.use(e.uri, e.handler);
+            this.app.use(e.handler);
           }
-        } else {
-          this.app.use(e.handler);
         }
       }
     });
@@ -79,18 +93,10 @@ export abstract class PurpleCheetah {
       this.app.use(express.static(this.staticContentDir));
     }
     controllers.forEach((controller) => {
-      this.app.use(controller.baseUri, controller.router);
-      this.logger.info('.controller', `[${controller.name}] mapping done.`);
-    });
-    this.app.use('', (request: express.Request, response: express.Response) => {
-      this.logger.warn('.404', {
-        path: `${request.method}: ${request.originalUrl}`,
-        message: 'Endpoint does not exist.',
-      });
-      response.status(404).json({
-        path: `${request.method}: ${request.originalUrl}`,
-        message: 'Endpoint does not exist.',
-      });
+      if (controller) {
+        this.app.use(controller.baseUri, controller.router);
+        this.logger.info('.controller', `[${controller.name}] mapping done.`);
+      }
     });
   }
 

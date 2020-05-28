@@ -4,18 +4,44 @@ import { MongoDBConfig } from './interfaces';
 
 export class MongoDB {
   private static config?: MongoDBConfig;
-  private static logger: Logger = new Logger('Mongoose');
+  private static logger = new Logger('Mongoose');
+  private static connected = false;
+  private static queue: Array<{
+    name: string;
+    state: boolean;
+  }> = [];
 
-  public static connect(config: MongoDBConfig) {
+  public static async connect(config: MongoDBConfig) {
     if (!this.config) {
       this.config = config;
-      this.openConnection();
+      await this.openConnection();
       setInterval(this.openConnection, 30000);
     }
   }
 
   public static isConnected(): boolean {
-    return mongoose.connection.readyState === 0 ? false : true;
+    return this.connected;
+  }
+
+  public static isInitialized() {
+    return this.queue.find((q) => q.state === false) ? false : true;
+  }
+
+  public static addToQueue(name: string) {
+    const q = this.queue.find((e) => e.name === name);
+    if (!q) {
+      this.queue.push({
+        name,
+        state: false,
+      });
+    }
+  }
+
+  public static freeQueue(name: string) {
+    this.queue = this.queue.filter((q) => q.name !== name);
+    if (this.queue.length === 0) {
+      this.logger.info('', 'Queue is free.');
+    }
   }
 
   private static async openConnection() {
@@ -38,8 +64,10 @@ export class MongoDB {
             useUnifiedTopology: true,
           });
           this.logger.info('.connect', 'Successful.');
+          this.connected = true;
         } catch (error) {
           this.logger.error('.connect', error);
+          this.connected = false;
         }
       } else if (this.config.atlas) {
         const url: string =
@@ -60,8 +88,10 @@ export class MongoDB {
             useUnifiedTopology: true,
           });
           this.logger.info('.connect', 'Successful.');
+          this.connected = true;
         } catch (error) {
           this.logger.error('.connect', error);
+          this.connected = true;
         }
       } else {
         this.logger.error('.openConnection', 'Invalid configuration.');

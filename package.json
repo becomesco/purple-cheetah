@@ -1,5 +1,5 @@
 {
-  "name": "purple-cheetah",
+  "name": "@becomes/purple-cheetah",
   "version": "2.0.0",
   "description": "Framework for node/express applications.",
   "main": "./index.js",
@@ -26,15 +26,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Bbanez/purple-cheetah.git"
+    "url": "git+https://github.com/becomesco/purple-cheetah.git"
   },
   "keywords": [],
   "author": "Branislav Vajagić",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Bbanez/purple-cheetah/issues"
+    "url": "https://github.com/becomesco/purple-cheetah/issues"
   },
-  "homepage": "https://github.com/Bbanez/purple-cheetah#readme",
+  "homepage": "https://github.com/becomesco/purple-cheetah#readme",
   "dependencies": {
     "axios": "^0.19.2",
     "body-parser": "^1.19.0",

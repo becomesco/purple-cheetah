@@ -1,10 +1,13 @@
 import * as express from 'express';
+import * as path from 'path';
 
 import { Logger } from './logging';
 import { MiddlewarePrototype } from './interfaces';
 import { ControllerPrototype } from './interfaces';
 
 export abstract class PurpleCheetah {
+  private staticContentDir?: string;
+
   protected app: express.Application;
   protected logger: Logger;
   protected controllers: ControllerPrototype[];
@@ -13,17 +16,25 @@ export abstract class PurpleCheetah {
     id: string;
     state: boolean;
   }> = [];
+  // tslint:disable-next-line:no-empty
+  protected start(): void {}
+  // tslint:disable-next-line:no-empty
+  protected middle(): void {}
+  // tslint:disable-next-line:no-empty
+  protected finalize(): void {}
 
-  public listen: () => void;
-
-  private staticContentDir: string;
-
-  constructor(config: {
-    logFileLocation: string;
-    staticContentDirectory: string;
+  constructor(config?: {
+    logFileLocation?: string;
+    staticContentDirectory?: string;
   }) {
-    Logger.setLogPath(config.logFileLocation);
-    this.staticContentDir = config.staticContentDirectory;
+    if (config && config.logFileLocation) {
+      Logger.setLogPath(config.logFileLocation);
+    } else {
+      Logger.setLogPath(path.join(process.cwd(), 'logs'));
+    }
+    if (config && config.staticContentDirectory) {
+      this.staticContentDir = config.staticContentDirectory;
+    }
 
     const waitForQueue = setInterval(() => {
       if (!this.queue.find((e) => e.state === false)) {
@@ -31,9 +42,12 @@ export abstract class PurpleCheetah {
         this.controllers.forEach((controller) => {
           controller.initRouter();
         });
+        this.start();
         this.initializeMiddleware(this.middleware, false);
+        this.middle();
         this.initializeControllers(this.controllers);
         this.initializeMiddleware(this.middleware, true);
+        this.finalize();
         clearInterval(waitForQueue);
       }
     }, 50);
@@ -61,7 +75,9 @@ export abstract class PurpleCheetah {
   }
 
   private initializeControllers(controllers: ControllerPrototype[]) {
-    this.app.use(express.static(this.staticContentDir));
+    if (this.staticContentDir) {
+      this.app.use(express.static(this.staticContentDir));
+    }
     controllers.forEach((controller) => {
       this.app.use(controller.baseUri, controller.router);
       this.logger.info('.controller', `[${controller.name}] mapping done.`);
@@ -77,4 +93,6 @@ export abstract class PurpleCheetah {
       });
     });
   }
+
+  public listen: () => void;
 }

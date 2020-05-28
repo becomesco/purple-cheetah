@@ -8,14 +8,15 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "target": "es5",
-    "outDir": "./lib",
+    "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true
   },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "test", "public"],
   "typedocOptions": {
     "name": "Purple Cheetah",
     "mode": "file",
     "out": "typedoc"
-  },
-  "exclude": ["node_modules", "dist", "lib"]
+  }
 }

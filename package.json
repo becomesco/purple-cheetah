@@ -6,21 +6,26 @@
   "types": "./index.d.ts",
   "scripts": {
     "start": "node dist/main.js",
-    "dev": "nodemon test/main.ts",
+    "dev": "nodemon tools.js",
+    "build": "tsc -p .",
+    "bundle": "node tools.js --bundle",
+    "publish": "node tools.js --publish",
+    "link": "node tools.js --link",
+    "unlink": "node tools.js --unlink",
+
     "dev-ks": "nodemon test/key-store/main.ts",
     "test-ks": "ts-node test/key-store/main.ts",
     "dev-reg": "nodemon test/registry/main.ts",
     "test-reg": "ts-node test/registry/main.ts",
-    "dev-ms1": "env-cmd -f ms1.env nodemon test/ms1/main.ts",
-    "test-ms1": "env-cmd -f ms1.env ts-node test/ms1/main.ts",
-    "dev-ms11": "env-cmd -f ms11.env nodemon test/ms1/main.ts",
-    "test-ms11": "env-cmd -f ms11.env ts-node test/ms1/main.ts",
-    "dev-ms2": "env-cmd -f ms2.env nodemon test/ms2/main.ts",
-    "test-ms2": "env-cmd -f ms2.env ts-node test/ms2/main.ts",
-    "dev-ms22": "env-cmd -f ms22.env nodemon test/ms2/main.ts",
-    "test-ms22": "env-cmd -f ms22.env ts-node test/ms2/main.ts",
-    "node-dev": "node src/main.ts",
-    "build": "tsc -p .",
+    "dev-ms1": "env-cmd -f test/ms1.env nodemon test/ms1/main.ts",
+    "test-ms1": "env-cmd -f test/ms1.env ts-node test/ms1/main.ts",
+    "dev-ms11": "env-cmd -f test/ms11.env nodemon test/ms1/main.ts",
+    "test-ms11": "env-cmd -f test/ms11.env ts-node test/ms1/main.ts",
+    "dev-ms2": "env-cmd -f test/ms2.env nodemon test/ms2/main.ts",
+    "test-ms2": "env-cmd -f test/ms2.env ts-node test/ms2/main.ts",
+    "dev-ms22": "env-cmd -f test/ms22.env nodemon test/ms2/main.ts",
+    "test-ms22": "env-cmd -f test/ms22.env ts-node test/ms2/main.ts",
+    
     "typedoc-generate": "typedoc",
     "test": "mocha ./test --recursive --exit"
   },
@@ -41,7 +46,6 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-graphql": "^0.9.0",
-    "fs-extra": "^8.1.0",
     "graphql": "^14.6.0",
     "mongoose": "^5.9.5",
     "node-os-utils": "^1.2.2",
@@ -64,10 +68,21 @@
     "@types/socket.io-client": "^1.4.32",
     "@types/yamljs": "^0.2.30",
     "env-cmd": "^10.1.0",
+    "fs-extra": "^8.1.0",
+    "listr": "^0.14.3",
     "nodemon": "^2.0.3",
     "ts-node": "^8.9.1",
     "tsconfig-paths": "^3.9.0",
     "tslint": "^5.20.1",
     "typescript": "^3.8.3"
+  },
+  "nodemonConfig": {
+    "watch": [
+      "src/"
+    ],
+    "ext": "ts",
+    "events": {
+      "start": "npm run bundle"
+    }
   }
 }

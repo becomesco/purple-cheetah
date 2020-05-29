@@ -5,6 +5,6 @@ export class CacheController {
   public static Repo?: RepoCache;
 
   public static init() {
-    this.Repo =  new RepoCache(new RepoService())
+    this.Repo = new RepoCache(new RepoService());
   }
 }

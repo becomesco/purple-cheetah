@@ -4,8 +4,8 @@ import { Logger } from '../../logging';
 import { MiracleSecurity } from '../security';
 import { MiracleServiceKeyStoreConfig } from '../interfaces';
 import { MiracleRegistryController } from '../controllers';
-import { Types } from 'mongoose';
 import { MiracleRegistryServerCache } from '../cache';
+import { PurpleCheetah } from '../../purple-cheetah';
 
 export function EnableMiracleRegistry(config: {
   keyStore: {
@@ -51,11 +51,7 @@ export function EnableMiracleRegistry(config: {
 
   return (target: any) => {
     const logger = new Logger('MiracleRegistry');
-    const id = Types.ObjectId();
-    target.prototype.queue.push({
-      id,
-      state: false,
-    });
+    PurpleCheetah.pushToQueue('EnableMiracleRegistry');
     logger.info('', 'Connecting to Miracle Key Store .....');
     init()
       .then(() => {
@@ -68,11 +64,7 @@ export function EnableMiracleRegistry(config: {
         } else {
           target.prototype.controllers.push(new MiracleRegistryController());
         }
-        target.prototype.queue.forEach((e) => {
-          if (e.id === id) {
-            e.state = true;
-          }
-        });
+        PurpleCheetah.freeQueue('EnableMiracleRegistry');
       })
       .catch((error) => {
         logger.error('', error);

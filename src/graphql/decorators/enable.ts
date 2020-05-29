@@ -14,7 +14,7 @@ export function EnableGraphQL(config: {
   entries?: QLEntryPrototype[];
   objects?: QLObjectPrototype[];
   inputs?: QLInputPrototype[];
-  resolvers?: QLResolverPrototype[];
+  resolvers?: Array<QLResolverPrototype<any>>;
   graphiql: boolean;
 }) {
   return (target: any) => {
@@ -41,6 +41,11 @@ export function EnableGraphQL(config: {
           ...config.resolvers,
           ...config.entries[i].resolvers,
         ];
+        config.entries[i].objects.forEach((object) => {
+          if (object.wrapperObject) {
+            config.objects.push(object.wrapperObject);
+          }
+        });
       }
     }
     config.inputs = [...config.inputs];
@@ -253,7 +258,7 @@ export function EnableGraphQL(config: {
 
       ${qmState.find((e) => e === true) ? schema : ''}
     `;
-    console.log(fullSchema);
+    // console.log(fullSchema);
     if (!target.prototype.middleware) {
       target.prototype.middleware = [];
     }

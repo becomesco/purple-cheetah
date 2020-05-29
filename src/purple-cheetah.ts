@@ -12,10 +12,29 @@ export abstract class PurpleCheetah {
   protected logger: Logger;
   protected controllers: ControllerPrototype[];
   protected middleware: MiddlewarePrototype[];
-  protected queue: Array<{
+  public static queue: Array<{
     id: string;
     state: boolean;
   }> = [];
+  public static pushToQueue(id: string) {
+    const q = this.queue.find((e) => e.id === id);
+    if (!q) {
+      this.queue.push({
+        id,
+        state: false,
+      });
+    }
+  }
+  public static isQueueFree() {
+    return this.queue.find((e) => e.state === false) ? false : true;
+  }
+  public static freeQueue(id: string) {
+    this.queue.forEach((e) => {
+      if (e.id === id) {
+        e.state = true;
+      }
+    });
+  }
   // tslint:disable-next-line:no-empty
   protected start(): void {}
   // tslint:disable-next-line:no-empty
@@ -27,17 +46,27 @@ export abstract class PurpleCheetah {
     logFileLocation?: string;
     staticContentDirectory?: string;
   }) {
-    if (config && config.logFileLocation) {
-      Logger.setLogPath(config.logFileLocation);
-    } else {
-      Logger.setLogPath(path.join(process.cwd(), 'logs'));
-    }
-    if (config && config.staticContentDirectory) {
-      this.staticContentDir = config.staticContentDirectory;
-    }
-
-    const waitForQueue = setInterval(() => {
-      if (!this.queue.find((e) => e.state === false)) {
+    new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve();
+      }, 50);
+    }).then(() => {
+      if (config && config.logFileLocation) {
+        Logger.setLogPath(config.logFileLocation);
+      } else {
+        Logger.setLogPath(path.join(process.cwd(), 'logs'));
+      }
+      if (config && config.staticContentDirectory) {
+        this.staticContentDir = config.staticContentDirectory;
+      }
+      new Promise((resolve, reject) => {
+        const waitForQueue = setInterval(() => {
+          if (PurpleCheetah.isQueueFree() === true) {
+            clearInterval(waitForQueue);
+            resolve();
+          }
+        });
+      }).then(() => {
         this.logger.info('', 'Queue empty, continue with mounting.');
         this.controllers.forEach((controller) => {
           if (controller) {
@@ -50,19 +79,9 @@ export abstract class PurpleCheetah {
         this.initializeControllers(this.controllers);
         this.finalize();
         this.initializeMiddleware(this.middleware, true);
-        // this.app.use('', (request: express.Request, response: express.Response) => {
-        //   this.logger.warn('.404', {
-        //     path: `${request.method}: ${request.originalUrl}`,
-        //     message: 'Endpoint does not exist.',
-        //   });
-        //   response.status(404).json({
-        //     path: `${request.method}: ${request.originalUrl}`,
-        //     message: 'Endpoint does not exist.',
-        //   });
-        // });
-        clearInterval(waitForQueue);
-      }
-    }, 50);
+        this.logger.info('', 'Initialized.');
+      });
+    });
   }
 
   private initializeMiddleware(
@@ -95,7 +114,7 @@ export abstract class PurpleCheetah {
     controllers.forEach((controller) => {
       if (controller) {
         this.app.use(controller.baseUri, controller.router);
-        this.logger.info('.controller', `[${controller.name}] mapping done.`);
+        this.logger.info('controller', `[${controller.name}] mapping done.`);
       }
     });
   }

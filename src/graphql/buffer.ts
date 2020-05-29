@@ -18,7 +18,7 @@ export class QLEntryBuffer {
   };
   public static objects: QLObjectPrototype[] = [];
   public static inputs: QLInputPrototype[] = [];
-  public static resolvers: QLResolverPrototype[] = [];
+  public static resolvers: Array<QLResolverPrototype<any>> = [];
 
   public static addObject(object: QLObjectPrototype) {
     this.objects.push(object);
@@ -28,7 +28,7 @@ export class QLEntryBuffer {
     this.inputs.push(input);
   }
 
-  public static addResolver(resolver: QLResolverPrototype) {
+  public static addResolver(resolver: QLResolverPrototype<any>) {
     this.resolvers.push(resolver);
   }
 }

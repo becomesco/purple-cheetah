@@ -63,10 +63,10 @@ export class MongoDB {
             useNewUrlParser: true,
             useUnifiedTopology: true,
           });
-          this.logger.info('.connect', 'Successful.');
+          this.logger.info('', 'Successful connection.');
           this.connected = true;
         } catch (error) {
-          this.logger.error('.connect', error);
+          this.logger.error('connect', error);
           this.connected = false;
         }
       } else if (this.config.atlas) {
@@ -87,7 +87,7 @@ export class MongoDB {
             useNewUrlParser: true,
             useUnifiedTopology: true,
           });
-          this.logger.info('.connect', 'Successful.');
+          this.logger.info('connect', 'Successful connection.');
           this.connected = true;
         } catch (error) {
           this.logger.error('.connect', error);

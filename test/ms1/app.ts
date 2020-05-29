@@ -27,12 +27,12 @@ import { CacheController } from './cache-controller';
     CacheController.init();
   },
 })
-// @EnableGraphQL({
-//   graphiql: true,
-//   rootName: 'MS1',
-//   uri: '/gql',
-//   entries: [new QLTest()],
-// })
+@EnableGraphQL({
+  graphiql: true,
+  rootName: 'MS1',
+  uri: '/gql',
+  entries: [new QLTest()],
+})
 // @MiracleConnect({
 //   keyStore: {
 //     origin: 'http://localhost:1280',

@@ -7,6 +7,7 @@ import {
   HttpExceptionHandlerMiddleware,
   RequestLoggerMiddleware,
 } from '../middleware';
+import { PurpleCheetah } from '../purple-cheetah';
 
 export function Application(config: {
   port: number;
@@ -57,14 +58,28 @@ export function Application(config: {
     target.prototype.port = config.port;
 
     target.prototype.listen = () => {
-      target.prototype.server.listen(target.prototype.port, (error: Error) => {
-        if (error) {
-          target.prototype.logger.error('.listen', '' + error.stack);
-          return;
-        }
-        target.prototype.logger.info(
-          '.listen',
-          `Server started on port ${target.prototype.port}.`,
+      new Promise((resolve) => {
+        target.prototype.logger.info('', 'Initializing application');
+        const interval = setInterval(() => {
+          if (PurpleCheetah.isQueueFree() === true) {
+            clearInterval(interval);
+            resolve();
+          }
+        }, 50);
+      }).then(() => {
+        target.prototype.logger.info('', 'Starting server...');
+        target.prototype.server.listen(
+          target.prototype.port,
+          (error: Error) => {
+            if (error) {
+              target.prototype.logger.error('listen', '' + error.stack);
+              return;
+            }
+            target.prototype.logger.info(
+              '.listen',
+              `Server started on port ${target.prototype.port}.`,
+            );
+          },
         );
       });
     };

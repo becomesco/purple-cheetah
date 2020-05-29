@@ -1,8 +1,12 @@
 import { QLObject, QLObjectPrototype, QLFieldPrototype } from '../../../../src';
 
+export interface Test {
+  input: string;
+  data: string;
+}
+
 @QLObject({
-  name: 'testt',
-  type: 'Test',
+  name: 'Test',
 })
 export class TestObject implements QLObjectPrototype {
   name: string;

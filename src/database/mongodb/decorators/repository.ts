@@ -1,5 +1,5 @@
 import { Schema, model, Types } from 'mongoose';
-import { MongoDBRepositoryCache } from '../repository-cache';
+import { MongoDBRepositoryBuffer } from '../repository-buffer';
 import { Logger } from '../../../logging';
 import { Entity } from '../models';
 import { MongoDB } from '../mongodb';
@@ -11,13 +11,13 @@ export function MongoDBRepository(config: {
   };
 }) {
   function init(target: any) {
-    if (MongoDBRepositoryCache.has(config.name) === false) {
-      MongoDBRepositoryCache.add(
+    if (MongoDBRepositoryBuffer.has(config.name) === false) {
+      MongoDBRepositoryBuffer.add(
         config.name,
         model(config.name, config.entity.schema),
       );
     }
-    target.prototype.repo = MongoDBRepositoryCache.get(config.name);
+    target.prototype.repo = MongoDBRepositoryBuffer.get(config.name);
     target.prototype.logger = new Logger(target.name);
     findAll(target);
     findAllById(target);

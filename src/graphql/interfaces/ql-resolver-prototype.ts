@@ -6,13 +6,13 @@ export enum QLResolverType {
   MUTATION = 'MUTATION',
 }
 
-export interface QLResolverPrototype {
+export interface QLResolverPrototype<T> {
   name: string;
   type: QLResolverType;
   root: {
     args?: QLArgPrototype[];
     returnType: string;
   };
-  resolver: (args: any) => Promise<QLResponse<any>>;
+  resolver: (args: any) => Promise<QLResponse<T>>;
   description?: string;
 }

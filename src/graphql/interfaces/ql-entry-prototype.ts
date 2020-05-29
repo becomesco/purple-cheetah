@@ -5,5 +5,5 @@ import { QLResolverPrototype } from './ql-resolver-prototype';
 export interface QLEntryPrototype {
   objects: QLObjectPrototype[];
   inputs: QLInputPrototype[];
-  resolvers: QLResolverPrototype[];
+  resolvers: Array<QLResolverPrototype<any>>;
 }

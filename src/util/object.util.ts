@@ -1,87 +1,7 @@
-import { Types } from 'mongoose';
-
+/**
+ * Utility class for object manipulation.
+ */
 export class ObjectUtility {
-  /**
-   * Combine 2 objects into 1 following few rules:
-   *    1. If master does not have a key
-   *      from a slave, it will be added.
-   *    2. If slaves key value is NULL, it
-   *      will be ignored.
-   *    3. All key values from a master that are
-   *      not present in a slave will stay
-   *      unmodified.
-   *    4. Array key values from a slave will be
-   *      just copied to master, even if it is
-   *      array of objects.
-   *    5. If key of a slave is an object, recursion
-   *      will occur.
-   * @param master Object that will be modified.
-   * @param slave Object which key values will be used.
-   */
-  public static combine(master: object, slave: object, level?: string): any {
-    if (!level) {
-      level = 'root';
-    }
-    if (typeof master === 'undefined' && typeof slave !== 'undefined') {
-      return slave;
-    } else if (typeof master !== 'undefined' && typeof slave === 'undefined') {
-      return master;
-    } else if (typeof master === 'undefined' && typeof slave === 'undefined') {
-      // tslint:disable-next-line: no-console
-      console.log(`ERROR at ${level}. Master: ${master}, Slave: ${slave}`);
-      return master;
-    }
-    let p = JSON.parse(JSON.stringify(master));
-    const c = JSON.parse(JSON.stringify(slave));
-    if (!p || p === null) {
-      p = c;
-    } else {
-      for (const key in c) {
-        if (typeof c[key] !== 'undefined' && c[key] !== null) {
-          if (typeof c[key] === 'object') {
-            if (c[key] instanceof Array) {
-              p[key] = c[key];
-            } else {
-              p[key] = ObjectUtility.combine(p[key], c[key], `${level}.${key}`);
-            }
-          } else {
-            p[key] = c[key];
-          }
-        }
-      }
-    }
-    return p;
-  }
-
-  public static merge<T, K>(master: T, slave: K): T {
-    if (!master || !slave) {
-      return master;
-    }
-    let p = JSON.parse(JSON.stringify(master));
-    const c = JSON.parse(JSON.stringify(slave));
-    if (!p || p === null) {
-      p = c;
-    } else {
-      for (const key in c) {
-        if (c[key] !== null) {
-          if (typeof c[key] === 'object') {
-            if (c[key] instanceof Array) {
-              p[key] = c[key];
-            } else {
-              p[key] = ObjectUtility.merge(p[key], c[key]);
-            }
-          } else {
-            p[key] = c[key];
-          }
-        }
-      }
-    }
-    if (p._id) {
-      p._id = new Types.ObjectId(p._id);
-    }
-    return p;
-  }
-
   /**
    * Compare object with a schema. If object does not
    * follow the rules specified by schema, error will be
@@ -132,7 +52,7 @@ export class ObjectUtility {
                 }
               } else {
                 const checkType = object[key].find(
-                  e => typeof e !== schema[key].__child.__type,
+                  (e) => typeof e !== schema[key].__child.__type,
                 );
                 if (checkType) {
                   throw new Error(
@@ -195,30 +115,6 @@ export class ObjectUtility {
   }
 
   /**
-   * Converts property type to its value.
-   */
-  private static typeToValue(type: string): any {
-    switch (type) {
-      case 'object': {
-        return {};
-      }
-      case 'array': {
-        return [];
-      }
-      case 'string': {
-        return '';
-      }
-      case 'number': {
-        return 0;
-      }
-      case 'boolean': {
-        return false;
-      }
-    }
-    return undefined;
-  }
-
-  /**
    * Generate a schema object based on object that is parsed. Will
    * throw an error with a message if problem is detected. Use
    * this method in a try-catch block.
@@ -226,7 +122,7 @@ export class ObjectUtility {
    * @param object Based on this object, schema will be generated.
    * @param level Property that is converted.
    */
-  public static generateSchema(object: any, level?: string): any {
+  public static objectToSchema(object: any, level?: string): any {
     if (!level) {
       level = 'root';
     }
@@ -311,5 +207,29 @@ export class ObjectUtility {
       }
     }
     return schema;
+  }
+
+  /**
+   * Converts property type to its value.
+   */
+  private static typeToValue(type: string): any {
+    switch (type) {
+      case 'object': {
+        return {};
+      }
+      case 'array': {
+        return [];
+      }
+      case 'string': {
+        return '';
+      }
+      case 'number': {
+        return 0;
+      }
+      case 'boolean': {
+        return false;
+      }
+    }
+    return undefined;
   }
 }

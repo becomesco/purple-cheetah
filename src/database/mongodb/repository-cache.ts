@@ -8,11 +8,23 @@ export abstract class MongoDBRepositoryCache<
 > {
   protected cache: T[];
   protected logger: Logger;
+  protected TTL?: number;
+  protected beforeTTL?: () => Promise<void>;
 
   constructor(protected service: MongoDBRepositoryPrototype<T, K>) {
     service.findAll().then((result) => {
       this.cache = result as any;
     });
+    if (this.TTL) {
+      setInterval(async () => {
+        if (this.beforeTTL) {
+          await this.beforeTTL();
+        }
+        service.findAll().then((result) => {
+          this.cache = result as any;
+        });
+      }, this.TTL);
+    }
   }
 
   public findAll(): T[] {
@@ -66,12 +78,4 @@ export abstract class MongoDBRepositoryCache<
     this.cache = this.cache.filter((e) => e._id.toHexString() !== id);
     return true;
   }
-
-  // findAll: () => Promise<T[]>;
-  // findAllById: (ids: string[]) => Promise<T[]>;
-  // findById: (id: string) => Promise<T | null>;
-  // add: (e: T) => Promise<boolean>;
-  // update: (e: T) => Promise<boolean>;
-  // deleteById: (id: string) => Promise<boolean>;
-  // deleteAllById: (ids: string[]) => Promise<boolean | number>;
 }

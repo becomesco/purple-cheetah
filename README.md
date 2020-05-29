@@ -4,21 +4,11 @@
 
 [![npm](https://nodei.co/npm/purple-cheetah.png)](https://www.npmjs.com/package/purple-cheetah)
 
-Purple Cheetah is a micro-framework for Node/Express web applications, mush better would be to say that this is set of utilities and features for Express that will help you make complex web APIs. **Purple Cheetah is not a general purpose framework**, it main purpose is to be used in microservice but it is not limited to.
+Purple Cheetah is a lightweight framework written in Typescript and ExpressJS, meant for building Web APIs (REST and GraphQL). You are probably thinking: Not another javascript framework! And we agree with you. Purple Cheetah was developed to resolve issues in our company and give us tool with small amount of external dependencies. Simply put, Purple Cheetah is not a general purpose framework like NestJS, but because of this, it is small and fast.
 
 ## Get Started
 
-- Clone Purple Cheetah Starter github repository:
-
-```
-$ git clone https://github.com/Bbanez/purple-cheetah-starter
-```
-
-- Install NPM packages and run in development:
-
-```
-$ npm i
-$ npm run dev
-```
-
-Express application will be started on port `1280`.
+- Install Purple Cheetah CLI tool: `npm i -g @becomes/purple-cheetah-cli`
+- Using CLI tool create new project: `becomes-pcc --name hello-world`
+- Navigate to project, run `npm run dev` and in the browser goto `localhost:1280`
+- Done.

@@ -1,6 +1,9 @@
-import * as osu from 'node-os-utils';
-import { MiracleRegistryExtended } from './interfaces';
-import Axios, { Method } from 'axios';
+import {
+  MiracleRegistryExtended,
+  MiracleRequestError,
+  MiracleResponse,
+} from './interfaces';
+import Axios from 'axios';
 import { MiracleSecurity } from './security';
 import { Request } from 'express';
 
@@ -95,20 +98,36 @@ export class Miracle {
     headers?: any;
     queries?: any;
     data?: any;
-  }) {
+  }): Promise<MiracleResponse> {
     const method = 'POST';
     if (
       this.security.checkOutgoingPolicy(config.service, config.uri, method) ===
       false
     ) {
-      throw new Error(
-        `Service with name "${config.service}" is not ` +
-          `listed in outgoing policy for ` +
-          `"${method}: ${config.uri}".`,
-      );
+      return {
+        success: false,
+        response: {
+          type: 'internal',
+          error:
+            `Service with name "${config.service}" is not ` +
+            `listed in outgoing policy for ` +
+            `"${method}: ${config.uri}".`,
+        },
+      };
     }
     this.checkSecurity();
-    const registry = this.findRegistry(config.service);
+    let registry: MiracleRegistryExtended;
+    try {
+      registry = this.findRegistry(config.service);
+    } catch (error) {
+      return {
+        success: false,
+        response: {
+          type: 'internal',
+          error: error.message,
+        },
+      };
+    }
     if (!config.data) {
       config.data = {};
     }
@@ -131,16 +150,29 @@ export class Miracle {
       }
     }
     const signature = this.security.sign(config.data);
-    const result = await Axios({
-      url: `${instance.origin}${config.uri}`,
-      method,
-      headers: config.headers,
-      data: signature,
-    });
-    return {
-      data: result.data,
-      headers: result.headers,
-    };
+    try {
+      const result = await Axios({
+        url: `${instance.origin}${config.uri}`,
+        method,
+        headers: config.headers,
+        data: signature,
+      });
+      return {
+        success: true,
+        response: {
+          data: result.data,
+          headers: result.headers,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        response: {
+          type: 'axios',
+          error,
+        },
+      };
+    }
   }
 
   public static process<T>(request: Request): T {

@@ -59,6 +59,11 @@ export class MiracleGatewayMiddleware implements MiddlewarePrototype {
         return;
       }
       proxy(serviceInstance.origin, {
+        parseReqBody: true,
+        proxyReqOptDecorator: (req) => {
+          req.method = request.method;
+          return req;
+        },
         proxyReqPathResolver: (req) => {
           if (router.rewriteBase === false) {
             return req.url;

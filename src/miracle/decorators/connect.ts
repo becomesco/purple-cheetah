@@ -1,11 +1,15 @@
 import * as crypto from 'crypto';
 import * as osu from 'node-os-utils';
 import Axios from 'axios';
-import { MiracleServiceKeyStoreConfig } from '../interfaces';
+import {
+  MiracleServiceKeyStoreConfig,
+  MiracleGatewayConfig,
+} from '../interfaces';
 import { MiracleSecurity } from '../security';
 import { Miracle } from '../miracle';
 import { Logger } from '../../logging';
-import { Types } from 'mongoose';
+import { MiracleGatewayMiddleware } from '../middleware';
+import { PurpleCheetah } from '../../purple-cheetah';
 
 export function MiracleConnect(config: {
   keyStore: {
@@ -23,8 +27,8 @@ export function MiracleConnect(config: {
       ssl: boolean;
     };
   };
+  gateway?: MiracleGatewayConfig;
 }) {
-
   const initKeyStore = async () => {
     let security: MiracleSecurity;
     {
@@ -79,11 +83,7 @@ export function MiracleConnect(config: {
   };
 
   return (target: any) => {
-    const id = Types.ObjectId();
-    target.prototype.queue.push({
-      id,
-      state: false,
-    });
+    PurpleCheetah.pushToQueue('MiracleConnect');
     const logger = new Logger('MiracleConnect');
     logger.info(
       '',
@@ -91,6 +91,10 @@ export function MiracleConnect(config: {
     );
     initKeyStore()
       .then(async () => {
+        let gatewayMiddleware: MiracleGatewayMiddleware;
+        if (config.gateway) {
+          gatewayMiddleware = new MiracleGatewayMiddleware(config.gateway);
+        }
         await initRegistry();
         logger.info('', 'Connection was successful.');
         setInterval(async () => {
@@ -99,11 +103,12 @@ export function MiracleConnect(config: {
         setInterval(async () => {
           await initKeyStore();
         }, 60000);
-        target.prototype.queue.forEach((e) => {
-          if (e.id === id) {
-            e.state = true;
-          }
-        });
+        if (target.prototype.middleware) {
+          target.prototype.middleware.push(gatewayMiddleware);
+        } else {
+          target.prototype.middleware = [gatewayMiddleware];
+        }
+        PurpleCheetah.freeQueue('MiracleConnect');
       })
       .catch((error) => {
         logger.error('', error);

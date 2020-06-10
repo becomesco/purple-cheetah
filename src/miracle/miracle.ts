@@ -37,6 +37,27 @@ export class Miracle {
     return registry;
   }
 
+  public static findRegistryAndUpdatePointer(name: string) {
+    this.checkRegistries();
+    const registry = this.registries.find((e) => e.name === name);
+    if (!registry) {
+      throw new Error(
+        `Service with name "${name}" does not exist in registry. ` +
+          `Please check if name is correct and if you are connected to Miracle Registry server.`,
+      );
+    }
+    const instance = registry.instances[registry.instancePointer];
+    for (const i in this.registries) {
+      if (this.registries[i].name === registry.name) {
+        this.registries[i].instancePointer =
+          (this.registries[i].instancePointer + 1) %
+          this.registries[i].instances.length;
+        break;
+      }
+    }
+    return instance;
+  }
+
   public static init(security: MiracleSecurity) {
     this.security = security;
   }
@@ -124,5 +145,9 @@ export class Miracle {
 
   public static process<T>(request: Request): T {
     return this.security.processRequest<T>(request);
+  }
+
+  public static getRegistries() {
+    return JSON.parse(JSON.stringify(this.registries));
   }
 }

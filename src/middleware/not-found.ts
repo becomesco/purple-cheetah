@@ -6,7 +6,7 @@ import {
   Request,
   Response,
 } from 'express';
-import { Logger } from 'src/logging';
+import { Logger } from '../logging';
 
 @Middleware({
   after: true,

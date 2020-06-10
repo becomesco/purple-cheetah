@@ -8,14 +8,21 @@ export class MiracleRegistryServerCache {
     clearInterval(this.checkInterval);
     this.checkInterval = setInterval(() => {
       this.registries.forEach((registry) => {
-        registry.instances.forEach((instance) => {
-          if (
-            instance.available === true &&
-            instance.stats.lastCheck < Date.now() - 30000
-          ) {
-            instance.available = false;
-          }
-        });
+        registry.instances = registry.instances
+          .filter(
+            (instance) =>
+              instance.available === false &&
+              instance.stats.lastCheck < Date.now() - 45000,
+          )
+          .map((instance) => {
+            if (
+              instance.available === true &&
+              instance.stats.lastCheck < Date.now() - 30000
+            ) {
+              instance.available = false;
+            }
+            return instance;
+          });
       });
     }, 30000);
   }

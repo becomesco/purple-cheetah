@@ -170,7 +170,10 @@ export function EnableGraphQL(config: {
                     .join(', ') +
                   ')';
               }
-              rootQueryString = rootQueryString.replace('@args', args);
+              rootQueryString = rootQueryString.replace(
+                '@args',
+                args === '()' ? '' : args,
+              );
             }
             break;
           case QLResolverType.MUTATION:
@@ -197,7 +200,10 @@ export function EnableGraphQL(config: {
                     .join(', ') +
                   ')';
               }
-              rootMutationString = rootMutationString.replace('@args', args);
+              rootMutationString = rootMutationString.replace(
+                '@args',
+                args === '()' ? '' : args,
+              );
             }
             break;
         }

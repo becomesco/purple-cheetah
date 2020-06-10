@@ -1,0 +1,29 @@
+{
+  "name": "purple-cheetah-starter",
+  "version": "1.0.0",
+  "description": "Starter project for Purple Cheetah",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "scripts": {
+    "start": "node dist/main.js",
+    "dev": "env-cmd -f app.env nodemon src/main.ts",
+    "build": "tsc -p ."
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "env-cmd": "^10.1.0",
+    "nodemon": "^2.0.4",
+    "ts-node": "^8.10.2"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "nodemonConfig": {
+    "watch": [
+      "src/"
+    ],
+    "ext": "ts"
+  }
+}

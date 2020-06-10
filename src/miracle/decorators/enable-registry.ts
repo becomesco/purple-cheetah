@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import Axios from 'axios';
+import Axios, { AxiosResponse } from 'axios';
 import { Logger } from '../../logging';
 import { MiracleSecurity } from '../security';
 import { MiracleServiceKeyStoreConfig } from '../interfaces';
@@ -16,7 +16,7 @@ export function EnableMiracleRegistry(config: {
     };
   };
 }) {
-  const init = async () => {
+  const init = async (logger: Logger) => {
     let security: MiracleSecurity;
     {
       const data = {
@@ -29,11 +29,30 @@ export function EnableMiracleRegistry(config: {
         .createHmac('sha256', config.keyStore.auth.secret)
         .update(`${data.timestamp}${data.nonce}${data.key}`)
         .digest('hex');
-      const keyStoreAuthResult = await Axios({
-        url: `${config.keyStore.origin}/miracle/key-store/auth`,
-        method: 'POST',
-        data,
-      });
+      let keyStoreAuthResult: AxiosResponse;
+      try {
+        keyStoreAuthResult = await Axios({
+          url: `${config.keyStore.origin}/miracle/key-store/auth`,
+          method: 'POST',
+          data,
+        });
+      } catch (error) {
+        await new Promise((resolve) => {
+          const interval = setInterval(async () => {
+            try {
+              keyStoreAuthResult = await Axios({
+                url: `${config.keyStore.origin}/miracle/key-store/auth`,
+                method: 'POST',
+                data,
+              });
+              clearInterval(interval);
+              resolve();
+            } catch (err) {
+              logger.error('key-store-connection', err);
+            }
+          }, 5000);
+        });
+      }
       const keyStoreConfig: MiracleServiceKeyStoreConfig =
         keyStoreAuthResult.data;
       security = new MiracleSecurity(
@@ -53,11 +72,11 @@ export function EnableMiracleRegistry(config: {
     const logger = new Logger('MiracleRegistry');
     PurpleCheetah.pushToQueue('EnableMiracleRegistry');
     logger.info('', 'Connecting to Miracle Key Store .....');
-    init()
+    init(logger)
       .then(() => {
         logger.info('', 'Connection to Miracle Key Store was successful.');
         setInterval(async () => {
-          await init();
+          await init(logger);
         }, 60000);
         if (!target.prototype.controllers) {
           target.prototype.controllers = [new MiracleRegistryController()];

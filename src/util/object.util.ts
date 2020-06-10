@@ -152,7 +152,7 @@ export class ObjectUtility {
                   __type: 'array',
                   __child: {
                     __type: childType,
-                    __content: ObjectUtility.generateSchema(
+                    __content: ObjectUtility.objectToSchema(
                       object[key][0],
                       level + `.${key}`,
                     ),
@@ -185,7 +185,7 @@ export class ObjectUtility {
                 __type: 'array',
                 __child: {
                   __type: childType,
-                  __content: ObjectUtility.generateSchema(
+                  __content: ObjectUtility.objectToSchema(
                     object[key],
                     level + `.${key}`,
                   ),

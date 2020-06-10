@@ -2,6 +2,10 @@ secret: 'secret'
 iv: '@McQfTjWnZr4u7x!A%D*G-JaNdRgUkXp'
 pass: 'NcRfUjXn2r5u8x/A?D(G-KaPdSgVkYp3'
 services:
+  - name: 'gateway'
+    key: '0'
+    secret: 'gateway'
+    incomingPolicy: []
   - name: 'reg'
     key: '1'
     secret: 'reg'
@@ -11,6 +15,7 @@ services:
         from:
           - 'ms1'
           - 'ms2'
+          - 'gateway'
   - name: 'ms1'
     key: '2'
     secret: 'ms1'

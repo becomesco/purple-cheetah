@@ -5,3 +5,4 @@ export * from './interfaces';
 export * from './interfaces';
 export * from './miracle';
 export * from './security';
+export * from './middleware';

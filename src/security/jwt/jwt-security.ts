@@ -15,6 +15,31 @@ import {
  * Helper class used for creating and validating JWTs.
  */
 export class JWTSecurity {
+  public static checkAndValidateAndGet(
+    JWTString: string,
+    config: {
+      roles: RoleName[];
+      permission: PermissionName;
+      JWTConfig: JWTConfig;
+    },
+  ): Error | JWT {
+    const jwt = JWTEncoding.decode(JWTString);
+    if (jwt instanceof Error) {
+      return jwt;
+    } else {
+      const jwtValid = this.validateAndCheckTokenPermissions(
+        jwt,
+        config.roles,
+        config.permission,
+        config.JWTConfig,
+      );
+      if (jwtValid instanceof Error) {
+        return jwtValid;
+      }
+    }
+    return jwt;
+  }
+
   /**
    * Will create a new JWT with selected options.
    *

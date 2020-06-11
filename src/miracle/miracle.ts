@@ -3,7 +3,7 @@ import {
   MiracleRequestError,
   MiracleResponse,
 } from './interfaces';
-import Axios from 'axios';
+import Axios, { AxiosError } from 'axios';
 import { MiracleSecurity } from './security';
 import { Request } from 'express';
 
@@ -169,7 +169,10 @@ export class Miracle {
         success: false,
         response: {
           type: 'axios',
-          error,
+          error: {
+            src: error,
+            res: (error as AxiosError).response.data,
+          },
         },
       };
     }

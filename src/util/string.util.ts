@@ -1,4 +1,19 @@
+import * as crypto from 'crypto';
+
 export class StringUtility {
+  private static readonly sdNumbers = [
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+  ];
+
   /**
    * Method that check if provided string can be
    * converted to an ObjectId.
@@ -106,9 +121,20 @@ export class StringUtility {
    * @param data Base64 string.
    */
   public static trimBase64url(data: string): string {
-    return data
-      .replace(/=/g, '')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_');
+    return data.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  }
+
+  public static numberCode(size: number): string {
+    if (size < 0) {
+      size = 0;
+    }
+    let code = '';
+    for (let i = 0; i < size; i = i + 1) {
+      code += this.sdNumbers[
+        parseInt(crypto.randomBytes(1).toString('hex'), 16) %
+          this.sdNumbers.length
+      ];
+    }
+    return code;
   }
 }

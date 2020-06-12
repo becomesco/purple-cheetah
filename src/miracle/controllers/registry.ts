@@ -18,22 +18,12 @@ export class MiracleRegistryController {
     MiracleRegistryController.security = security;
   }
 
-  @Get('')
-  async registry(request: Request): Promise<{ registry: any }> {
-    // const error = HttpErrorFactory.instance('.stats', this.logger);
-    // try {
-    //   ObjectUtility.compareWithSchema(
-    //     request.body,
-    //     MiracleRequestSchema,
-    //     'body',
-    //   );
-    // } catch (e) {
-    //   throw error.occurred(HttpStatus.BAD_REQUEST, e.message);
-    // }
-    return {
-      registry: MiracleRegistryServerCache.findAll(),
-    };
-  }
+  // @Get('')
+  // async registry(request: Request): Promise<{ registry: any }> {
+  //   return {
+  //     registry: MiracleRegistryServerCache.findAll(),
+  //   };
+  // }
 
   @Post('/register')
   async register(request: Request): Promise<{ registry: MiracleRegistry[] }> {

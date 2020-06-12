@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import { Controller, Post } from '../../decorators';
+import { Controller, Post, Get } from '../../decorators';
 import { Request } from 'express';
 import { CreateLogger, Logger } from '../../logging';
 import { HttpErrorFactory } from '../../factories';
@@ -11,6 +11,15 @@ import { MiracleKeyStoreConfigCache } from '../cache';
 export class MiracleKeyStoreController {
   @CreateLogger(MiracleKeyStoreController)
   private logger: Logger;
+
+  // @Get('/:name')
+  // async get(request: Request) {
+  //   if (request.params.name === 'none') {
+  //     return MiracleKeyStoreConfigCache.get();
+  //   } else {
+  //     return MiracleKeyStoreConfigCache.byName(request.params.name);
+  //   }
+  // }
 
   @Post('/auth')
   async auth(request: Request) {

@@ -31,16 +31,15 @@ export class MiracleKeyStoreConfigCache {
         conf.key = service.key;
         conf.policy.incoming = service.incomingPolicy;
       } else {
-        const inc = service.incomingPolicy.find((incoming) =>
-          incoming.from.includes(name),
-        );
-        if (inc) {
-          conf.policy.outgoing.push({
-            name: service.name,
-            method: inc.method,
-            path: inc.path,
-          });
-        }
+        service.incomingPolicy.forEach((incoming) => {
+          if (incoming.from.includes(name)) {
+            conf.policy.outgoing.push({
+              name: service.name,
+              method: incoming.method,
+              path: incoming.path,
+            });
+          }
+        });
       }
     });
     return conf;

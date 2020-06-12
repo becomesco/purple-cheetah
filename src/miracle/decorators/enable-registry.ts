@@ -16,56 +16,111 @@ export function EnableMiracleRegistry(config: {
     };
   };
 }) {
-  const init = async (logger: Logger) => {
-    let security: MiracleSecurity;
-    {
-      const data = {
-        nonce: crypto.randomBytes(6).toString('hex'),
-        timestamp: Date.now(),
-        key: config.keyStore.auth.key,
-        signature: '',
-      };
-      data.signature = crypto
-        .createHmac('sha256', config.keyStore.auth.secret)
-        .update(`${data.timestamp}${data.nonce}${data.key}`)
-        .digest('hex');
-      let keyStoreAuthResult: AxiosResponse;
-      try {
-        keyStoreAuthResult = await Axios({
-          url: `${config.keyStore.origin}/miracle/key-store/auth`,
-          method: 'POST',
-          data,
-        });
-      } catch (error) {
-        await new Promise((resolve) => {
-          const interval = setInterval(async () => {
-            try {
-              keyStoreAuthResult = await Axios({
-                url: `${config.keyStore.origin}/miracle/key-store/auth`,
-                method: 'POST',
-                data,
-              });
-              clearInterval(interval);
-              resolve();
-            } catch (err) {
-              logger.error('key-store-connection', err);
-            }
-          }, 5000);
-        });
-      }
-      const keyStoreConfig: MiracleServiceKeyStoreConfig =
-        keyStoreAuthResult.data;
-      security = new MiracleSecurity(
-        keyStoreConfig.name,
-        keyStoreConfig.key,
-        keyStoreConfig.secret,
-        keyStoreConfig.iv,
-        keyStoreConfig.pass,
-        keyStoreConfig.policy,
-      );
+  let inProcessOfKeyStoreInit = false;
+  const initKeyStore = async (logger: Logger) => {
+    inProcessOfKeyStoreInit = true;
+    const data = {
+      nonce: crypto.randomBytes(6).toString('hex'),
+      timestamp: Date.now(),
+      key: config.keyStore.auth.key,
+      signature: '',
+    };
+    data.signature = crypto
+      .createHmac('sha256', config.keyStore.auth.secret)
+      .update(`${data.timestamp}${data.nonce}${data.key}`)
+      .digest('hex');
+    let keyStoreAuthResult: AxiosResponse;
+    try {
+      keyStoreAuthResult = await Axios({
+        url: `${config.keyStore.origin}/miracle/key-store/auth`,
+        method: 'POST',
+        data,
+      });
+    } catch (error) {
+      await new Promise((resolve) => {
+        const interval = setInterval(async () => {
+          try {
+            keyStoreAuthResult = await Axios({
+              url: `${config.keyStore.origin}/miracle/key-store/auth`,
+              method: 'POST',
+              data,
+            });
+            clearInterval(interval);
+            resolve();
+          } catch (err) {
+            logger.error('key-store-connection', err);
+          }
+        }, 5000);
+      });
     }
-    MiracleRegistryServerCache.init();
+    const keyStoreConfig: MiracleServiceKeyStoreConfig =
+      keyStoreAuthResult.data;
+    const security = new MiracleSecurity(
+      keyStoreConfig.name,
+      keyStoreConfig.key,
+      keyStoreConfig.secret,
+      keyStoreConfig.iv,
+      keyStoreConfig.pass,
+      keyStoreConfig.policy,
+    );
     MiracleRegistryController.initSecurity(security);
+    inProcessOfKeyStoreInit = false;
+  };
+  const init = async (logger: Logger) => {
+    await initKeyStore(logger);
+    // let security: MiracleSecurity;
+    // {
+    //   const data = {
+    //     nonce: crypto.randomBytes(6).toString('hex'),
+    //     timestamp: Date.now(),
+    //     key: config.keyStore.auth.key,
+    //     signature: '',
+    //   };
+    //   data.signature = crypto
+    //     .createHmac('sha256', config.keyStore.auth.secret)
+    //     .update(`${data.timestamp}${data.nonce}${data.key}`)
+    //     .digest('hex');
+    //   let keyStoreAuthResult: AxiosResponse;
+    //   try {
+    //     keyStoreAuthResult = await Axios({
+    //       url: `${config.keyStore.origin}/miracle/key-store/auth`,
+    //       method: 'POST',
+    //       data,
+    //     });
+    //   } catch (error) {
+    //     await new Promise((resolve) => {
+    //       const interval = setInterval(async () => {
+    //         try {
+    //           keyStoreAuthResult = await Axios({
+    //             url: `${config.keyStore.origin}/miracle/key-store/auth`,
+    //             method: 'POST',
+    //             data,
+    //           });
+    //           clearInterval(interval);
+    //           resolve();
+    //         } catch (err) {
+    //           logger.error('key-store-connection', err);
+    //         }
+    //       }, 5000);
+    //     });
+    //   }
+    //   const keyStoreConfig: MiracleServiceKeyStoreConfig =
+    //     keyStoreAuthResult.data;
+    //   security = new MiracleSecurity(
+    //     keyStoreConfig.name,
+    //     keyStoreConfig.key,
+    //     keyStoreConfig.secret,
+    //     keyStoreConfig.iv,
+    //     keyStoreConfig.pass,
+    //     keyStoreConfig.policy,
+    //   );
+    // }
+    MiracleRegistryServerCache.init();
+    setInterval(async () => {
+      if (inProcessOfKeyStoreInit === false) {
+        await initKeyStore(logger);
+      }
+    }, 60000);
   };
 
   return (target: any) => {
@@ -75,9 +130,9 @@ export function EnableMiracleRegistry(config: {
     init(logger)
       .then(() => {
         logger.info('', 'Connection to Miracle Key Store was successful.');
-        setInterval(async () => {
-          await init(logger);
-        }, 60000);
+        // setInterval(async () => {
+        //   await init(logger);
+        // }, 60000);
         if (!target.prototype.controllers) {
           target.prototype.controllers = [new MiracleRegistryController()];
         } else {

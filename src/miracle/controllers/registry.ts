@@ -18,12 +18,12 @@ export class MiracleRegistryController {
     MiracleRegistryController.security = security;
   }
 
-  // @Get('')
-  // async registry(request: Request): Promise<{ registry: any }> {
-  //   return {
-  //     registry: MiracleRegistryServerCache.findAll(),
-  //   };
-  // }
+  @Get('')
+  async registry(request: Request): Promise<{ registry: any }> {
+    return {
+      registry: MiracleRegistryServerCache.findAll(),
+    };
+  }
 
   @Post('/register')
   async register(request: Request): Promise<{ registry: MiracleRegistry[] }> {

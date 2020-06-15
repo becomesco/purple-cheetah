@@ -7,6 +7,7 @@ import {
   QLEntryPrototype,
 } from '../interfaces';
 import { QLMiddleware } from '../middleware';
+import { DefaultObjects } from '../factories';
 
 export function EnableGraphQL(config: {
   uri?: string;
@@ -54,6 +55,7 @@ export function EnableGraphQL(config: {
     if (config.objects) {
       stringObjects = [
         QLErrorSchema,
+        ...DefaultObjects.all,
         ...config.objects.map((e) => {
           let result: string = '';
           if (e.description) {

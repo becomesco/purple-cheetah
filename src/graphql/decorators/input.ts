@@ -1,8 +1,9 @@
 import { QLInputPrototype } from '../interfaces';
-import { QLEntryBuffer } from '../buffer';
 
 export function QLInput(config: QLInputPrototype) {
   return (target: any) => {
-    QLEntryBuffer.addInput(config);
+    target.prototype.name = config.name;
+    target.prototype.fields = config.fields;
+    target.prototype.description = config.description;
   };
 }

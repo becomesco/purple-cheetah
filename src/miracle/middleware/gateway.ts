@@ -17,7 +17,7 @@ import { Miracle } from '../miracle';
 
 export class MiracleGatewayMiddleware implements MiddlewarePrototype {
   uri?: string;
-  logger: Logger;
+  logger: Logger = new Logger('MiracleGatewayMiddleware');
   after: boolean = false;
   handler: RequestHandler | RequestHandler[] | ErrorRequestHandler;
   private registries: MiracleRegistryExtended[];
@@ -60,15 +60,21 @@ export class MiracleGatewayMiddleware implements MiddlewarePrototype {
       }
       proxy(serviceInstance.origin, {
         parseReqBody: true,
+        preserveHostHdr: true,
         proxyReqOptDecorator: (req) => {
           req.method = request.method;
           return req;
         },
         proxyReqPathResolver: (req) => {
+          req.query = request.query;
           if (router.rewriteBase === false) {
             return req.url;
           }
-          return req.url.replace(router.uri, '');
+          let url = req.url.replace(router.uri, '');
+          if (url.startsWith('?')) {
+            url = '/' + url;
+          }
+          return url;
         },
         proxyErrorHandler: (err, res, nextFn) => {
           if (err.code === 'ECONNREFUSED') {
@@ -79,6 +85,7 @@ export class MiracleGatewayMiddleware implements MiddlewarePrototype {
             res.end();
             return;
           }
+          this.logger.info('here', res);
           nextFn(err);
         },
       })(request, response, next);

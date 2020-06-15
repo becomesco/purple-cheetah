@@ -9,7 +9,7 @@ export function QLResolver<T>(config: {
   type: QLResolverType;
   args?: QLArgPrototype[];
   returnType: string;
-  resolver: (...args: any) => Promise<T> | T;
+  resolver: (...args: any) => Promise<T>;
 }) {
   return (target: any) => {
     const resolver: QLResolverPrototype<T> = {

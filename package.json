@@ -1,6 +1,6 @@
 {
   "name": "@becomes/purple-cheetah",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Framework for node/express applications.",
   "main": "./index.js",
   "types": "./index.d.ts",
@@ -51,7 +51,8 @@
     "node-os-utils": "^1.2.2",
     "socket.io": "^2.3.0",
     "socket.io-client": "^2.3.0",
-    "yamljs": "^0.3.0"
+    "yamljs": "^0.3.0",
+    "fs-extra": "^8.1.0"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
@@ -69,7 +70,6 @@
     "@types/socket.io-client": "^1.4.32",
     "@types/yamljs": "^0.2.30",
     "env-cmd": "^10.1.0",
-    "fs-extra": "^8.1.0",
     "listr": "^0.14.3",
     "nodemon": "^2.0.3",
     "ts-node": "^8.9.1",

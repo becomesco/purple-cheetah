@@ -150,11 +150,13 @@ export function MongoDBRepository(config: {
           return false;
         }
         try {
+          const buffer = JSON.parse(JSON.stringify(e));
+          delete buffer.createdAt;
           e.updatedAt = Date.now();
-          e.createdAt = undefined;
+          buffer.updatedAt = e.updatedAt;
           await target.prototype.repo.updateOne(
             { _id: e._id.toHexString() },
-            e,
+            buffer,
           );
           return true;
         } catch (error) {

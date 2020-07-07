@@ -59,13 +59,6 @@ export function MiracleConnect(config: {
       );
     }
     Miracle.init(security);
-    // if (!target.prototype.controllers) {
-    //   target.prototype.controllers = [new MiracleHeartbeatController(security)];
-    // } else {
-    //   target.prototype.controllers.push(
-    //     new MiracleHeartbeatController(security),
-    //   );
-    // }
   };
 
   const initRegistry = async () => {

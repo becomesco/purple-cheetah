@@ -47,7 +47,7 @@ export class MiracleKeyStoreController {
       throw error.occurred(HttpStatus.BAD_REQUEST, e.message);
     }
     if (
-      request.body.timestamp < Date.now() - 3000 ||
+      request.body.timestamp < Date.now() - 5000 ||
       request.body.timestamp > Date.now() + 1000
     ) {
       throw error.occurred(HttpStatus.FORBIDDEN, 'Timestamp is out of range.');

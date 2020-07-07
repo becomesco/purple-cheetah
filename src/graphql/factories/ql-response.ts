@@ -8,11 +8,12 @@ export class QLResponseFactory {
     name: string;
     object: QLObjectPrototype;
   } {
+    const eName = `${edgeName.replace(/\[/g, '').replace(/\]/g, '')}Response`;
     const eType = typeof edgeType !== 'string' ? edgeName : edgeType;
     return {
-      name: `${edgeName}Response`,
+      name: eName,
       object: {
-        name: `${edgeName}Response`,
+        name: eName,
         fields: [
           {
             name: 'error',

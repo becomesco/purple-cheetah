@@ -266,7 +266,7 @@ export function EnableGraphQL(config: {
 
       ${qmState.find((e) => e === true) ? schema : ''}
     `;
-    console.log(fullSchema);
+    // console.log(fullSchema);
     if (!target.prototype.middleware) {
       target.prototype.middleware = [];
     }

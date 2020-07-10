@@ -12,12 +12,15 @@ export function QLResolver<T>(config: {
   resolver: (...args: any) => Promise<T>;
 }) {
   return (target: any) => {
+    if (!config.args) {
+      config.args = [];
+    }
     const resolver: QLResolverPrototype<T> = {
       description: config.description,
       name: config.name,
       type: config.type,
       root: {
-        args: config.args || [],
+        args: config.args,
         returnType: QLResponseFactory.create(config.returnType).name,
       },
       resolver: async (args: any) => {
@@ -36,11 +39,11 @@ export function QLResolver<T>(config: {
               edge: result,
             };
           } catch (error) {
-            if (error.status && error.message) {
+            if (error.status && error.message && error.message.message) {
               return {
                 error: {
                   status: error.status,
-                  message: error.message,
+                  message: error.message.message,
                   payloadBase64: Buffer.from(JSON.stringify(error)).toString(
                     'base64',
                   ),

@@ -1,14 +1,19 @@
 import * as socketIO from 'socket.io';
 import { Logger } from '../../logging';
-import { SocketEventHandler } from '../interfaces';
+import { SocketEventHandler, SocketConnection } from '../interfaces';
+import { SocketConnectionService } from '../connection-handler';
 
 export function EnableSocketServer(config: {
-  origins: string[];
+  origins?: string[];
   path: string;
-  allowConnectionFn?: (request: any) => Promise<boolean>;
-  verifyConnectionFn?: (socket: socketIO.Socket) => Promise<boolean>;
-  eventHandlerFns?: SocketEventHandler[];
+  onConnection: (socket: SocketIO.Socket) => SocketConnection;
+  allowConnection?: (request: any) => Promise<boolean>;
+  verifyConnection?: (socket: socketIO.Socket) => Promise<boolean>;
+  eventHandlers?: SocketEventHandler[];
 }) {
+  if (!config.eventHandlers) {
+    config.eventHandlers = [];
+  }
   return (target: any) => {
     const logger: Logger = new Logger('SocketServer');
     if (!target.prototype.server) {
@@ -24,11 +29,11 @@ export function EnableSocketServer(config: {
       cookie: false,
       allowRequest: async (request, callback) => {
         logger.info('.allowConnection', 'Incoming connection...');
-        if (!config.allowConnectionFn) {
+        if (!config.allowConnection) {
           callback(0, true);
           return;
         }
-        if ((await config.allowConnectionFn(request)) === false) {
+        if ((await config.allowConnection(request)) === false) {
           callback(401, false);
           return;
         }
@@ -36,8 +41,8 @@ export function EnableSocketServer(config: {
       },
     });
     socketIOServer.use(async (socket, next) => {
-      if (config.verifyConnectionFn) {
-        if ((await config.verifyConnectionFn(socket)) === false) {
+      if (config.verifyConnection) {
+        if ((await config.verifyConnection(socket)) === false) {
           next(`Failed to verify connection for socket "${socket.id}".`);
           return;
         }
@@ -49,15 +54,20 @@ export function EnableSocketServer(config: {
         '.connection',
         `Socket "${socket.id}" connected successfully.`,
       );
-      config.eventHandlerFns.forEach((e) => {
-        socket.on(e.name, e.handler);
+      const connection = config.onConnection(socket);
+      SocketConnectionService.add(connection);
+      config.eventHandlers.forEach((e) => {
+        const handler = async (message) => {
+          await e.handler(message, socket);
+        };
+        socket.on(e.name, handler);
       });
       socket.on('disconnect', () => {
         logger.info(
           '.disconnect',
           `Socket "${socket.id}" has been disconnected.`,
         );
-        socket.disconnect(true);
+        SocketConnectionService.disconnect([connection.id]);
       });
     });
   };

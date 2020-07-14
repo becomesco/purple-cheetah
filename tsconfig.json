@@ -13,7 +13,7 @@
     "incremental": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist", "test", "public"],
+  "exclude": ["node_modules", "dist", "test",  "public"],
   "typedocOptions": {
     "name": "Purple Cheetah",
     "mode": "file",

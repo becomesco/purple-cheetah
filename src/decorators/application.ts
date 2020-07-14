@@ -8,6 +8,7 @@ import {
   RequestLoggerMiddleware,
 } from '../middleware';
 import { PurpleCheetah } from '../purple-cheetah';
+import { MiracleGatewayConfig, MiracleGatewayMiddleware } from '../miracle';
 
 export function Application(config: {
   port: number;
@@ -16,6 +17,7 @@ export function Application(config: {
   requestLoggerMiddleware?: MiddlewarePrototype;
   notFoundMiddleware?: MiddlewarePrototype;
   httpExceptionHandlerMiddleware?: MiddlewarePrototype;
+  gateway?: MiracleGatewayConfig;
 }) {
   return (target: any) => {
     target.prototype.logger = new Logger('PurpleCheetah');
@@ -56,7 +58,10 @@ export function Application(config: {
       target.prototype.middleware.push(new NotFoundMiddleware());
     }
     target.prototype.port = config.port;
-
+    if (config.gateway) {
+      const gatewayMiddleware = new MiracleGatewayMiddleware(config.gateway);
+      target.prototype.middleware.push(gatewayMiddleware);
+    }
     target.prototype.listen = () => {
       new Promise((resolve) => {
         target.prototype.logger.info('', 'Initializing application');

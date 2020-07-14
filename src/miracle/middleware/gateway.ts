@@ -1,94 +1,86 @@
-import * as proxy from 'express-http-proxy';
-import {
-  RequestHandler,
-  ErrorRequestHandler,
-  Request,
-  Response,
-  NextFunction,
-} from 'express';
-import { MiddlewarePrototype } from '../../interfaces';
+import { RequestHandler, ErrorRequestHandler } from 'express';
+import { MiddlewarePrototype, HttpStatus } from '../../interfaces';
 import { Logger } from '../../logging';
-import {
-  MiracleGatewayConfig,
-  MiracleRegistryExtended,
-  MiracleRegistryInstance,
-} from '../interfaces';
+import { MiracleGatewayConfig, MiracleRegistryInstance } from '../interfaces';
 import { Miracle } from '../miracle';
+import { createProxyMiddleware } from 'http-proxy-middleware';
+import { HttpErrorFactory } from '../../factories';
 
 export class MiracleGatewayMiddleware implements MiddlewarePrototype {
   uri?: string;
   logger: Logger = new Logger('MiracleGatewayMiddleware');
   after: boolean = false;
   handler: RequestHandler | RequestHandler[] | ErrorRequestHandler;
-  private registries: MiracleRegistryExtended[];
-  private registryHash: string = '';
 
-  constructor(config: MiracleGatewayConfig) {
+  constructor(private config: MiracleGatewayConfig) {
+    if (!this.config.options) {
+      this.config.options = {};
+    }
+    if (!this.config.options.pathRewrite) {
+      this.config.options.pathRewrite = async (path, req) => {
+        const sr = this.getServiceAndRouter(path);
+        return path.replace(sr.router.uri, '');
+      };
+    }
+    if (!this.config.options.router) {
+      this.config.options.router = async (req) => {
+        const sr = this.getServiceAndRouter(req.url);
+        return sr.serviceInstance.origin;
+      };
+    }
+    if (!this.config.options.onError) {
+      this.config.options.onError = (err, req, res) => {
+        this.logger.warn(req.url, err);
+        res.end();
+      };
+    }
     this.uri = config.baseUri;
-    this.handler = async (
-      request: Request,
-      response: Response,
-      next: NextFunction,
-    ) => {
-      const uri = request.url;
-      const router = config.router.find((e) => uri.startsWith(e.uri));
-      if (!router) {
-        next();
-        return;
-      }
-      let serviceInstance: MiracleRegistryInstance;
-      try {
-        serviceInstance = Miracle.findRegistryAndUpdatePointer(router.name);
-      } catch (error) {
-        serviceInstance = undefined;
-      }
-      if (!serviceInstance) {
-        response.status(502);
-        response.json({
-          message: 'No available instance of the service exist.',
-        });
-        response.end();
-        return;
-      }
-      if (serviceInstance.available === false) {
-        response.status(503);
-        response.json({
-          message: 'Service instance is not available at the moment.',
-        });
-        response.end();
-        return;
-      }
-      proxy(serviceInstance.origin, {
-        parseReqBody: true,
-        preserveHostHdr: true,
-        proxyReqOptDecorator: (req) => {
-          req.method = request.method;
-          return req;
-        },
-        proxyReqPathResolver: (req) => {
-          req.query = request.query;
-          if (router.rewriteBase === false) {
-            return req.url;
-          }
-          let url = req.url.replace(router.uri, '');
-          if (url.startsWith('?')) {
-            url = '/' + url;
-          }
-          return url;
-        },
-        proxyErrorHandler: (err, res, nextFn) => {
-          if (err.code === 'ECONNREFUSED') {
-            res.status(503);
-            res.json({
-              message: 'Service unavailable.',
-            });
-            res.end();
-            return;
-          }
-          this.logger.info('here', res);
-          nextFn(err);
-        },
-      })(request, response, next);
+    this.handler = createProxyMiddleware(config.baseUri, {
+      target: 'http://localhost:80',
+      changeOrigin: true,
+      ws: true,
+      pathRewrite: config.options.pathRewrite,
+      router: config.options.router,
+      onError: this.config.options.onError,
+      onProxyReq: this.config.options.onProxyReq,
+      onProxyRes: this.config.options.onProxyRes,
+      onProxyReqWs: this.config.options.onProxyReqWs,
+    });
+  }
+
+  private getServiceAndRouter(path: string) {
+    let uri = `${path}`;
+    if (uri.startsWith(this.uri)) {
+      uri = uri.replace(this.uri, '');
+    }
+    const router = this.config.router.find((e) => uri.startsWith(e.uri));
+    if (!router) {
+      throw HttpErrorFactory.instance(path, this.logger).occurred(
+        HttpStatus.SERVICE_UNAVAILABLE,
+        `Router does not exist for "${uri}"`,
+      );
+    }
+    let serviceInstance: MiracleRegistryInstance;
+    try {
+      serviceInstance = Miracle.findRegistryAndUpdatePointer(router.name);
+    } catch (error) {
+      serviceInstance = undefined;
+    }
+    if (!serviceInstance) {
+      throw HttpErrorFactory.instance(path, this.logger).occurred(
+        HttpStatus.SERVICE_UNAVAILABLE,
+        'No available instance of the service exist.',
+      );
+    }
+    if (serviceInstance.available === false) {
+      throw HttpErrorFactory.instance(path, this.logger).occurred(
+        HttpStatus.SERVICE_UNAVAILABLE,
+        'Service instance is not available at the moment.',
+      );
+    }
+    return {
+      router,
+      serviceInstance,
     };
   }
 }

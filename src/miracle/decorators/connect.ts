@@ -84,10 +84,10 @@ export function MiracleConnect(config: {
     );
     initKeyStore()
       .then(async () => {
-        let gatewayMiddleware: MiracleGatewayMiddleware;
-        if (config.gateway) {
-          gatewayMiddleware = new MiracleGatewayMiddleware(config.gateway);
-        }
+        // let gatewayMiddleware: MiracleGatewayMiddleware;
+        // if (config.gateway) {
+        //   gatewayMiddleware = new MiracleGatewayMiddleware(config.gateway);
+        // }
         await initRegistry();
         logger.info('', 'Connection was successful.');
         setInterval(async () => {
@@ -96,11 +96,11 @@ export function MiracleConnect(config: {
         setInterval(async () => {
           await initKeyStore();
         }, 60000);
-        if (target.prototype.middleware) {
-          target.prototype.middleware.push(gatewayMiddleware);
-        } else {
-          target.prototype.middleware = [gatewayMiddleware];
-        }
+        // if (target.prototype.middleware) {
+        //   target.prototype.middleware.push(gatewayMiddleware);
+        // } else {
+        //   target.prototype.middleware = [gatewayMiddleware];
+        // }
         PurpleCheetah.freeQueue('MiracleConnect');
       })
       .catch((error) => {

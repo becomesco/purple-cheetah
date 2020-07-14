@@ -1,9 +1,6 @@
 export interface SocketConnection {
+  id: string;
   createdAt: number;
-  name: string;
-  connected: {
-    state: boolean;
-    error: any;
-  };
-  socket: any;
+  group: string;
+  socket: SocketIO.Socket;
 }

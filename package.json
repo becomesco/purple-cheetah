@@ -25,6 +25,7 @@
     "test-ms2": "env-cmd -f test/ms2.env ts-node test/ms2/main.ts",
     "dev-ms22": "env-cmd -f test/ms22.env nodemon test/ms2/main.ts",
     "test-ms22": "env-cmd -f test/ms22.env ts-node test/ms2/main.ts",
+    "test-socket-server": "env-cmd -f test/socket-server.env ts-node test/socket-server/main.ts",
     "typedoc-generate": "typedoc",
     "test": "mocha ./test --recursive --exit"
   },
@@ -46,13 +47,14 @@
     "express": "^4.17.1",
     "express-graphql": "^0.9.0",
     "express-http-proxy": "^1.6.0",
+    "fs-extra": "^8.1.0",
     "graphql": "^14.6.0",
+    "http-proxy-middleware": "^1.0.5",
     "mongoose": "^5.9.5",
     "node-os-utils": "^1.2.2",
     "socket.io": "^2.3.0",
     "socket.io-client": "^2.3.0",
-    "yamljs": "^0.3.0",
-    "fs-extra": "^8.1.0"
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
@@ -63,6 +65,7 @@
     "@types/express-http-proxy": "^1.6.1",
     "@types/fs-extra": "^8.1.0",
     "@types/graphql": "^14.5.0",
+    "@types/http-proxy-middleware": "^0.19.3",
     "@types/mongoose": "^5.7.14",
     "@types/node": "^12.12.37",
     "@types/node-os-utils": "^1.2.0",

@@ -1,3 +1,5 @@
+import { Options } from 'http-proxy-middleware';
+
 export interface MiracleGatewayConfig {
   baseUri?: string;
   router: Array<{
@@ -5,4 +7,5 @@ export interface MiracleGatewayConfig {
     name: string;
     rewriteBase?: boolean;
   }>;
+  options?: Options;
 }

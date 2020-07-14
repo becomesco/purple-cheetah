@@ -19,7 +19,7 @@ export class MiracleGatewayMiddleware implements MiddlewarePrototype {
     if (!this.config.options.pathRewrite) {
       this.config.options.pathRewrite = async (path, req) => {
         const sr = this.getServiceAndRouter(path);
-        return path.replace(sr.router.uri, '');
+        return path.replace(`${this.uri}${sr.router.uri}`, '');
       };
     }
     if (!this.config.options.router) {

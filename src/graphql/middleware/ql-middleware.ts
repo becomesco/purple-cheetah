@@ -19,10 +19,16 @@ export class QLMiddleware implements MiddlewarePrototype {
     if (config.uri) {
       this.uri = config.uri;
     }
-    this.handler = graphqlHTTP({
-      schema: buildSchema(config.schema),
-      rootValue: config.rootValue,
-      graphiql: config.graphiql,
+    const schema = buildSchema(config.schema);
+    this.handler = graphqlHTTP((req, res) => {
+      if (req.headers['x-proxy-timer-time']) {
+        res.setHeader('x-proxy-timer-time', req.headers['x-proxy-timer-time']);
+      }
+      return {
+        schema,
+        rootValue: config.rootValue,
+        graphiql: config.graphiql,
+      };
     });
   }
 }

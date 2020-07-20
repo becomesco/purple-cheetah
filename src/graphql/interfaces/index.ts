@@ -6,3 +6,5 @@ export * from './ql-error';
 export * from './ql-arg-prototype';
 export * from './ql-response';
 export * from './ql-entry-prototype';
+export * from './ql-union-prototype';
+export * from './ql-enum-prototype';

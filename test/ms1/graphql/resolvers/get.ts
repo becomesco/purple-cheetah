@@ -5,9 +5,10 @@ import {
   QLResponse,
   QLResolver,
 } from '../../../../src';
-import { Test } from '../objects/test';
+import { Test } from '../objects';
+import { TestU } from '../unions';
 
-@QLResolver<Test>({
+@QLResolver({
   args: [
     {
       name: 'input',
@@ -15,19 +16,33 @@ import { Test } from '../objects/test';
     },
   ],
   name: 'test',
-  returnType: 'Test',
+  returnType: 'TestUnion',
   type: QLResolverType.QUERY,
-  resolver: (input: string) => {
-    return {
-      input,
-      data: 'Test',
-    };
+  unionTypeResolver: (obj) => {
+    if (obj.data2) {
+      return 'Test2';
+    }
+    if (obj.data) {
+      return 'Test';
+    }
+    return null;
+  },
+  resolver: async (input: string) => {
+    return [
+      {
+        input,
+        data: 'Test',
+      },
+      {
+        data2: 'Test2',
+      },
+    ];
   },
 })
-export class GetTestResolver implements QLResolverPrototype<Test> {
+export class GetTestResolver implements QLResolverPrototype<TestU> {
   name: string;
   type: QLResolverType;
   root: { args?: QLArgPrototype[]; returnType: string };
-  resolver: (args: any) => Promise<QLResponse<Test>>;
+  resolver: (args: any) => Promise<QLResponse<TestU>>;
   description?: string;
 }

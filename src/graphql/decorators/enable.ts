@@ -5,6 +5,8 @@ import {
   QLResolverType,
   QLErrorSchema,
   QLEntryPrototype,
+  QLUnionPrototype,
+  QLEnumPrototype,
 } from '../interfaces';
 import { QLMiddleware } from '../middleware';
 import { DefaultObjects } from '../factories';
@@ -16,6 +18,8 @@ export function EnableGraphQL(config: {
   objects?: QLObjectPrototype[];
   inputs?: QLInputPrototype[];
   resolvers?: Array<QLResolverPrototype<any>>;
+  unions?: QLUnionPrototype[];
+  enums?: QLEnumPrototype[];
   graphiql: boolean;
 }) {
   return (target: any) => {
@@ -28,6 +32,12 @@ export function EnableGraphQL(config: {
     if (!config.resolvers) {
       config.resolvers = [];
     }
+    if (!config.unions) {
+      config.unions = [];
+    }
+    if (!config.enums) {
+      config.enums = [];
+    }
     config.objects = [
       ...config.objects,
       ...config.objects.map((e) => {
@@ -37,7 +47,9 @@ export function EnableGraphQL(config: {
     if (config.entries) {
       for (const i in config.entries) {
         config.objects = [...config.objects, ...config.entries[i].objects];
+        config.unions = [...config.unions, ...config.entries[i].unions];
         config.inputs = [...config.inputs, ...config.entries[i].inputs];
+        config.enums = [...config.enums, ...config.entries[i].enums];
         config.resolvers = [
           ...config.resolvers,
           ...config.entries[i].resolvers,
@@ -45,6 +57,11 @@ export function EnableGraphQL(config: {
         config.entries[i].objects.forEach((object) => {
           if (object.wrapperObject) {
             config.objects.push(object.wrapperObject);
+          }
+        });
+        config.entries[i].unions.forEach((union) => {
+          if (union.wrapperObject) {
+            config.objects.push(union.wrapperObject);
           }
         });
       }
@@ -100,6 +117,26 @@ export function EnableGraphQL(config: {
           return result;
         }),
       ].join('\n');
+    }
+
+    let stringUnions: string = '';
+    if (config.unions) {
+      stringUnions = config.unions
+        .map((union) => {
+          return `union ${union.name} = ${union.types.join(' | ')}`;
+        })
+        .join('\n');
+    }
+
+    let stringEnums: string = '';
+    if (config.enums) {
+      stringEnums = config.enums
+        .map((e) => {
+          return `enum ${e.name} {
+          ${e.values.join('\n')}
+          }`;
+        })
+        .join('\n');
     }
 
     let stringInputs: string = '';
@@ -256,7 +293,11 @@ export function EnableGraphQL(config: {
       schema = schema.replace('@query', '');
     }
     const fullSchema = `
+      ${stringEnums}
+
       ${stringObjects}
+
+      ${stringUnions}
 
       ${stringInputs}
 

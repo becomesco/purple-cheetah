@@ -9,6 +9,7 @@ export function QLResolver<T>(config: {
   type: QLResolverType;
   args?: QLArgPrototype[];
   returnType: string;
+  unionTypeResolver?: (obj?: any) => T;
   resolver: (...args: any) => Promise<T>;
 }) {
   return (target: any) => {
@@ -31,13 +32,23 @@ export function QLResolver<T>(config: {
           try {
             const result = await config.resolver(...a);
             if (result instanceof Array) {
+              if (typeof config.unionTypeResolver === 'function') {
+                console.log(config);
+                return {
+                  edges: config.unionTypeResolver(result),
+                };
+              }
               return {
                 edges: result,
               };
             }
-            return {
-              edge: result,
-            };
+            if (typeof config.unionTypeResolver === 'function') {
+              return {
+                edge: config.unionTypeResolver(result),
+              };
+            } else {
+              return { edge: result };
+            }
           } catch (error) {
             if (error.status && error.message && error.message.message) {
               return {

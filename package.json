@@ -1,6 +1,6 @@
 {
   "name": "@becomes/purple-cheetah",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "Framework for node/express applications.",
   "main": "./index.js",
   "types": "./index.d.ts",

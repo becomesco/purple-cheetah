@@ -1,4 +1,4 @@
-import { ObjectSchema } from 'src/util';
+import { ObjectSchema } from '../../util';
 
 export interface MiracleKeyStoreConfig {
   secret: string;

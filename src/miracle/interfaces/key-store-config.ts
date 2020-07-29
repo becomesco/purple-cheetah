@@ -1,3 +1,5 @@
+import { ObjectSchema } from 'src/util';
+
 export interface MiracleKeyStoreConfig {
   secret: string;
   iv: string;
@@ -14,7 +16,7 @@ export interface MiracleKeyStoreConfig {
   }>;
 }
 
-export const MiracleKeyStoreConfigSchema = {
+export const MiracleKeyStoreConfigSchema: ObjectSchema = {
   secret: {
     __type: 'string',
     __required: true,

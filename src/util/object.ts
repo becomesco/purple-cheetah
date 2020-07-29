@@ -1,3 +1,16 @@
+export interface ObjectSchema {
+  [key: string]: {
+    __type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+    __required: boolean;
+    __child?:
+      | {
+          __type?: 'string' | 'number' | 'boolean' | 'object';
+          __content?: ObjectSchema;
+        }
+      | ObjectSchema;
+  };
+}
+
 /**
  * Utility class for object manipulation.
  */
@@ -15,7 +28,7 @@ export class ObjectUtility {
    */
   public static compareWithSchema(
     object: any,
-    schema: any,
+    schema: ObjectSchema,
     level?: string,
   ): void {
     if (typeof level === 'undefined') {
@@ -46,7 +59,7 @@ export class ObjectUtility {
                 for (const i in object[key]) {
                   ObjectUtility.compareWithSchema(
                     object[key][i],
-                    schema[key].__child.__content,
+                    schema[key].__child.__content as ObjectSchema,
                     level + `.${key}`,
                   );
                 }
@@ -81,7 +94,7 @@ export class ObjectUtility {
           if (schema[key].__type === 'object') {
             ObjectUtility.compareWithSchema(
               object[key],
-              schema[key].__child,
+              schema[key].__child as ObjectSchema,
               level + `.${key}`,
             );
           }

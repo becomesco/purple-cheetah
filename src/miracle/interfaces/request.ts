@@ -1,3 +1,5 @@
+import { ObjectSchema } from 'src/util';
+
 export interface MiracleRequest {
   key: string;
   nonce: string;
@@ -6,7 +8,7 @@ export interface MiracleRequest {
   payload: string;
 }
 
-export const MiracleRequestSchema = {
+export const MiracleRequestSchema: ObjectSchema = {
   key: {
     __type: 'string',
     __required: true,

@@ -1,4 +1,5 @@
 export interface MongoDBConfig {
+  doNotUse?: boolean;
   onConnection?: () => void;
   onInitialize?: () => void;
   selfHosted?: {

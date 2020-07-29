@@ -4,6 +4,9 @@ import { PurpleCheetah } from '../../../purple-cheetah';
 
 export function EnableMongoDB(config: MongoDBConfig) {
   return (target: any) => {
+    if (config.doNotUse === true) {
+      return;
+    }
     PurpleCheetah.pushToQueue('MongoDB');
     mongoDB.MongoDB.connect(config).then(() => {
       if (config.onConnection) {

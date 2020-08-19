@@ -1,7 +1,7 @@
 import * as util from 'util';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as fsExtra from 'fs-extra';
+import * as fse from 'fs-extra';
 
 export class FSUtil {
   private static base = '/';
@@ -61,7 +61,11 @@ export class FSUtil {
   }
 
   public static async deleteDir(root: string) {
-    await fsExtra.remove(path.join(FSUtil.base, root));
+    await fse.remove(path.join(FSUtil.base, root));
+  }
+
+  public static async readdir(root: string) {
+    return await util.promisify(fs.readdir)(path.join(FSUtil.base, root));
   }
 
   public static async rename(oldRoot: string, newRoot: string) {

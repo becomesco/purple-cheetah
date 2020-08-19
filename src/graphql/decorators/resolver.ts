@@ -33,7 +33,6 @@ export function QLResolver<T>(config: {
             const result = await config.resolver(...a);
             if (result instanceof Array) {
               if (typeof config.unionTypeResolver === 'function') {
-                console.log(config);
                 return {
                   edges: config.unionTypeResolver(result),
                 };

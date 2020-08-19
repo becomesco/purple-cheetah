@@ -1,174 +1,166 @@
-import * as crypto from 'crypto';
 import * as path from 'path';
-import { ObjectSchema, FSUtil, ObjectUtility, Queueable } from '../../util';
-import { Types } from 'mongoose';
 import { FSDBEntity } from './interfaces';
+import {
+  ObjectSchema,
+  FSUtil,
+  QueueablePrototype,
+  Queueable,
+  ObjectUtility,
+} from '../../util';
+import { Types } from 'mongoose';
 
-export class Model<T extends FSDBEntity> extends Queueable {
+export class Model<T extends FSDBEntity> {
+  private initialized = false;
+  private files: string[] = [];
+  private readonly FILE_ENDING = '.entity.json';
   private readonly collection: string;
-  private hash: string;
-  private entries: T[];
+  private readonly queueable: QueueablePrototype<T | T[] | void>;
 
   constructor(
     private readonly schema: ObjectSchema,
     rootPath: string,
     collection: string,
   ) {
-    super({
-      add: {
-        list: [],
-        open: false,
-      },
-      addMany: {
-        list: [],
-        open: false,
-      },
-      update: {
-        list: [],
-        open: false,
-      },
-      delete: {
-        list: [],
-        open: false,
-      },
-      deleteMany: {
-        list: [],
-        open: false,
-      },
-    });
-    this.collection = path.join(rootPath, collection + '.json');
+    this.collection = path.join(rootPath, collection);
+    this.queueable = Queueable('read', 'write', 'remove');
   }
 
-  private async loadCollection() {
-    if (!this.entries) {
+  private async init() {
+    if (this.initialized === false) {
+      this.initialized = true;
       if (!(await FSUtil.exist(this.collection))) {
-        this.entries = [];
-        this.hash = crypto.createHash('sha256').update('[]').digest('hex');
-        await FSUtil.save('[]', this.collection);
+        await FSUtil.mkdir(this.collection);
       } else {
-        this.entries = JSON.parse(
-          (await FSUtil.read(this.collection)).toString(),
-        );
+        this.files = (await FSUtil.readdir(this.collection))
+          .filter((e) => e.endsWith(this.FILE_ENDING))
+          .map((e) => {
+            return e.replace(this.FILE_ENDING, '');
+          });
       }
     }
   }
 
-  private async write() {
-    if (
-      this.hash ===
-      crypto
-        .createHash('sha256')
-        .update(JSON.stringify(this.entries))
-        .digest('hex')
-    ) {
-      return;
-    }
-    let isWritable = true;
-    for (const key in this.queue) {
-      if (this.queue[key].open === true) {
-        isWritable = false;
-        break;
+  private async read(id: string): Promise<T> {
+    return (await this.queueable.exec('read', 'free_one_by_one', async () => {
+      const fp = path.join(this.collection, `${id}${this.FILE_ENDING}`);
+      if (!(await FSUtil.exist(fp))) {
+        throw new Error(`File ${fp} does not exist.`);
       }
-    }
-    if (isWritable) {
-      this.hash = crypto
-        .createHash('sha256')
-        .update(JSON.stringify(this.entries))
-        .digest('hex');
-      await FSUtil.save(JSON.stringify(this.entries), this.collection);
-    }
+      return JSON.parse((await FSUtil.read(fp)).toString());
+    })) as T;
   }
 
-  async findOne(query: (entry: T) => boolean): Promise<T | undefined> {
-    await this.loadCollection();
-    return this.entries.find((e) => query(e));
-  }
-
-  async find(query?: (entry: T) => boolean): Promise<T[]> {
-    await this.loadCollection();
-    if (!query) {
-      return JSON.parse(JSON.stringify(this.entries));
-    }
-    return this.entries.filter((e) => query(e));
-  }
-
-  async add(entry: T): Promise<void> {
-    await this.loadCollection();
-    await this.queueable<void>('add', 'free_one_by_one', async () => {
-      if (!entry._id) {
-        entry._id = new Types.ObjectId().toHexString();
-      } else {
-        if (this.entries.find((e) => e._id === entry._id)) {
-          throw new Error(
-            `Entry with ID "${entry._id}" already exist. ` +
-              `Please use "update" method.`,
-          );
-        }
-      }
-      ObjectUtility.compareWithSchema(entry, this.schema, 'entry');
-      this.entries.push(entry);
-    });
-    await this.write();
-  }
-
-  async addMany(entries: T[]): Promise<void> {
-    await this.loadCollection();
-    await this.queueable<void>('addMany', 'free_one_by_one', async () => {
-      for (const i in this.entries) {
-        if (entries.find((e) => e._id === this.entries[i]._id)) {
-          throw new Error(
-            `Entry with ID "${this.entries[i]._id}" [${i}] already exist. ` +
-              `Please use "update" method.`,
-          );
-        }
-      }
-      for (const i in entries) {
-        ObjectUtility.compareWithSchema(entries[i], this.schema, 'entry');
-        this.entries.push(entries[i]);
+  private async write(entity: T, update?: boolean) {
+    await this.queueable.exec('write', 'free_one_by_one', async () => {
+      const fp = path.join(this.collection, `${entity._id}${this.FILE_ENDING}`);
+      await FSUtil.save(JSON.stringify(entity), fp);
+      if (!update) {
+        this.files.push(entity._id);
       }
     });
-    await this.write();
   }
 
-  async update(entry: T) {
-    await this.loadCollection();
-    await this.queueable('update', 'free_one_by_one', async () => {
-      for (const i in this.entries) {
-        if (this.entries[i]._id === entry._id) {
-          ObjectUtility.compareWithSchema(entry, this.schema, 'entry');
-          entry.updatedAt = Date.now();
-          this.entries[i] = entry;
-          return;
+  private async remove(id: string) {
+    await this.queueable.exec('remove', 'free_one_by_one', async () => {
+      const fp = path.join(this.collection, `${id}${this.FILE_ENDING}`);
+      if (await FSUtil.exist(fp)) {
+        await FSUtil.deleteFile(fp);
+        for (let i = 0; i < this.files.length; i = i + 1) {
+          if (this.files[i] === id) {
+            this.files.splice(i, 1);
+            break;
+          }
         }
       }
-      if (!this.entries.find((e) => e._id === entry._id)) {
+    });
+  }
+
+  private checkSchema(entity: T) {
+    try {
+      ObjectUtility.compareWithSchema(entity, this.schema, 'entity');
+    } catch (error) {
+      throw new Error(`Invalid Entity schema: ${error.message}`);
+    }
+  }
+
+  async findOne(query: (entity: T) => boolean): Promise<T | undefined> {
+    await this.init();
+    for (const i in this.files) {
+      const entity: T = await this.read(this.files[i]);
+      if (query(entity) === true) {
+        return entity;
+      }
+    }
+  }
+
+  async find(query?: (entity: T) => boolean): Promise<T[]> {
+    await this.init();
+    const entities: T[] = [];
+    for (const i in this.files) {
+      const entity: T = await this.read(this.files[i]);
+      if (!query || query(entity) === true) {
+        entities.push(entity);
+      }
+    }
+    return entities;
+  }
+
+  async add(entity: T) {
+    await this.init();
+    if (!entity._id) {
+      entity._id = new Types.ObjectId().toHexString();
+    } else {
+      if (this.files.includes(entity._id)) {
         throw new Error(
-          `Entry with ID "${entry._id}" does not exist. ` +
-            `Please use "add" method.`,
+          `Entity with ID "${entity._id}" already exist. ` +
+            `Please use "update" method.`,
         );
       }
-    });
-    await this.write();
+    }
+    entity.createdAt = Date.now();
+    entity.updatedAt = Date.now();
+    this.checkSchema(entity);
+    await this.write(entity);
   }
 
-  async deleteOne(query: (entry: T) => boolean) {
-    await this.loadCollection();
-    await this.queueable('deleteOne', 'free_one_by_one', async () => {
-      for (let i = 0; i < this.entries.length; i = i + 1) {
-        if (query(this.entries[i])) {
-          this.entries.splice(i, 1);
-          return;
-        }
+  async addMany(entities: T[]) {
+    await this.init();
+    for (const i in entities) {
+      await this.add(entities[i]);
+    }
+  }
+
+  async update(entity: T) {
+    await this.init();
+    if (!this.files.includes(entity._id)) {
+      throw new Error(
+        `Entity with ID "${entity._id}" does not exist. ` +
+          `Please use "add" method.`,
+      );
+    }
+    entity.updatedAt = Date.now();
+    this.checkSchema(entity);
+    await this.write(entity, true);
+  }
+
+  async deleteOne(query: (entity: T) => boolean) {
+    await this.init();
+    for (const i in this.files) {
+      const entity: T = await this.read(this.files[i]);
+      if (query(entity) === true) {
+        await this.remove(entity._id);
+        return;
       }
-    });
-    await this.write();
+    }
   }
 
-  async deleteMany(query: (entry: T) => boolean) {
-    await this.loadCollection();
-    await this.queueable<void>('deleteMany', 'free_one_by_one', async () => {
-      this.entries = this.entries.filter((e) => query(e));
-    });
-    await this.write();
+  async deleteMany(query: (entity: T) => boolean) {
+    await this.init();
+    for (const i in this.files) {
+      const entity: T = await this.read(this.files[i]);
+      if (query(entity) === true) {
+        await this.remove(entity._id);
+      }
+    }
   }
 }

@@ -73,9 +73,9 @@ function findAllById(target: any) {
     target.prototype.findAllById = async (
       ids: string[],
     ): Promise<FSDBEntity[]> => {
-      return await target.prototype.repo.find((e: FSDBEntity) => {
-        return ids.includes(e._id);
-      });
+      return await target.prototype.repo.find((e: FSDBEntity) =>
+        ids.includes(e._id),
+      );
     };
   }
 }
@@ -93,9 +93,9 @@ function findBy(target: any) {
 function findById(target: any) {
   if (!target.prototype.findById) {
     target.prototype.findById = async (id: string): Promise<FSDBEntity[]> => {
-      return await target.prototype.repo.findOne((e: FSDBEntity) => {
-        return e._id === id;
-      });
+      return await target.prototype.repo.findOne(
+        (e: FSDBEntity) => e._id === id,
+      );
     };
   }
 }
@@ -127,9 +127,9 @@ function update(target: any) {
 function deleteById(target: any) {
   if (!target.prototype.deleteById) {
     target.prototype.deleteById = async (id: string): Promise<FSDBEntity[]> => {
-      return await target.prototype.repo.deleteOne((e: FSDBEntity) => {
-        return e._id === id;
-      });
+      return await target.prototype.repo.deleteOne(
+        (e: FSDBEntity) => e._id === id,
+      );
     };
   }
 }
@@ -139,9 +139,9 @@ function deleteAllById(target: any) {
     target.prototype.deleteAllById = async (
       ids: string[],
     ): Promise<FSDBEntity[]> => {
-      return await target.prototype.repo.deleteMany((e: FSDBEntity) => {
-        return !ids.includes(e._id);
-      });
+      return await target.prototype.repo.deleteMany(
+        (e: FSDBEntity) => !ids.includes(e._id),
+      );
     };
   }
 }

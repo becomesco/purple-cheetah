@@ -17,4 +17,5 @@ export interface FSDBRepositoryPrototype<T extends FSDBEntity> {
   deleteAllById: (ids: string[]) => Promise<boolean | number>;
   deleteOne: (query: (e: T) => boolean) => Promise<void>;
   deleteMany: (query: (e: T) => boolean) => Promise<void>;
+  count: () => Promise<number>;
 }

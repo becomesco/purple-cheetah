@@ -4,6 +4,7 @@ import { FSDBEntity } from '../interfaces';
 import { ObjectSchema } from '../../../util';
 import { FSDBService } from '../service';
 import { Logger } from '../../../logging';
+import { count } from 'console';
 
 export interface FSDBRepositoryConfig {
   schema: ObjectSchema;
@@ -42,6 +43,7 @@ export function FSDBRepositoryInitializer(
   deleteAllById(target);
   deleteBy(target);
   deleteAllBy(target);
+  count(target);
 }
 
 export function FSDBRepository(config: FSDBRepositoryConfig) {
@@ -162,6 +164,14 @@ function deleteAllBy(target: any) {
       query: (e: FSDBEntity) => boolean,
     ): Promise<FSDBEntity[]> => {
       return await target.prototype.repo.deleteMany(query);
+    };
+  }
+}
+
+function count(target: any) {
+  if (!target.prototype.count) {
+    target.prototype.count = async (): Promise<number> => {
+      return await target.prototype.repo.count();
     };
   }
 }

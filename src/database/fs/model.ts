@@ -163,4 +163,9 @@ export class Model<T extends FSDBEntity> {
       }
     }
   }
+
+  async count(): Promise<number> {
+    await this.init();
+    return this.files.length;
+  }
 }

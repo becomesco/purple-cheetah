@@ -4,7 +4,6 @@ import { FSDBEntity } from '../interfaces';
 import { ObjectSchema } from '../../../util';
 import { FSDBService } from '../service';
 import { Logger } from '../../../logging';
-import { count } from 'console';
 
 export interface FSDBRepositoryConfig {
   schema: ObjectSchema;

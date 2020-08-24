@@ -1,14 +1,16 @@
+export interface ObjectPropSchema {
+  __type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+  __required: boolean;
+  __child?:
+    | {
+        __type?: 'string' | 'number' | 'boolean' | 'object';
+        __content?: ObjectSchema;
+      }
+    | ObjectSchema;
+}
+
 export interface ObjectSchema {
-  [key: string]: {
-    __type: 'string' | 'number' | 'boolean' | 'object' | 'array';
-    __required: boolean;
-    __child?:
-      | {
-          __type?: 'string' | 'number' | 'boolean' | 'object';
-          __content?: ObjectSchema;
-        }
-      | ObjectSchema;
-  };
+  [key: string]: ObjectPropSchema;
 }
 
 /**

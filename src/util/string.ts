@@ -20,6 +20,9 @@ export class StringUtility {
    * @param id hex string od ObjectId.
    */
   public static isIdValid(id: string): boolean {
+    if (!id) {
+      return false;
+    }
     if (id.length !== 24) {
       return false;
     }
@@ -91,8 +94,8 @@ export class StringUtility {
   }
 
   public static createSlug(e: string) {
-    if (!e) {
-      throw new Error(`'e' is undefined`);
+    if (typeof e !== 'string') {
+      throw new Error(`'e' is not a "string".`);
     }
     return e
       .toLowerCase()

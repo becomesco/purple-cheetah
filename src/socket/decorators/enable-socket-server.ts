@@ -30,14 +30,14 @@ export function EnableSocketServer(config: {
       allowRequest: async (request, callback) => {
         logger.info('.allowConnection', 'Incoming connection...');
         if (!config.allowConnection) {
-          callback(0, true);
+          callback(undefined, true);
           return;
         }
         if ((await config.allowConnection(request)) === false) {
-          callback(401, false);
+          callback(`Unauthorized`, false);
           return;
         }
-        callback(0, true);
+        callback(undefined, true);
       },
     });
     socketIOServer.use(async (socket, next) => {

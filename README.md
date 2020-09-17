@@ -2,9 +2,40 @@
 
 ![Logo](https://i.imgur.com/f2Mv4QD.png)
 
-[![npm](https://nodei.co/npm/@becomes/purple-cheetah.png)](https://www.npmjs.com/package/@becomes/purple-cheetah)
+<!-- [![npm](https://nodei.co/npm/@becomes/purple-cheetah.png)](https://www.npmjs.com/package/@becomes/purple-cheetah) -->
 
 Purple Cheetah is not a framework but rather a utility set for [ExpressJS](https://expressjs.com/), written in [Typescript](https://www.typescriptlang.org/). It was developed to resolve issues in our company and give us tools with small amount of external dependencies for creating Web APIs (REST and/or GraphQL).
+
+## Overview
+
+- [Application](#application) - Is a main entry point for a Purple Cheetah application. By creating an object which extends `Purple Cheetah` abstraction and decorating it with `Application` decorator, Purple Cheetah object is created and its instance will contain `.listen` method which is used to start an express server. For more information see the [example](#application-example).
+- [Networking](#network)
+  - [Controllers](#network-controller) - Controller is an abstraction which allows you to split routes into logical units by decorating a class with `Controller` decorator. At the end, controller class will add its network methods to the express router. For more information see the [example](#network-controller-example).
+  - [Middleware](#network-middleware) - Middleware is an abstraction that allows you to create a logical units by decorating a class with `Middleware` decorator. At the end, middleware class will be added to the express router. For more information see the [example](#network-middleware-example).
+  - [Sockets](#network-socket) - In Purple Cheetah socket is only a wrapper for the [socket.io](https://www.npmjs.com/package/socket.io) package and is enabled by using `EnableSocketServer` decorator on Purple Cheetah object. For more information see the [example](#network-socket-example).
+- [Logging](#logging) - Purple Cheetah application uses simple but effective way of creating a logs. Logs are handled by a `Logger` class which print messages to the console and saves the output to specified location. For more information see the [example](#logging-example)
+- [Databases](#database)
+  - [MongoDB](#database-mongodb) - Handler for MongoDB extends [mongoose](https://www.npmjs.com/package/mongoose) package and provides a handlers for connecting to MongoDB database, creating models and repositories. To connect to a database use `EnableMongoDB` decorator on the application object and to create a repository user `MongoDBRepository` decorator on a repository object. For more details see the [tutorial](https://shbsrbd.com/blog/purple-cheetah---mongodb).
+  - [File system](#database-fs) - FSDB is a custom module that provides MongoDB-like experience but uses file system to store collections and entity data. For more information see the [tutorial](https://shbsrbd.com/blog/purple-cheetah---file-system-database).
+- [GraphQL](graphql) - Uses custom solution which extends [express-graphql](https://www.npmjs.com/package/express-graphql) and [graphql](https://www.npmjs.com/package/graphql) packages but improves user experience and writing schemas by providing `QLEntry, QLResolver, QLObject, ...` decorators which are helping in organizing project and writing schemas much easier. For more information see the [tutorial](https://shbsrbd.com/blog/purple-cheetah---graphql).
+- [Security](#security)
+  - [JWT](#security-jwt) - JWT security modules are provided by default by they are not hardwired into any part or Purple Cheetah. For more information see the [example](#security-jwt-example).
+  - [HTTP Signature](#security-hs) - Is a fast and reliable security mechanism for service-to-service communication. No database or tokens are required but there are some drawbacks and limitations to current implementation. For more information see the [example](#security-hs-example).
+- [Miracle](#miracle) - Is a custom solution for creating microservices with Purple Cheetah. At one point in the future, Miracle will become its own package to provide smaller package size for applications which need only this part or Purple Cheetah utility set. In short, Miracle provide tools for solving most common problems in microservice architecture which are: service-to-service communication, service policy, routing and error handling.
+  - [Key Store](#miracle-ks) - Represent a Miracle service which is in charge of storing service keys and service policies. This means that it determines which service can communicate with which service and in which scope. Communication between services are not handled by it but when service authenticates with Miracle Key Store it will get security keys and policy by which it must obey. For more information see the [example](#miracle-ks-example).
+  - [Registry](#miracle-r) - Is a Miracle service in charge of holding a record about where are services distributed, which status they have and how to connect to them. For more information see the [example](#miracle-r-example).
+  - [Gateway](#miracle-g) - Is a Miracle service strongly coupled with Purple Cheetah application. In conjunction with Registry and Key Store it provides a routing and load balancing between services. For more information see an [example](#miracle-g-example).
+  - [Connection](#miracle-c) - Is a handler for connection a service into the cluster. For more information see an [example](#miracle-c-example).
+
+## Versioning
+
+It is important to know how Purple Cheetah package versions work. All versions are annotated as `x.y.z` where:
+
+- `x` - indicates a major version of the package. This number between versions indicates that there are some braking changes in the package.
+- `y` - indicates if a package is a stable production ready version or a development version and it can only be 0 or 1.
+  - **1** - stable production ready (ex. `2.1.12`)
+  - **0** - development (ex. `2.0.32`)
+- `z` - indicates a minor version of the package. Changes to this parameter indicates only audits, performance improvements and some overall improvements that do not have effect on package usage. This rule only apply to stable production ready versions (where y = 1).
 
 ## Get Started using CLI
 
@@ -13,7 +44,7 @@ Purple Cheetah is not a framework but rather a utility set for [ExpressJS](https
 - Navigate to project, run `npm run dev` and in the browser goto `localhost:1280`
 - Done.
 
-## Get started hard way
+## Get started the hard way
 
 - Create a typescript project and install Purple Cheetah: `npm i --save @becomes/purple-cheetah`,
 - Install [nodemon](): `npm i -D nodemon`,
@@ -77,6 +108,277 @@ After this you are ready to start the application by running `npm run dev`.
 You can see full API Reference at https://purple-cheetah.dev/api.
 
 Purple Cheetah API is not very big and complex. It will solve only common problems and help you write less boilerplate code. Altho you can use it in Javascript project, you will have much better experience using Typescript since it is designed for it.
+
+## Application
+
+<div id="application"></div>
+
+Application is a decorator used in conjunction with `Purple Cheetah` abstract class to create a Purple Cheetah object which represents an application. Once a class is annotated with `Application` decorator, a lot of things will happen. First of all, main logger will be created with name `PurpleCheetah` and stored in the class, express application will be created and simple queue list will be initialized. After that the controller and middleware arrays will be initialized, defaults will be pushed to then and `listen` function will be created. Because of the initialization pipe, `Application` decorator should always be first annotation for the application class. Once `listen`method is called on an instance of the application class, first waiting will occur for the queue list to be free and then express server will be starts.
+
+Constructor of the `Purple Cheetah` abstract class is in charge of pushing controller and middleware arrays to the express application and this will occur in specific order once new instance of the class is created and after the queue list is free.
+
+- `start` method will be called (this is a method this which users can define some logic before initialization starts),
+- middleware objects with property `after == false` will be added to the express application,
+- `middle` method will be called (user defined logic),
+- controller objects will be added to the express application,
+- `finalize` method will be called (user defined logic),
+- middleware objects with property `after == true` will be added to the express application,
+
+### Example
+
+<div id="application-example"></div>
+
+First of all project is created with a structure like shown bellow.
+
+```txt
+project
+ └--- .prettier
+ └--- app.env
+ └--- package.json
+ └--- package-lock.json
+ └--- tsconfig.json
+ └--- tslint.json
+ └--- src
+       └--- main.ts
+       └--- app.ts
+```
+
+This project structure is not required for the application to work, this is just a recommendation. Customize files `.prettierrc`, `tsconfig.json` and `tslint.json` for your linking or use templates from the [starter project](). To `app.env`, environment variable called `PORT` will be added.
+
+```env
+PORT=1280
+```
+
+File `package.json` will be copied from the starter project and `npm i` command will be started. At this point it can be seen that Purple Cheetah is just a package (utility set) and that application is started, in develop mode by using `nodemon` package and in production mode by using `node` command.
+
+After this, inside of the `app.ts` Purple Cheetah class will be created as shown below.
+
+```ts
+// ---> app.ts
+
+import { Application, PurpleCheetah } from '@becomes/purple-cheetah';
+
+@Application({
+  port: parseInt(process.env.PORT, 10),
+  controllers: [],
+  middleware: [],
+})
+export class App extends PurpleCheetah {}
+```
+
+This is a minimum required configuration to successfully start the application. By taking a detailed look at `Application` decorator:
+
+- `port` is a network port on which application will be available,
+- `controllers` is an array of controller class instances (see [controller example](#network-controller-example) for more information),
+- `middleware` is an array of middleware class instances (see [middleware example](#network-middleware-example) for more information).
+
+In addition to this 3 required properties which are self explained and can be explored in detail by looking at a source code or by checking [API reference](). For demonstration, user defined methods of the Purple Cheetah class will also be populated.
+
+```ts
+// ---> app.ts
+
+import { Application, PurpleCheetah } from '@becomes/purple-cheetah';
+import { HelloWorldController } from './hello-world';
+
+@Application({
+  port: parseInt(process.env.PORT, 10),
+  controllers: [new HelloWorldController()],
+  middleware: [],
+})
+export class App extends PurpleCheetah {
+  protected start() {
+    this.logger.info('start', 'This is the start.');
+  }
+  protected middle() {
+    this.logger.info('middle', 'This is the middle.');
+  }
+  protected finalize() {
+    this.logger.info('finalize', 'This is the finalize.');
+  }
+}
+```
+
+This is how those 3 method are defined. Inside of the `main.ts` application initialization will be created. This can also be done inside of the `app.ts` but it is recommended to do it this way to keep the code clean.
+
+```ts
+// ---> main.ts
+
+import { App } from './app';
+
+let app: App;
+
+async function initialize() {
+  // Do some initialization before
+  // starting the app.
+  // ...
+}
+initialize()
+  .then(() => {
+    app = new App();
+    app.listen();
+  })
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+
+export const application = app;
+```
+
+Again this is just the recommendation and if initializer is not required it does not have to be used. Simple example like this `new App().listen()` will also start the application but is not controllable like example above. With this done application can be started by running `npm run dev`. After doing this, in a console this message should be seen (with colors):
+
+```txt
+[INFO] [9/17/2020, 4:38:07 PM] PurpleCheetah  > Initializing application
+[INFO] [9/17/2020, 4:38:07 PM] PurpleCheetah  > Starting server...
+[INFO] [9/17/2020, 4:38:07 PM] PurpleCheetah .listen > Server started on port 1280.
+[INFO] [9/17/2020, 4:38:07 PM] PurpleCheetah  > Queue empty, continue with mounting.
+[INFO] [9/17/2020, 4:38:07 PM] PurpleCheetah start > This is the start.
+[INFO] [9/17/2020, 4:38:07 PM] PurpleCheetah middle > This is the middle.
+[INFO] [9/17/2020, 4:38:07 PM] PurpleCheetah finalize > This is the finalize.
+[INFO] [9/17/2020, 4:38:07 PM] PurpleCheetah  > Initialized.
+```
+
+By opening the browser and going to the `localhost:1280` response, like shown in Figure 1, can be seen.
+
+![Figure 1 - Endpoint does not exist.](assets/doc/figures/1.png)
+
+_Figure 1 - Endpoint does not exist._
+
+This message is sent by a default `not found` middleware. This middleware can be overwritten by passing an instance of a middleware class to `notFoundMiddleware` property in `Application` decorator.
+
+## Networking
+
+<div id="network"></div>
+
+By being written and meant for the web, it is just natural to cover networking tools in Purple Cheetah. For now, tools for creating REST, GraphQL and Socket APIs are available. Since GraphQL tool set is big (in comparison to the REST tool set) it will be covered in a [separate section](#graphql).
+
+### Controller abstraction
+
+Most important tools for creating REST APIs are tools for connecting HTTP requests to some logic, doing a required work and creating a response. This is as basic as creating a HTTP route handler for specified method and in pure express application this could be done something like this:
+
+```ts
+app.get('/hello-world`, (request, response) => {
+  response.json({
+    message: 'Hello World!',
+  })
+})
+```
+
+This is all very nice but writing a code this way can be messy and organizing a it can be a challenge. Because of this, abstracts like Controller, Controller method and Middleware exist. 
+
+<div id="network-controller"></div>
+
+#### Example
+
+<div id="network-controller-example"></div>
+
+### Middleware abstraction
+
+<div id="network-middleware"></div>
+
+#### Example
+
+<div id="network-middleware-example"></div>
+
+### Socket
+
+<div id="network-socket"></div>
+
+#### Example
+
+<div id="network-socket-example"></div>
+
+## Logging
+
+<div id="logging"></div>
+
+### Example
+
+<div id="logging-example"></div>
+
+## Database
+
+<div id="database"></div>
+
+### MongoDB
+
+<div id="database-mongodb"></div>
+
+#### Example
+
+<div id="database-mongodb-example"></div>
+
+### File system database
+
+<div id="database-fs"></div>
+
+#### Example
+
+<div id="database-fs-example"></div>
+
+## GraphQL
+
+<div id="graphql"></div>
+
+### Example
+
+<div id="graphql-example"></div>
+
+## Security
+
+<div id="security"></div>
+
+### JWT
+
+<div id="security-jwt"></div>
+
+#### Example
+
+<div id="security-jwt-example"></div>
+
+### HTTP signature
+
+<div id="security-hs"></div>
+
+#### Example
+
+<div id="security-hs-example"></div>
+
+## Miracle
+
+<div id="miracle"></div>
+
+### Key Store
+
+<div id="miracle-ks"></div>
+
+#### Example
+
+<div id="miracle-ks-example"></div>
+
+### Registry
+
+<div id="miracle-r"></div>
+
+#### Example
+
+<div id="miracle-r-example"></div>
+
+### Gateway
+
+<div id="miracle-g"></div>
+
+#### Example
+
+<div id="miracle-g-example"></div>
+
+### Connection
+
+<div id="miracle-c"></div>
+
+#### Example
+
+<div id="miracle-c-example"></div>
 
 ## Example
 

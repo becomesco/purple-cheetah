@@ -65,7 +65,7 @@ export abstract class PurpleCheetah {
             clearInterval(waitForQueue);
             resolve();
           }
-        });
+        }, 20);
       }).then(() => {
         this.logger.info('', 'Queue empty, continue with mounting.');
         this.controllers.forEach((controller) => {

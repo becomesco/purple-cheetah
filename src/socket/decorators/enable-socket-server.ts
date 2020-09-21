@@ -43,18 +43,20 @@ export function EnableSocketServer(config: {
     socketIOServer.use(async (socket, next) => {
       if (config.verifyConnection) {
         if ((await config.verifyConnection(socket)) === false) {
-          next(new Error(`Failed to verify connection for socket "${socket.id}".`));
+          next(
+            new Error(`Failed to verify connection for socket "${socket.id}".`),
+          );
           return;
         }
       }
       next();
     });
     socketIOServer.on('connection', async (socket) => {
+      const connection = config.onConnection(socket);
       logger.info(
         '.connection',
-        `Socket "${socket.id}" for group "${socket.request._query.grp}" connected successfully.`,
+        `Socket "${socket.id}" for group "${connection.group}" connected successfully.`,
       );
-      const connection = config.onConnection(socket);
       SocketConnectionService.add(connection);
       config.eventHandlers.forEach((e) => {
         const handler = async (message) => {

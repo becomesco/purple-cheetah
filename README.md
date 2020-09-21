@@ -254,6 +254,8 @@ By being written and meant for the web, it is just natural to cover networking t
 
 ### Controller abstraction
 
+<div id="network-controller"></div>
+
 Most important tools for creating REST APIs are tools for connecting HTTP requests to some logic, doing a required work and creating a response. This is as basic as creating a HTTP route handler for specified method and in pure express application this could be done something like this:
 
 ```ts
@@ -264,29 +266,292 @@ app.get('/hello-world`, (request, response) => {
 })
 ```
 
-This is all very nice but writing a code this way can be messy and organizing a it can be a challenge. Because of this, abstracts like Controller, Controller method and Middleware exist. 
+This is all very nice but writing a code this way can be messy and organizing it can be a challenge. Because of this, abstracts like Controller, Controller method and Middleware exist in Purple Cheetah tool set. In this section, Controller abstract will be covered.
 
-<div id="network-controller"></div>
+Controller abstraction in Purple Cheetah is nothing more then abstraction which allows better code readability. There are 2 important parts to know, `Controller` decorator and `ControllerPrototype` interface, which are used in conjunction on a controller class. Decorator is used to annotate the class and inject metadata, while interface is used to tell type checker that specified class has required properties of a controller.
 
 #### Example
 
 <div id="network-controller-example"></div>
 
+Project structure from [Application example](#application-example) will be extended to contain `hello-world` directory with `index.ts` and `controller.ts` files inside of it (it is important to know that controller file does not need to have a `controller` name, this can be any name).
+
+```txt
+project
+ └--- src
+       └--- main.ts
+       └--- app.ts
+       └--- hello-world
+             └--- index.ts
+             └--- controller.ts
+```
+
+Index pattern will be used to expose children files, therefore inside of the `index.ts`, controller file will be exported.
+
+```ts
+// ---> hello-world/index.ts
+
+export * from './controller';
+```
+
+Inside of the `controller.ts` controller class `HelloWorldController` will be created, which implements controller interface and is annotated by the controller decorator. This controller will have only one get method at path `/hello/world`, which will return a JSON response with property `message` and constant value of `Hello World!`.
+
+```ts
+// ---> hello-world/controller.ts
+
+import {
+  ControllerPrototype,
+  Logger,
+  Controller,
+  Get,
+} from '@becomes/purple-cheetah';
+import { Router } from 'express';
+
+@Controller('/hello')
+export class HelloWorldController implements ControllerPrototype {
+  baseUri: string;
+  initRouter: any;
+  logger: Logger;
+  name: string;
+  router: Router;
+
+  @Get('/world')
+  sayHelloWorld(): {
+    message: string;
+  } {
+    return {
+      message: 'Hello World!',
+    };
+  }
+}
+```
+
+All variables in the class are populated by the decorator and if it is not used, this variables must be populated by a hand or error will occur in next step. With controller class created, only thing left to do is to add it to the controller array in the application decorator.
+
+```ts
+// ---> app.ts
+
+import { PurpleCheetah, Application } from '@becomes/purple-cheetah';
+import { HelloWorldController } from './hello-world';
+
+@Application({
+  port: process.env.PORT ? parseInt(process.env.PORT, 10) : 1280,
+  controllers: [new HelloWorldController()], // <---
+  // Instance of the controller
+  // has been added to the
+  // controller array.
+  middleware: [],
+})
+export class App extends PurpleCheetah {}
+```
+
+By starting the application and going to the `localhost:1280/hello/world`, response from the controller can be seen, as shown in Figure 2.
+
+![Figure 2 - Hello world response from a controller method.](assets/doc/figures/2.png)
+
+_Figure 2 - Hello world response from a controller method._
+
+URIs are following the same rules as in the express, because at the end, this is an express application. Because of this, by adding a new get method with the path parameter `name`, dynamic response can be created.
+
+```ts
+// ---> hello-world/controller.ts
+
+@Get('/:name')
+greetUser(
+  request: Request,
+): {
+  message: string;
+} {
+  return {
+    message: `Hello ${request.params.name}!`,
+  };
+}
+```
+
+Have in mind that this method is added to the controller class. After application is restarted, by going to, for example `localhost:1280/hello/john`, **Hello john!** message will be sent as a response, as shown in Figure 3.
+
+![Figure 3 - Controller method which greets a user.](assets/doc/figures/3.png)
+
+_Figure 3 - Controller method which greets a user._
+
 ### Middleware abstraction
 
 <div id="network-middleware"></div>
+
+Middleware is similar to a controller but it is usually used to transform incoming or outgoing data in some shape or form. Because of this, middleware is triggered for all methods on all routes which are starting with a specified route.
+
+Like a controller, middleware is a class which implements a `MiddlewarePrototype` interface and which is annotated by a `Middleware` decorator. Interface is used to tell type checker that specified class is a middleware while decorator is used to inject metadata into it.
 
 #### Example
 
 <div id="network-middleware-example"></div>
 
+To explain middleware, example from [controller section](#network-controller-example) will be extended. For routes `/hello/:name` middleware which will convert `name` parameter to have first letter in upper case and all other letters in lower case. This will be done by creating a directory `hello-world/middleware` and inside of it files called `index.ts` and `pretty-name.ts`.
+
+```ts
+// ---> hello-world/index.ts
+
+export * from './middleware';
+```
+
+```ts
+// ---> hello-world/middleware/index.ts
+
+export * from './pretty-name';
+```
+
+```ts
+// ---> hello-world/middleware/pretty-name.ts
+
+import {
+  Logger,
+  Middleware,
+  MiddlewarePrototype,
+} from '@becomes/purple-cheetah';
+import {
+  ErrorRequestHandler,
+  NextFunction,
+  Request,
+  RequestHandler,
+  Response,
+} from 'express';
+
+@Middleware({
+  uri: '/hello/:name',
+  handler: async (request: Request, response: Response, next: NextFunction) => {
+    request.headers.pretty_name =
+      request.params.name.substring(0, 1).toUpperCase() +
+      request.params.name.substring(1).toLowerCase();
+    next();
+  },
+})
+export class HelloWorldPrettyNameMiddleware implements MiddlewarePrototype {
+  after: boolean;
+  logger: Logger;
+  uri: string;
+  handler: RequestHandler | RequestHandler[] | ErrorRequestHandler;
+}
+```
+
+As it can be seen, path parameter is transformed and value is placed in the header with name `pretty_name`. After this, `next` function is called to indicate that next handler in chain should be executed. Now the controller method will be modified to use this new header property.
+
+```ts
+// ---> hello-world/controller.ts
+
+@Get('/:name')
+async greetPerson(request: Request): Promise<{ message: string }> {
+  return {
+    message: HelloWorldRequestHandler.greetPerson(
+      request.headers.pretty_name as string,  // <---
+                                              // Using header prop.
+    ),
+  };
+}
+```
+
+Only thing left is to add the middleware to the application middleware array.
+
+```ts
+// ---> app.ts
+
+import { Application, PurpleCheetah } from '@becomes/purple-cheetah';
+import {
+  HelloWorldController,
+  HelloWorldPrettyNameMiddleware,
+} from './hello-world';
+
+@Application({
+  port: parseInt(process.env.PORT, 10),
+  controllers: [new HelloWorldController()],
+  middleware: [
+    new HelloWorldPrettyNameMiddleware()  // <--- Middleware
+  ],
+})
+export class App extends PurpleCheetah {}
+```
+
+With server started, by going to the `localhost:1280/hello/john`, **Hello John!** message can be seen.
+
 ### Socket
 
 <div id="network-socket"></div>
 
+Sockets are very powerful tool because they provide a realtime communication channel between client application and a server. In Purple Cheetah socket tools are provided via [socket.io](https://socket.io/) package and socket server is just a wrapper for socket.io.  
+
 #### Example
 
 <div id="network-socket-example"></div>
+
+To explain how sockets are implements in Purple Cheetah, example from [application section](#application-example) will be extends. On top of application decorator, `EnableSocketServer` decorator will be added with minimal configuration.
+
+```ts
+// ---> app.ts
+
+import {
+  Application,
+  EnableSocketServer,
+  PurpleCheetah,
+} from '@becomes/purple-cheetah';
+
+@EnableSocketServer({
+  path: '/socket/server',
+  onConnection: (socket) => {
+    return {
+      id: socket.id,
+      socket,
+      group: 'general',
+      createdAt: Date.now(),
+    };
+  },
+})
+@Application({
+  port: parseInt(process.env.PORT, 10),
+  controllers: [new HelloWorldController()],
+  middleware: [
+    new HelloWorldPrettyNameMiddleware(),
+  ],
+})
+export class App extends PurpleCheetah {}
+```
+
+...
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <title>Ping - Pong</title>
+
+    <script src="http://localhost:1280/socket/server/socket.io.js"></script>
+  </head>
+  <body>
+    <button id="ping">Ping</button>
+    <script>
+      window.onload = () => {
+        const socket = io('http://localhost:1280', {
+          path: '/socket/server',
+        });
+        socket.on('connect', () => {
+          console.log('Connected');
+        });
+        socket.on('disconnect', () => {
+          console.log('Disconnected');
+        });
+        socket.on('echo', (data) => {
+          console.log('Server:', data.message);
+        });
+        document.getElementById('ping').addEventListener('click', () => {
+          console.log('Me: ping');
+          socket.emit('echo', { message: 'ping' });
+        });
+      };
+    </script>
+  </body>
+</html>
+```
 
 ## Logging
 

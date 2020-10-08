@@ -97,7 +97,13 @@ function build(
       if (result instanceof Buffer) {
         args[0].res.send(result);
       } else if (typeof result === 'object') {
-        args[0].res.json(result);
+        if (result.__file) {
+          args[0].res.status(200);
+          args[0].res.sendFile(result.__file);
+          // args[0].res.end();
+        } else {
+          args[0].res.json(result);
+        }
       } else {
         if (result) {
           args[0].res.status(200);

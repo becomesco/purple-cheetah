@@ -1,22 +1,28 @@
-import { Request, Response } from 'express';
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { NextFunction, Request, Response } from 'express';
 
-interface RouteMethodOptions {
-  security?: {
-    throwableFunctions?: Array<(request: Request) => Promise<void>>;
-  };
-}
+export type ControllerMethodPreRequestHandler<T> = (
+  request: Request,
+  response: Response,
+) => Promise<T>;
+
+export type ControllerMethodData<T> = [Request, Response, NextFunction, T?];
 
 /**
  * Decorator that will annotate a function as a GET method for
  * a [Controller](/globals.html#controller).
  */
-export function Get(uri?: string, options?: RouteMethodOptions) {
+export function Get<T>(
+  uri?: string,
+  preRequestHandler?: ControllerMethodPreRequestHandler<T>,
+) {
   return (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     target: any,
     key: string | symbol,
     descriptor: PropertyDescriptor,
   ) => {
-    return build('get', target, key, descriptor, uri, options);
+    return build('get', target, key, descriptor, uri, preRequestHandler);
   };
 }
 
@@ -24,13 +30,17 @@ export function Get(uri?: string, options?: RouteMethodOptions) {
  * Decorator that will annotate a function as a POST method for
  * a [Controller](/globals.html#controller).
  */
-export function Post(uri?: string, options?: RouteMethodOptions) {
+export function Post<T>(
+  uri?: string,
+  preRequestHandler?: ControllerMethodPreRequestHandler<T>,
+) {
   return (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     target: any,
     key: string | symbol,
     descriptor: PropertyDescriptor,
   ) => {
-    return build('post', target, key, descriptor, uri, options);
+    return build('post', target, key, descriptor, uri, preRequestHandler);
   };
 }
 
@@ -38,13 +48,17 @@ export function Post(uri?: string, options?: RouteMethodOptions) {
  * Decorator that will annotate a function as a PUT method for
  * a [Controller](/globals.html#controller).
  */
-export function Put(uri?: string, options?: RouteMethodOptions) {
+export function Put<T>(
+  uri?: string,
+  preRequestHandler?: ControllerMethodPreRequestHandler<T>,
+) {
   return (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     target: any,
     key: string | symbol,
     descriptor: PropertyDescriptor,
-  ) => {
-    return build('put', target, key, descriptor, uri, options);
+  ): PropertyDescriptor => {
+    return build('put', target, key, descriptor, uri, preRequestHandler);
   };
 }
 
@@ -52,13 +66,17 @@ export function Put(uri?: string, options?: RouteMethodOptions) {
  * Decorator that will annotate a function as a DELETE method for
  * a [Controller](/globals.html#controller).
  */
-export function Delete(uri?: string, options?: RouteMethodOptions) {
+export function Delete<T>(
+  uri?: string,
+  preRequestHandler?: ControllerMethodPreRequestHandler<T>,
+) {
   return (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     target: any,
     key: string | symbol,
     descriptor: PropertyDescriptor,
   ) => {
-    return build('delete', target, key, descriptor, uri, options);
+    return build('delete', target, key, descriptor, uri, preRequestHandler);
   };
 }
 
@@ -66,15 +84,16 @@ export function Delete(uri?: string, options?: RouteMethodOptions) {
  * Function that will inject method information into
  * a [Controller](/globals.html#controller).
  */
-function build(
+function build<T>(
   method: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   target: any,
   key: string | symbol,
   descriptor: PropertyDescriptor,
   uri?: string,
-  options?: RouteMethodOptions,
+  preRequestHandler?: ControllerMethodPreRequestHandler<T>,
 ): PropertyDescriptor {
-  let baseUri: string = '';
+  let baseUri = '';
   if (uri) {
     baseUri = uri;
   }
@@ -82,37 +101,40 @@ function build(
     target.endpoints = [];
   }
   const original = descriptor.value;
-  descriptor.value = async (...args: any[]) => {
+  descriptor.value = async (...args: [Request, Response, NextFunction, T]) => {
     try {
-      if (options && options.security) {
-        if (options.security.throwableFunctions) {
-          for (const i in options.security.throwableFunctions) {
-            if (options.security.throwableFunctions[i]) {
-              await options.security.throwableFunctions[i](args[0]);
-            }
-          }
-        }
+      // if (options && options.security) {
+      //   if (options.security.throwableFunctions) {
+      //     for (const i in options.security.throwableFunctions) {
+      //       if (options.security.throwableFunctions[i]) {
+      //         await options.security.throwableFunctions[i](args[0]);
+      //       }
+      //     }
+      //   }
+      // }
+      if (preRequestHandler) {
+        args[3] = await preRequestHandler(args[0], args[1]);
       }
       const result = await original.apply(target, args);
       if (result instanceof Buffer) {
         args[0].res.send(result);
       } else if (typeof result === 'object') {
         if (result.__file) {
-          args[0].res.status(200);
-          args[0].res.sendFile(result.__file);
+          args[1].status(200);
+          args[1].sendFile(result.__file);
           // args[0].res.end();
         } else {
-          args[0].res.json(result);
+          args[1].json(result);
         }
       } else {
         if (result) {
-          args[0].res.status(200);
-          args[0].res.send(result);
-          args[0].res.end();
+          args[1].status(200);
+          args[1].send(result);
+          args[1].end();
         }
       }
     } catch (e) {
-      args[0].next(e);
+      args[2](e);
     }
   };
   target.endpoints = [

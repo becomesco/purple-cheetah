@@ -8,15 +8,24 @@ import {
 import { MiracleKeyStoreConfigCache } from '../cache';
 import { MiracleKeyStoreController } from '../controllers';
 
-export function EnableMiracleKeyStore(config: { configFilePath: string }) {
-  return (target: any) => {
+export function EnableMiracleKeyStore(config: {
+  configFilePath?: string;
+  b64ConfigYAML?: string;
+}) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (target: { prototype: any }): void => {
     let conf: MiracleKeyStoreConfig;
-    {
+    if (!config.b64ConfigYAML && !config.configFilePath) {
+      throw Error('Missing config options.');
+    }
+    if (config.configFilePath) {
       if (config.configFilePath.startsWith('/') === true) {
         conf = YAML.load(config.configFilePath);
       } else {
         conf = YAML.load(path.join(process.cwd(), config.configFilePath));
       }
+    } else {
+      conf = YAML.parse(Buffer.from(config.b64ConfigYAML, 'base64').toString());
     }
     ObjectUtility.compareWithSchema(
       conf,

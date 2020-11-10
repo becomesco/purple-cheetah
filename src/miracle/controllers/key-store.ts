@@ -1,25 +1,17 @@
 import * as crypto from 'crypto';
-import { Controller, Post, Get } from '../../decorators';
 import { Request } from 'express';
+import { Controller, Post } from '../../decorators';
 import { CreateLogger, Logger } from '../../logging';
 import { HttpErrorFactory } from '../../factories';
 import { ObjectUtility } from '../../util';
 import { HttpStatus } from '../../interfaces';
 import { MiracleKeyStoreConfigCache } from '../cache';
+import { MiracleSecurity } from '../security';
 
 @Controller('/miracle/key-store')
 export class MiracleKeyStoreController {
   @CreateLogger(MiracleKeyStoreController)
   private logger: Logger;
-
-  // @Get('/:name')
-  // async get(request: Request) {
-  //   if (request.params.name === 'none') {
-  //     return MiracleKeyStoreConfigCache.get();
-  //   } else {
-  //     return MiracleKeyStoreConfigCache.byName(request.params.name);
-  //   }
-  // }
 
   @Post('/auth')
   async auth(request: Request) {
@@ -47,8 +39,8 @@ export class MiracleKeyStoreController {
       throw error.occurred(HttpStatus.BAD_REQUEST, e.message);
     }
     if (
-      request.body.timestamp < Date.now() - 5000 ||
-      request.body.timestamp > Date.now() + 1000
+      request.body.timestamp < Date.now() - MiracleSecurity.TIME_A ||
+      request.body.timestamp > Date.now() + MiracleSecurity.TIME_B
     ) {
       throw error.occurred(HttpStatus.FORBIDDEN, 'Timestamp is out of range.');
     }

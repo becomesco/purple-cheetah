@@ -28,7 +28,8 @@ export function MiracleConnect(config: {
     };
   };
   gateway?: MiracleGatewayConfig;
-}) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+}): () => void {
   const initKeyStore = async () => {
     let security: MiracleSecurity;
     {
@@ -75,7 +76,7 @@ export function MiracleConnect(config: {
     });
   };
 
-  return (target: any) => {
+  return () => {
     PurpleCheetah.pushToQueue('MiracleConnect');
     const logger = new Logger('MiracleConnect');
     logger.info(

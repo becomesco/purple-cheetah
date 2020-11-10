@@ -5,7 +5,6 @@ import { MiddlewarePrototype, ControllerPrototype } from '../interfaces';
 import {
   NotFoundMiddleware,
   HttpExceptionHandlerMiddleware,
-  RequestLoggerMiddleware,
 } from '../middleware';
 import { PurpleCheetah } from '../purple-cheetah';
 import { MiracleGatewayConfig, MiracleGatewayMiddleware } from '../miracle';
@@ -38,8 +37,6 @@ export function Application(config: {
     if (config.requestLoggerMiddleware) {
       config.requestLoggerMiddleware.after = false;
       target.prototype.middleware.push(config.requestLoggerMiddleware);
-    } else {
-      target.prototype.middleware.push(new RequestLoggerMiddleware());
     }
     target.prototype.middleware = [
       ...target.prototype.middleware,

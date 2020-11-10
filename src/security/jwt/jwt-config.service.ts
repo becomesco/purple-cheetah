@@ -6,7 +6,7 @@ import { ObjectUtility } from '../../util';
  * configurations in-memory.
  */
 export class JWTConfigService {
-  private static configs: JWTConfig[] = [];
+  private static configs: { [name: string]: JWTConfig } = {};
 
   /** Add new configuration. */
   public static add(config: JWTConfig) {
@@ -36,7 +36,7 @@ export class JWTConfigService {
       },
       config.id,
     );
-    JWTConfigService.configs.push(config);
+    this.configs[config.id] = config;
   }
 
   /** Add many new configurations. */
@@ -48,8 +48,6 @@ export class JWTConfigService {
 
   /** Get configuration. */
   public static get(id: string): JWTConfig | undefined {
-    return JSON.parse(
-      JSON.stringify(JWTConfigService.configs.find((e) => e.id === id)),
-    );
+    return JSON.parse(JSON.stringify(JWTConfigService.configs[id]));
   }
 }

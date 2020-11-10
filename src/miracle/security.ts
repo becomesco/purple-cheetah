@@ -4,6 +4,12 @@ import { ObjectUtility } from '../util';
 import { Request } from 'express';
 
 export class MiracleSecurity {
+  static readonly TIME_A = process.env.MIRACLE_SECURITY_TIME_A
+    ? parseInt(process.env.MIRACLE_SECURITY_TIME_A, 10)
+    : 5000;
+  static readonly TIME_B = process.env.MIRACLE_SECURITY_TIME_B
+    ? parseInt(process.env.MIRACLE_SECURITY_TIME_B, 10)
+    : 5000;
   private config?: {
     name: string;
     key: string;
@@ -117,8 +123,8 @@ export class MiracleSecurity {
       );
     }
     if (
-      request.timestamp < Date.now() - 3000 ||
-      request.timestamp > Date.now() + 1000
+      request.timestamp < Date.now() - MiracleSecurity.TIME_A ||
+      request.timestamp > Date.now() + MiracleSecurity.TIME_B
     ) {
       throw new Error('Timestamp is out of range.');
     }
@@ -158,8 +164,8 @@ export class MiracleSecurity {
       );
     }
     if (
-      request.timestamp < Date.now() - 3000 ||
-      request.timestamp > Date.now() + 1000
+      request.timestamp < Date.now() - MiracleSecurity.TIME_A ||
+      request.timestamp > Date.now() + MiracleSecurity.TIME_B
     ) {
       throw new Error('Timestamp is out of range.');
     }

@@ -9,9 +9,10 @@ import {
 } from 'express';
 import { Logger } from '../logging';
 
+const logger = new Logger('RequestLogger');
+
 @Middleware({
   handler: (request: Request, response: Response, next: NextFunction) => {
-    const logger = new Logger('RequestLogger');
     logger.info('', `${request.method}: ${request.url}`);
     next();
   },

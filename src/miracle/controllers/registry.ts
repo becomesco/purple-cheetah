@@ -19,7 +19,7 @@ export class MiracleRegistryController {
   }
 
   @Get('')
-  async registry(request: Request): Promise<{ registry: any }> {
+  async registry(): Promise<{ registry: MiracleRegistry[] }> {
     return {
       registry: MiracleRegistryServerCache.findAll(),
     };

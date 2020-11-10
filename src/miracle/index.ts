@@ -6,3 +6,4 @@ export * from './interfaces';
 export * from './miracle';
 export * from './security';
 export * from './middleware';
+export * from './v2';

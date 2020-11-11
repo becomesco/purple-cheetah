@@ -65,7 +65,7 @@ export class MiracleV2GatewayMiddleware implements MiddlewarePrototype {
     }
     this.uri = config.baseUri;
     this.handler = createProxyMiddleware(config.baseUri, {
-      target: 'http://localhost:80',
+      target: config.target,
       changeOrigin: true,
       ws: true,
       pathRewrite: config.options.pathRewrite,

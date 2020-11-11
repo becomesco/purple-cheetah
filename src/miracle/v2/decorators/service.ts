@@ -83,6 +83,11 @@ export function MiracleV2ServiceApplication(config: {
           logger.warn('interval', 'Failed to autorize.');
           return;
         }
+      } else if (token.payload.iat + token.payload.exp < Date.now()) {
+        if ((await auth()) === false) {
+          logger.warn('interval', 'Failed to authenticate.');
+          return;
+        }
       }
       if (registered) {
         try {
@@ -111,7 +116,6 @@ export function MiracleV2ServiceApplication(config: {
       }
       if (!registered) {
         if ((await register()) === false) {
-          console.log('error');
           throw Error('Failed to register.');
         }
       }

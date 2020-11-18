@@ -1,5 +1,4 @@
 import { Model } from './model';
-import { Entity } from '../mongodb';
 import { FSDBEntity } from './interfaces';
 
 export class FSDBService {

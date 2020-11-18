@@ -7,6 +7,7 @@ import { MiracleV2 } from '../miracle';
 import { MiracleV2ServiceController } from '../controllers';
 import { MiracleV2GatewayConfig } from '../types';
 import { MiracleV2GatewayMiddleware } from '../middleware';
+import { MiracleV2Security } from '../security';
 
 export function MiracleV2ServiceApplication(config: {
   registry: {
@@ -30,7 +31,93 @@ export function MiracleV2ServiceApplication(config: {
     let token: JWT;
     let tokenRaw: string;
     let registered = false;
-    const register = async () => {
+    const setToken = (t?: string) => {
+      if (!t) {
+        token = undefined;
+        tokenRaw = undefined;
+        MiracleV2Security.setToken();
+      } else {
+        tokenRaw = '' + t;
+        const jwt = JWTEncoding.decode(t);
+        if (jwt instanceof Error) {
+          throw jwt;
+        }
+        token = jwt;
+        MiracleV2Security.setToken(jwt);
+      }
+    };
+    const interval = setInterval(async () => {
+      if (!token || token.payload.iat + token.payload.exp < Date.now()) {
+        if ((await MiracleV2.auth()) === false) {
+          logger.warn('interval', 'Failed to authorize.');
+          return;
+        }
+      }
+      if (registered) {
+        try {
+          await Axios({
+            url: `${config.registry.url}/miracle/registry/check`,
+            method: 'POST',
+            data: {
+              id,
+            },
+          });
+        } catch (error) {
+          registered = false;
+        }
+      } else {
+        await MiracleV2.register();
+      }
+    }, 30000);
+    MiracleV2.isInitialized = () => {
+      return true;
+    };
+    MiracleV2.getServiceOrigin = async (name) => {
+      if (!token) {
+        if ((await MiracleV2.auth()) === false) {
+          throw Error('Failed to authorize.');
+        }
+      }
+      if (!registered) {
+        if ((await MiracleV2.register()) === false) {
+          throw Error('Failed to register.');
+        }
+      }
+      if (token.payload.iat + token.payload.exp < Date.now()) {
+        if ((await MiracleV2.auth()) === false) {
+          throw Error('Failed to authenticate.');
+        }
+      }
+      const serviceInstanceResponse = await Axios({
+        url: `${config.registry.url}/miracle/registry/get`,
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${tokenRaw}`,
+        },
+        data: {
+          name,
+        },
+      });
+      return serviceInstanceResponse.data.origin;
+    };
+    MiracleV2.auth = async () => {
+      try {
+        const response = await Axios({
+          url: `${config.registry.url}/miracle/auth`,
+          method: 'POST',
+          headers: {
+            Authorization: authHeader,
+          },
+        });
+        setToken(response.data.token);
+        return true;
+      } catch (error) {
+        logger.warn('auth', 'Failed');
+        setToken();
+        return false;
+      }
+    };
+    MiracleV2.register = async () => {
       try {
         await Axios({
           url: `${config.registry.url}/miracle/register`,
@@ -53,88 +140,6 @@ export function MiracleV2ServiceApplication(config: {
         logger.warn('register', 'Failed.');
         return false;
       }
-    };
-    const auth = async () => {
-      try {
-        const response = await Axios({
-          url: `${config.registry.url}/miracle/auth`,
-          method: 'POST',
-          headers: {
-            Authorization: authHeader,
-          },
-        });
-        tokenRaw = response.data.token;
-        const jwt = JWTEncoding.decode(response.data.token);
-        if (jwt instanceof Error) {
-          throw jwt;
-        }
-        token = jwt;
-        return true;
-      } catch (error) {
-        logger.warn('auth', 'Failed');
-        token = undefined;
-        tokenRaw = undefined;
-        return false;
-      }
-    };
-    const interval = setInterval(async () => {
-      if (!token) {
-        if ((await auth()) === false) {
-          logger.warn('interval', 'Failed to autorize.');
-          return;
-        }
-      } else if (token.payload.iat + token.payload.exp < Date.now()) {
-        if ((await auth()) === false) {
-          logger.warn('interval', 'Failed to authenticate.');
-          return;
-        }
-      }
-      if (registered) {
-        try {
-          await Axios({
-            url: `${config.registry.url}/miracle/registry/check`,
-            method: 'POST',
-            data: {
-              id,
-            },
-          });
-        } catch (error) {
-          registered = false;
-        }
-      } else {
-        await register();
-      }
-    }, 30000);
-    MiracleV2.isInitialized = () => {
-      return true;
-    };
-    MiracleV2.getServiceOrigin = async (name) => {
-      if (!token) {
-        if ((await auth()) === false) {
-          throw Error('Failed to authorize.');
-        }
-      }
-      if (!registered) {
-        if ((await register()) === false) {
-          throw Error('Failed to register.');
-        }
-      }
-      if (token.payload.iat + token.payload.exp < Date.now()) {
-        if ((await auth()) === false) {
-          throw Error('Failed to authenticate.');
-        }
-      }
-      const serviceInstanceResponse = await Axios({
-        url: `${config.registry.url}/miracle/registry/get`,
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${tokenRaw}`,
-        },
-        data: {
-          name,
-        },
-      });
-      return serviceInstanceResponse.data.origin;
     };
     MiracleV2.request = async (data) => {
       const instance = await MiracleV2.getServiceOrigin(data.service);

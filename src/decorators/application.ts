@@ -9,15 +9,22 @@ import {
 import { PurpleCheetah } from '../purple-cheetah';
 import { MiracleGatewayConfig, MiracleGatewayMiddleware } from '../miracle';
 
-export function Application(config: {
+export interface ApplicationConfig {
   port: number;
   controllers: ControllerPrototype[];
   middleware: MiddlewarePrototype[];
   requestLoggerMiddleware?: MiddlewarePrototype;
   notFoundMiddleware?: MiddlewarePrototype;
   httpExceptionHandlerMiddleware?: MiddlewarePrototype;
+  /**
+   * Method for initializing Miracle Gateway.
+   *
+   * @deprecated since version 2.0.21.
+   */
   gateway?: MiracleGatewayConfig;
-}) {
+}
+
+export function Application(config: ApplicationConfig) {
   return (target: any) => {
     target.prototype.logger = new Logger('PurpleCheetah');
     target.prototype.app = express();

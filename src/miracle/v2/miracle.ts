@@ -2,11 +2,14 @@ export interface MiracleV2Prototype {
   registryOrigin(): string;
   isInitialized(): boolean;
   getServiceOrigin(name: string): Promise<string>;
+  auth(): Promise<boolean>;
+  register(): Promise<boolean>;
   request<T>(data: {
     service: string;
     uri: string;
     headers?: { [key: string]: string };
-    payload?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    payload?: any;
   }): Promise<T>;
   clear(): void;
 }
@@ -19,6 +22,12 @@ export const MiracleV2: MiracleV2Prototype = {
     return false;
   },
   async getServiceOrigin() {
+    throw Error('Not initialized');
+  },
+  async auth() {
+    throw Error('Not initialized');
+  },
+  async register() {
     throw Error('Not initialized');
   },
   async request() {

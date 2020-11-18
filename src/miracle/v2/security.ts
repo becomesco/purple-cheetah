@@ -12,10 +12,22 @@ import { ObjectUtility } from '../../util';
 import { MiracleV2 } from './miracle';
 
 export class MiracleV2Security {
+  private static token?: JWT;
+  static setToken(token?: JWT) {
+    this.token = token;
+  }
   static preRequestHandler(): ControllerMethodPreRequestHandler<JWT> {
     const logger = new Logger('MiracleV2Security');
     const error = HttpErrorFactory.instance('preRequestHandler', logger);
     return async (request) => {
+      if (!this.token) {
+        if ((await MiracleV2.auth()) === false) {
+          error.occurred(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            'Failed to register.',
+          );
+        }
+      }
       if (!request.headers.authorization) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
@@ -47,8 +59,8 @@ export class MiracleV2Security {
       } catch (e) {
         throw error.occurred(HttpStatus.BAD_REQUEST, e.message);
       }
-      const incomingPolicy: MiracleV2ServiceIncomingPolicy[] =
-        jwt.payload.customPool.incomingPolicy;
+      const incomingPolicy: MiracleV2ServiceIncomingPolicy[] = this.token
+        .payload.customPool.incomingPolicy;
       let allowed = false;
       for (const i in incomingPolicy) {
         if (
@@ -60,6 +72,10 @@ export class MiracleV2Security {
         }
       }
       if (!allowed) {
+        logger.warn(
+          'preRequestHandler',
+          `Service "${jwt.payload.userId}" is not allowed to call "${request.originalUrl}"`,
+        );
         throw error.occurred(HttpStatus.UNAUTHORIZED, '');
       }
       try {
@@ -71,6 +87,11 @@ export class MiracleV2Security {
           },
         });
       } catch (e) {
+        logger.error('preRequestHandler', {
+          msg: e.message,
+          err: e.error ? e.error.response : undefined,
+        });
+        logger.warn('preRequestHandler', `Invalid token`);
         throw error.occurred(HttpStatus.UNAUTHORIZED, '');
       }
       return jwt;

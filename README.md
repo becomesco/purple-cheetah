@@ -1235,11 +1235,88 @@ export class TodoController implements ControllerPrototype {
 
 GraphQL is a great solution with which powerful and easy to use API can be created. Purple Cheetah supports GraphQL out of the box and is built on top of [graphql](https://www.npmjs.com/package/graphql) and [express-graphql](https://www.npmjs.com/package/express-graphql) packages.
 
-It can be said that REST APIs are composed of 2 main parts: controller and middleware. Because of this, they are "easy" to implement but hard to consume, while GraphQL is harder to implement but easy to consume.
+It can be said that REST APIs are composed of 2 main parts: controller and middleware. Because of this, they are "easy" to implement but hard to consume, while GraphQL is harder to implement but easy to consume. Complexity in development comes from need to create schemas and resolvers, which is not a bad thing. Purple Cheetah implementation is pretty easy to understand and best way to explain this is by using an example.
 
 ### Example
 
 <div id="graphql-example"></div>
+
+In this example simple Todo list GraphQL API will be created, the same one showed in [MongoDB example](#database-fs-example), therefore FSDB will be used as a database while controller methods will be replaced with a GraphQL resolvers. First thing to do is to decorate the application with `@EnableGraphQL` decorator.
+
+```ts
+// ---> app.ts
+
+import * as express from 'express';
+import {
+  Application,
+  EnableGraphQL,
+  PurpleCheetah,
+} from '@becomes/purple-cheetah';
+
+@EnableGraphQL({
+  rootName: 'MyApp',
+  uri: '/gql',
+  graphiql: true,
+})
+@Application({
+  port: process.env.PORT ? parseInt(process.env.PORT, 10) : 1280,
+  controllers: [],
+  middleware: [],
+})
+export class App extends PurpleCheetah {
+  protected start() {
+    this.app.use(express.static('public'));
+  }
+}
+```
+
+This is a minimum configuration required to start an application with GraphQL API enabled. At this point GrephQL will be available at *http://localhost:1280/gql*. If `uri` property is not provided, GraphQL API will be available at the root of the domain (in this case *http://localhost:1280*). By starting a development server and going to the url in a browser, Graph*i*QL can be seen, as shown in Figure 5.
+
+![Figure 5 - GraphiQL.](assets/doc/figures/5.png)
+
+_Figure 5 - GraphiQL._
+
+Next step is to create a Todo Object.
+
+```ts
+// ---> todo/gql/objects/todo.ts
+
+import {
+  QLFieldPrototype,
+  QLObject,
+  QLObjectPrototype,
+} from '@becomes/purple-cheetah';
+
+@QLObject({
+  name: 'Todo',
+  fields: [
+    {
+      name: '_id',
+      type: 'String!',
+    },
+    {
+      name: 'createdAt',
+      type: 'Float!',
+    },
+    {
+      name: 'updatedAt',
+      type: 'Float!',
+    },
+    {
+      name: 'task',
+      type: 'String!',
+    },
+  ],
+})
+export class TodoQLObject implements QLObjectPrototype {
+  name: string;
+  type?: string;
+  fields: QLFieldPrototype[];
+  description?: string;
+  wrapperObject?: QLObjectPrototype;
+}
+```
+
 
 ## Security
 

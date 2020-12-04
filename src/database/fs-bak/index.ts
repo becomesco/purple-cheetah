@@ -1,4 +1,4 @@
 export * from './decorators';
 export * from './interfaces';
 export * from './model';
-export * from './manager';
+export * from './service';

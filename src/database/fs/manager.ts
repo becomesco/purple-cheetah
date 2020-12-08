@@ -98,7 +98,7 @@ function fsDBManager() {
       if (!cache[collection]) {
         cache[collection] = {};
       }
-      cache[collection][id] = undefined;
+      delete cache[collection][id];
     },
   };
   return self;

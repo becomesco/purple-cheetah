@@ -5,6 +5,7 @@ import { Logger } from '../../logging';
 import { HttpErrorFactory } from '../../factories';
 import { HttpStatus } from '../../interfaces';
 import {
+  MiracleJWTCustomPool,
   MiracleV2ServiceIncomingPolicy,
   MiracleV2ServiceIncomingPolicySchema,
 } from './types';
@@ -12,11 +13,13 @@ import { ObjectUtility } from '../../util';
 import { MiracleV2 } from './miracle';
 
 export class MiracleV2Security {
-  private static token?: JWT;
-  static setToken(token?: JWT) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private static token?: JWT<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static setToken(token?: JWT<any>) {
     this.token = token;
   }
-  static preRequestHandler(): ControllerMethodPreRequestHandler<JWT> {
+  static preRequestHandler<T extends MiracleJWTCustomPool>(): ControllerMethodPreRequestHandler<JWT<T>> {
     const logger = new Logger('MiracleV2Security');
     const error = HttpErrorFactory.instance('preRequestHandler', logger);
     return async (request) => {
@@ -34,7 +37,7 @@ export class MiracleV2Security {
           'Missing authorization header.',
         );
       }
-      const jwt = JWTEncoding.decode(request.headers.authorization);
+      const jwt = JWTEncoding.decode<T>(request.headers.authorization);
       if (jwt instanceof Error) {
         throw error.occurred(HttpStatus.BAD_REQUEST, jwt.message);
       }

@@ -5,13 +5,13 @@ import { ObjectUtility } from '../../util';
  * Helper class used for encoding and decoding JWTs.
  */
 export class JWTEncoding {
-  public static encode(jwt: JWT): string {
+  public static encode<T>(jwt: JWT<T>): string {
     const header = this.base64url(JSON.stringify(jwt.header));
     const payload = this.base64url(JSON.stringify(jwt.payload));
     return header + '.' + payload + '.' + jwt.signature;
   }
 
-  public static decode(jwtAsString: string): JWT | Error {
+  public static decode<T>(jwtAsString: string): JWT<T> | Error {
     if (!jwtAsString) {
       return new Error('Token is `undefined`.');
     }
@@ -26,7 +26,7 @@ export class JWTEncoding {
       const header: JWTHeader = JSON.parse(
         Buffer.from(parts[0], 'base64').toString(),
       );
-      const payload: JWTPayload = JSON.parse(
+      const payload: JWTPayload<T> = JSON.parse(
         Buffer.from(parts[1], 'base64').toString(),
       );
       try {
@@ -99,7 +99,7 @@ export class JWTEncoding {
       } catch (e) {
         return e;
       }
-      const jwt: JWT = {
+      const jwt: JWT<T> = {
         header,
         payload,
         signature: parts[2],

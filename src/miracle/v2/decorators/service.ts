@@ -28,7 +28,8 @@ export function MiracleV2ServiceApplication(config: {
     const authHeader = `Basic ${Buffer.from(
       config.service.id + ':' + config.service.secret,
     ).toString('base64')}`;
-    let token: JWT;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let token: JWT<any>;
     let tokenRaw: string;
     let registered = false;
     const setToken = (t?: string) => {

@@ -15,15 +15,15 @@ import {
  * Helper class used for creating and validating JWTs.
  */
 export class JWTSecurity {
-  public static checkAndValidateAndGet(
+  public static checkAndValidateAndGet<T>(
     JWTString: string,
     config: {
       roles: RoleName[];
       permission: PermissionName;
       JWTConfig: JWTConfig;
     },
-  ): Error | JWT {
-    const jwt = JWTEncoding.decode(JWTString);
+  ): Error | JWT<T> {
+    const jwt = JWTEncoding.decode<T>(JWTString);
     if (jwt instanceof Error) {
       return jwt;
     } else {
@@ -48,13 +48,13 @@ export class JWTSecurity {
    * @param config Configuration for a token
    * @param customPool Custom user properties.
    */
-  public static createToken(
+  public static createToken<T>(
     userId: string,
     roles: Role[],
     config: JWTConfig,
-    customPool?: any,
-  ): JWT {
-    const jwt: JWT = {
+    customPool?: T,
+  ): JWT<T> {
+    const jwt: JWT<T> = {
       header: {
         type: 'JWT',
         alg: config.alg,
@@ -66,7 +66,8 @@ export class JWTSecurity {
         iat: Date.now(),
         userId,
         roles,
-        customPool: {},
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        customPool: customPool ? customPool : ({} as any),
       },
       signature: '',
     };
@@ -80,7 +81,7 @@ export class JWTSecurity {
   /**
    * Create a signature for a given JWT.
    */
-  public static signToken(jwt: JWT, secret: string): string {
+  public static signToken<T>(jwt: JWT<T>, secret: string): string {
     const header = JWTEncoding.base64url(JSON.stringify(jwt.header));
     const payload = JWTEncoding.base64url(JSON.stringify(jwt.payload));
     let hmac: crypto.Hmac;
@@ -106,7 +107,7 @@ export class JWTSecurity {
    * Check if a given JWT is valid according to a
    * provided JWT configuration.
    */
-  public static validateToken(jwt: JWT, config: JWTConfig): void | Error {
+  public static validateToken<T>(jwt: JWT<T>, config: JWTConfig): void | Error {
     if (config.issuer !== jwt.payload.iss) {
       return new Error('Bad token issuer.');
     }
@@ -130,8 +131,8 @@ export class JWTSecurity {
    * For a given a roles and permission, check
    * if JWT is valid.
    */
-  public static checkTokenPermissions(
-    jwt: JWT,
+  public static checkTokenPermissions<T>(
+    jwt: JWT<T>,
     roleNames: RoleName[],
     permissionName: PermissionName,
   ): void | Error {
@@ -161,8 +162,8 @@ export class JWTSecurity {
     }
   }
 
-  public static validateAndCheckTokenPermissions(
-    jwt: JWT,
+  public static validateAndCheckTokenPermissions<T>(
+    jwt: JWT<T>,
     roleNames: RoleName[],
     permissionName: PermissionName,
     config: JWTConfig,

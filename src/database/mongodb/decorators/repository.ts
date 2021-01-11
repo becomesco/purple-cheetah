@@ -7,7 +7,7 @@ import { MongoDB } from '../mongodb';
 export function MongoDBRepository(config: {
   name: string;
   entity: {
-    schema: Schema;
+    schema: Schema<any>;
   };
 }) {
   function init(target: any) {
@@ -34,7 +34,7 @@ export function MongoDBRepository(config: {
   return (target: any) => {
     MongoDB.addToQueue(target.name);
     if (MongoDB.isConnected() === false) {
-      new Promise((resolve, reject) => {
+      new Promise<void>((resolve) => {
         const interval = setInterval(() => {
           if (MongoDB.isConnected() === true) {
             clearInterval(interval);

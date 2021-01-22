@@ -95,6 +95,16 @@ export class Model<T extends FSDBEntity> {
     return true;
   }
 
+  updateMany(query: (entry: T) => boolean, update: (entry: T) => T): void {
+    const entities = FSDBManager.get(this.collection) as T[];
+    for (const i in entities) {
+      const entity = entities[i];
+      if (query(entity)) {
+        FSDBManager.update(this.collection, update(entity));
+      }
+    }
+  }
+
   deleteOne(query: (entity: T) => boolean): boolean {
     const entities = FSDBManager.get(this.collection) as T[];
     for (const i in entities) {

@@ -4,6 +4,7 @@ import * as path from 'path';
 import { Logger } from './logging';
 import { MiddlewarePrototype } from './interfaces';
 import { ControllerPrototype } from './interfaces';
+import { Queue } from './util';
 
 export abstract class PurpleCheetah {
   private staticContentDir?: string;
@@ -12,76 +13,65 @@ export abstract class PurpleCheetah {
   protected logger: Logger;
   protected controllers: ControllerPrototype[];
   protected middleware: MiddlewarePrototype[];
-  public static queue: Array<{
-    id: string;
-    state: boolean;
-  }> = [];
-  public static pushToQueue(id: string) {
-    const q = this.queue.find((e) => e.id === id);
-    if (!q) {
-      this.queue.push({
-        id,
-        state: false,
-      });
-    }
+
+  public static readonly Queue = new Queue();
+  public static initialized = false;
+  
+  protected start(): void {
+    // User implementation
   }
-  public static isQueueFree() {
-    return this.queue.find((e) => e.state === false) ? false : true;
+  protected middle(): void {
+    // User implementation
   }
-  public static freeQueue(id: string) {
-    this.queue.forEach((e) => {
-      if (e.id === id) {
-        e.state = true;
-      }
-    });
+  protected finalize(): void {
+    // User implementation
   }
-  // tslint:disable-next-line:no-empty
-  protected start(): void {}
-  // tslint:disable-next-line:no-empty
-  protected middle(): void {}
-  // tslint:disable-next-line:no-empty
-  protected finalize(): void {}
 
   constructor(config?: {
     logFileLocation?: string;
     staticContentDirectory?: string;
   }) {
-    new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve();
-      }, 50);
-    }).then(() => {
-      if (config && config.logFileLocation) {
-        Logger.setLogPath(config.logFileLocation);
-      } else {
-        Logger.setLogPath(path.join(process.cwd(), 'logs'));
-      }
-      if (config && config.staticContentDirectory) {
-        this.staticContentDir = config.staticContentDirectory;
-      }
-      new Promise((resolve, reject) => {
-        const waitForQueue = setInterval(() => {
-          if (PurpleCheetah.isQueueFree() === true) {
-            clearInterval(waitForQueue);
-            resolve();
-          }
-        }, 20);
-      }).then(() => {
-        this.logger.info('', 'Queue empty, continue with mounting.');
-        this.controllers.forEach((controller) => {
-          if (controller) {
-            controller.initRouter();
-          }
-        });
-        this.start();
-        this.initializeMiddleware(this.middleware, false);
-        this.middle();
-        this.initializeControllers(this.controllers);
-        this.finalize();
-        this.initializeMiddleware(this.middleware, true);
-        this.logger.info('', 'Initialized.');
+    const init = () => {
+      this.controllers.forEach((controller) => {
+        if (controller) {
+          controller.initRouter();
+        }
       });
-    });
+      this.start();
+      this.initializeMiddleware(this.middleware, false);
+      this.middle();
+      this.initializeControllers(this.controllers);
+      this.finalize();
+      this.initializeMiddleware(this.middleware, true);
+      this.logger.info('', 'Initialized.');
+    };
+    if (!PurpleCheetah.Queue.hasItems()) {
+      init();
+    } else {
+      const popQueue = PurpleCheetah.Queue.push('Initialize');
+      const popSub = PurpleCheetah.Queue.subscribe(
+        (type, name, hasQueueItems, queueItems) => {
+          if (type === 'push') {
+            this.logger.info('queue', `"${name}" has been registered.`);
+          } else {
+            this.logger.info('queue', `"${name}" has been unregistered.`);
+            if (queueItems.length === 1 && queueItems[0] === 'Initialize') {
+              init();
+              popSub();
+              popQueue();
+            }
+          }
+        },
+      );
+    }
+    if (config && config.logFileLocation) {
+      Logger.setLogPath(config.logFileLocation);
+    } else {
+      Logger.setLogPath(path.join(process.cwd(), 'logs'));
+    }
+    if (config && config.staticContentDirectory) {
+      this.staticContentDir = config.staticContentDirectory;
+    }
   }
 
   private initializeMiddleware(

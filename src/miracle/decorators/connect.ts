@@ -8,7 +8,6 @@ import {
 import { MiracleSecurity } from '../security';
 import { Miracle } from '../miracle';
 import { Logger } from '../../logging';
-import { MiracleGatewayMiddleware } from '../middleware';
 import { PurpleCheetah } from '../../purple-cheetah';
 
 export function MiracleConnect(config: {
@@ -77,7 +76,8 @@ export function MiracleConnect(config: {
   };
 
   return () => {
-    PurpleCheetah.pushToQueue('MiracleConnect');
+    const popQueue = PurpleCheetah.Queue.push('MiracleConnection');
+    // PurpleCheetah.pushToQueue('MiracleConnect');
     const logger = new Logger('MiracleConnect');
     logger.info(
       '',
@@ -102,7 +102,8 @@ export function MiracleConnect(config: {
         // } else {
         //   target.prototype.middleware = [gatewayMiddleware];
         // }
-        PurpleCheetah.freeQueue('MiracleConnect');
+        // PurpleCheetah.freeQueue('MiracleConnect');
+        popQueue();
       })
       .catch((error) => {
         logger.error('', error);

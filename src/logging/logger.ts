@@ -5,6 +5,7 @@ import { FSUtil } from '../util';
 /**
  * Used as a utility for Logger.
  */
+// eslint-disable-next-line no-shadow
 export enum ConsoleColors {
   Reset = '\x1b[0m',
   Bright = '\x1b[1m',
@@ -55,7 +56,7 @@ export class Logger {
    * @param message Text or data that will be printed and logged
    */
   public info(place: string, message: any): void {
-    let print: string = '';
+    let print = '';
     if (typeof message === 'object') {
       print = `\r\n${ConsoleColors.FgWhite}${JSON.stringify(message, null, 2)}${
         ConsoleColors.Reset
@@ -64,7 +65,7 @@ export class Logger {
       print = message;
     }
     const output: string[] = [
-      `${ConsoleColors.BgWhite}${ConsoleColors.FgBlack}[INFO]${ConsoleColors.Reset}`,
+      `${ConsoleColors.FgWhite}[INFO]${ConsoleColors.Reset}`,
       `[${ConsoleColors.FgCyan}${new Date().toLocaleString()}${
         ConsoleColors.Reset
       }]`,
@@ -83,7 +84,7 @@ export class Logger {
    * @param message Text or data that will be printed and logged
    */
   public warn(place: string, message: any): void {
-    let print: string = '';
+    let print = '';
     if (typeof message === 'object') {
       print = `\r\n${ConsoleColors.FgYellow}${JSON.stringify(
         message,
@@ -113,7 +114,7 @@ export class Logger {
    * @param message Text or data that will be printed and logged
    */
   public error(place: string, message: any): void {
-    let print: string = '';
+    let print = '';
     if (typeof message === 'object') {
       let stack: string | undefined;
       if (message.stack) {

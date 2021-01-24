@@ -78,7 +78,8 @@ export function EnableMiracleRegistry(config: {
 
   return (target: any) => {
     const logger = new Logger('MiracleRegistry');
-    PurpleCheetah.pushToQueue('EnableMiracleRegistry');
+    const popQueue = PurpleCheetah.Queue.push('EnableMiracleRegistry');
+    // PurpleCheetah.pushToQueue('EnableMiracleRegistry');
     logger.info('', 'Connecting to Miracle Key Store .....');
     init(logger)
       .then(() => {
@@ -91,7 +92,8 @@ export function EnableMiracleRegistry(config: {
         } else {
           target.prototype.controllers.push(new MiracleRegistryController());
         }
-        PurpleCheetah.freeQueue('EnableMiracleRegistry');
+        popQueue();
+        // PurpleCheetah.freeQueue('EnableMiracleRegistry');
       })
       .catch((error) => {
         logger.error('', error);

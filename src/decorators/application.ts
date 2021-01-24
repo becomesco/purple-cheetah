@@ -1,6 +1,6 @@
 import * as express from 'express';
 import * as http from 'http';
-import { Logger } from '../logging';
+import { ConsoleColors, Logger } from '../logging';
 import { MiddlewarePrototype, ControllerPrototype } from '../interfaces';
 import {
   NotFoundMiddleware,
@@ -25,7 +25,19 @@ export interface ApplicationConfig {
 }
 
 export function Application(config: ApplicationConfig) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (target: any) => {
+    const popQueue = PurpleCheetah.Queue.push('ApplicationInit');
+    PurpleCheetah.Queue.subscribe((type, name) => {
+      if (type === 'push') {
+        target.prototype.logger.info('queue', `"${name}" has been registered.`);
+      } else {
+        target.prototype.logger.info(
+          'queue',
+          `"${name}" has been unregistered.`,
+        );
+      }
+    });
     target.prototype.logger = new Logger('PurpleCheetah');
     target.prototype.app = express();
     target.prototype.server = http.createServer(target.prototype.app);
@@ -67,15 +79,7 @@ export function Application(config: ApplicationConfig) {
       target.prototype.middleware.push(gatewayMiddleware);
     }
     target.prototype.listen = () => {
-      new Promise((resolve) => {
-        target.prototype.logger.info('', 'Initializing application');
-        const interval = setInterval(() => {
-          if (PurpleCheetah.isQueueFree() === true) {
-            clearInterval(interval);
-            resolve();
-          }
-        }, 50);
-      }).then(() => {
+      const startServer = () => {
         target.prototype.logger.info('', 'Starting server...');
         target.prototype.server.listen(
           target.prototype.port,
@@ -84,13 +88,56 @@ export function Application(config: ApplicationConfig) {
               target.prototype.logger.error('listen', '' + error.stack);
               return;
             }
-            target.prototype.logger.info(
-              '.listen',
-              `Server started on port ${target.prototype.port}.`,
-            );
+            console.log(`
+            ${ConsoleColors.FgMagenta}Purple Cheetah${ConsoleColors.Reset} - ${ConsoleColors.FgGreen}Started Successfully${ConsoleColors.Reset}
+            -------------------------------------             
+            PORT: ${target.prototype.port}
+            PID: ${process.pid}
+            \n`);
           },
         );
-      });
+      };
+      if (!PurpleCheetah.Queue.hasItems()) {
+        startServer();
+      } else {
+        const popSub = PurpleCheetah.Queue.subscribe(
+          (type, name, hasQueueItems) => {
+            if (!hasQueueItems) {
+              popSub();
+              startServer();
+            }
+          },
+        );
+      }
+      // new Promise<void>((resolve) => {
+      //   const interval = setInterval(() => {
+      //     if (
+      //       PurpleCheetah.isQueueFree() === true &&
+      //       PurpleCheetah.initialized
+      //     ) {
+      //       clearInterval(interval);
+      //       resolve();
+      //     }
+      //   }, 50);
+      // }).then(() => {
+      //   target.prototype.logger.info('', 'Starting server...');
+      //   target.prototype.server.listen(
+      //     target.prototype.port,
+      //     (error: Error) => {
+      //       if (error) {
+      //         target.prototype.logger.error('listen', '' + error.stack);
+      //         return;
+      //       }
+      //       console.log(`
+      //       ${ConsoleColors.FgMagenta}Purple Cheetah${ConsoleColors.Reset} - ${ConsoleColors.FgGreen}Started Successfully${ConsoleColors.Reset}
+      //       -------------------------------------
+      //       PORT: ${target.prototype.port}
+      //       PID: ${process.pid}
+      //       \n`);
+      //     },
+      //   );
+      // });
     };
+    popQueue();
   };
 }

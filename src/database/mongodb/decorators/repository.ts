@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { Schema, model, Types } from 'mongoose';
 import { MongoDBRepositoryBuffer } from '../repository-buffer';
 import { Logger } from '../../../logging';
@@ -10,7 +12,7 @@ export function MongoDBRepository(config: {
     schema: Schema<any>;
   };
 }) {
-  function init(target: any) {
+  function init(target: any, popQueue: () => void) {
     if (MongoDBRepositoryBuffer.has(config.name) === false) {
       MongoDBRepositoryBuffer.add(
         config.name,
@@ -28,25 +30,11 @@ export function MongoDBRepository(config: {
     update(target);
     deleteById(target);
     deleteAllById(target);
-
-    MongoDB.freeQueue(target.name);
+    popQueue();
   }
   return (target: any) => {
-    MongoDB.addToQueue(target.name);
-    if (MongoDB.isConnected() === false) {
-      new Promise<void>((resolve) => {
-        const interval = setInterval(() => {
-          if (MongoDB.isConnected() === true) {
-            clearInterval(interval);
-            resolve();
-          }
-        }, 20);
-      }).then(() => {
-        init(target);
-      });
-    } else {
-      init(target);
-    }
+    const popQueue = MongoDB.Queue.push(target.name);
+    init(target, popQueue);
   };
 }
 

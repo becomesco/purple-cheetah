@@ -1,20 +1,23 @@
 import * as mongoose from 'mongoose';
+import { Queue } from '../../util';
 import { Logger } from '../../logging';
 import { MongoDBConfig } from './interfaces';
 
 export class MongoDB {
   private static config?: MongoDBConfig;
-  private static logger = new Logger('Mongoose');
+  private static logger = new Logger('MongoDB');
   private static connected = false;
-  private static queue: Array<{
-    name: string;
-    state: boolean;
-  }> = [];
+
+  public static readonly Queue = new Queue();
 
   public static async connect(config: MongoDBConfig) {
     if (!this.config) {
       this.config = config;
-      await this.openConnection();
+      try {
+        await this.openConnection();
+      } catch (error) {
+        this.logger.error('connect', error);
+      }
       setInterval(this.openConnection, 30000);
     }
   }
@@ -23,30 +26,9 @@ export class MongoDB {
     return this.connected;
   }
 
-  public static isInitialized() {
-    return this.queue.find((q) => q.state === false) ? false : true;
-  }
-
-  public static addToQueue(name: string) {
-    const q = this.queue.find((e) => e.name === name);
-    if (!q) {
-      this.queue.push({
-        name,
-        state: false,
-      });
-    }
-  }
-
-  public static freeQueue(name: string) {
-    this.queue = this.queue.filter((q) => q.name !== name);
-    if (this.queue.length === 0) {
-      this.logger.info('', 'Queue is free.');
-    }
-  }
-
   private static async openConnection() {
     if (mongoose.connection.readyState === 0) {
-      if (this.config.selfHosted) {
+      if (this.config && this.config.selfHosted) {
         let url: string =
           'mongodb://' +
           this.config.selfHosted.user.name +
@@ -69,7 +51,7 @@ export class MongoDB {
           this.logger.error('connect', error);
           this.connected = false;
         }
-      } else if (this.config.atlas) {
+      } else if (this.config && this.config.atlas) {
         const url: string =
           'mongodb+srv://' +
           this.config.atlas.user.name +
@@ -91,7 +73,7 @@ export class MongoDB {
           this.connected = true;
         } catch (error) {
           this.logger.error('.connect', error);
-          this.connected = true;
+          this.connected = false;
         }
       } else {
         this.logger.error('.openConnection', 'Invalid configuration.');

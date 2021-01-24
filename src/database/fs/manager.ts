@@ -10,7 +10,7 @@ export interface FSDBManagerCache {
 }
 
 export interface FSDBManagerPrototype {
-  init(location: string): Promise<void>;
+  init(location: string, fileName?: string): Promise<void>;
   repo: {
     register<T extends FSDBEntity>(name: string, repo: Model<T>): void;
     get<T extends FSDBEntity>(name: string): Model<T>;
@@ -45,8 +45,8 @@ function fsDBManager() {
   }
 
   const self: FSDBManagerPrototype = {
-    async init(location) {
-      filePath = path.join(location, 'bcms.db.json');
+    async init(location, fileName) {
+      filePath = path.join(location, fileName ? fileName : 'db.json');
       if (!(await FSUtil.exist(filePath))) {
         await FSUtil.save('{}', filePath);
         hash = crypto.createHash('sha256').update('{}').digest('hex');

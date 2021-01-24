@@ -18,4 +18,5 @@ export interface MongoDBRepositoryPrototype<
   update: (e: T) => Promise<boolean>;
   deleteById: (id: string) => Promise<boolean>;
   deleteAllById: (ids: string[]) => Promise<boolean | number>;
+  count: () => Promise<number>;
 }

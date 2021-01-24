@@ -60,6 +60,7 @@ export function QLResolver<T>(config: {
                 },
               };
             }
+            console.error(error);
             return {
               error: {
                 status: '500',

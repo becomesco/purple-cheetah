@@ -30,6 +30,7 @@ export function MongoDBRepository(config: {
     update(target);
     deleteById(target);
     deleteAllById(target);
+    count(target);
     popQueue();
   }
   return (target: any) => {
@@ -284,6 +285,37 @@ function deleteAllById(target: any) {
           stack: error.stack,
         });
         return false;
+      }
+    };
+  }
+}
+function count(target: any) {
+  if (typeof target.prototype.count === 'undefined') {
+    target.prototype.count = async (): Promise<number> => {
+      if (MongoDB.isConnected() === false) {
+        target.prototype.logger.error(
+          '.deleteAllById',
+          'Mongoose is not connected to database.',
+        );
+        return 0;
+      }
+      try {
+        const result: number = await target.prototype.repo.countDocuments();
+        if (!result) {
+          target.prototype.logger.error(
+            '.count',
+            'Cannot run query. Result is `undefined`.',
+          );
+          return 0;
+        } else {
+          return result;
+        }
+      } catch (error) {
+        target.prototype.logger.error('.deleteAllById', {
+          errorMessage: error.message,
+          stack: error.stack,
+        });
+        return 0;
       }
     };
   }

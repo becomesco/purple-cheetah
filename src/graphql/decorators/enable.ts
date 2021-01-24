@@ -68,13 +68,13 @@ export function EnableGraphQL(config: {
     }
     // config.inputs = [...config.inputs];
     // config.resolvers = [...config.resolvers];
-    let stringObjects: string = '';
+    let stringObjects = '';
     if (config.objects) {
       stringObjects = [
         QLErrorSchema,
         ...DefaultObjects.all,
         ...config.objects.map((e) => {
-          let result: string = '';
+          let result = '';
           if (e.description) {
             result = `
               """
@@ -88,7 +88,7 @@ export function EnableGraphQL(config: {
             type ${e.name} {
               ${e.fields
                 .map((field) => {
-                  let f: string = '';
+                  let f = '';
                   if (field.description) {
                     f = `
                       "${field.description}"
@@ -97,7 +97,7 @@ export function EnableGraphQL(config: {
                   } else {
                     f = `${field.name}@args: ${field.type}`;
                   }
-                  let args: string = '';
+                  let args = '';
                   if (field.args) {
                     args =
                       '(' +
@@ -119,7 +119,7 @@ export function EnableGraphQL(config: {
       ].join('\n');
     }
 
-    let stringUnions: string = '';
+    let stringUnions = '';
     if (config.unions) {
       stringUnions = config.unions
         .map((union) => {
@@ -128,7 +128,7 @@ export function EnableGraphQL(config: {
         .join('\n');
     }
 
-    let stringEnums: string = '';
+    let stringEnums = '';
     if (config.enums) {
       stringEnums = config.enums
         .map((e) => {
@@ -139,11 +139,11 @@ export function EnableGraphQL(config: {
         .join('\n');
     }
 
-    let stringInputs: string = '';
+    let stringInputs = '';
     if (config.inputs) {
       stringInputs = config.inputs
         .map((e) => {
-          let result: string = '';
+          let result = '';
           if (e.description) {
             result = `
               """
@@ -174,8 +174,8 @@ export function EnableGraphQL(config: {
         .join('\n');
     }
 
-    let rootQueryString: string = '';
-    let rootMutationString: string = '';
+    let rootQueryString = '';
+    let rootMutationString = '';
     const rootValue: any = {};
 
     if (config.resolvers) {
@@ -198,7 +198,7 @@ export function EnableGraphQL(config: {
                   `${e.name}@args: ${e.root.returnType}
                 `;
               }
-              let args: string = '';
+              let args = '';
               if (e.root.args) {
                 args =
                   '(' +
@@ -228,7 +228,7 @@ export function EnableGraphQL(config: {
                 rootMutationString =
                   rootMutationString + `${e.name}@args: ${e.root.returnType}\n`;
               }
-              let args: string = '';
+              let args = '';
               if (e.root.args) {
                 args =
                   '(' +
@@ -248,8 +248,8 @@ export function EnableGraphQL(config: {
         }
       });
     }
-    let rootQuery: string = '';
-    let rootMutation: string = '';
+    let rootQuery = '';
+    let rootMutation = '';
     if (rootQueryString !== '') {
       rootQuery = `
         """
@@ -270,7 +270,7 @@ export function EnableGraphQL(config: {
         }
       `;
     }
-    let schema: string = `
+    let schema = `
       schema {
         @query
         @mutation

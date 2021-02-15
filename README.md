@@ -2,7 +2,7 @@
 
 ![Logo](https://i.imgur.com/f2Mv4QD.png)
 
-<!-- [![npm](https://nodei.co/npm/@becomes/purple-cheetah.png)](https://www.npmjs.com/package/@becomes/purple-cheetah) -->
+[![npm](https://nodei.co/npm/@becomes/purple-cheetah.png)](https://www.npmjs.com/package/@becomes/purple-cheetah)
 
 Purple Cheetah is not a framework but rather a utility set
 for [ExpressJS](https://expressjs.com/), written

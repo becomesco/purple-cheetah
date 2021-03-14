@@ -1,9 +1,9 @@
 import { SocketConnection } from './interfaces';
 
 export class SocketConnectionService {
-  private static connections: SocketConnection[] = [];
+  private static connections: SocketConnection<unknown>[] = [];
 
-  public static add(connection: SocketConnection) {
+  public static add(connection: SocketConnection<unknown>) {
     let found = false;
     for (const i in this.connections) {
       if (this.connections[i].id === connection.id) {
@@ -20,6 +20,18 @@ export class SocketConnectionService {
 
   public static find(id: string) {
     return this.connections.find((e) => e.id === id);
+  }
+
+  public static query(
+    q: (connection: SocketConnection<unknown>) => boolean,
+  ): Array<SocketConnection<unknown>> {
+    const output: Array<SocketConnection<unknown>> = [];
+    for (let i = 0; i < this.connections.length; i++) {
+      if (q(this.connections[i])) {
+        output.push(this.connections[i]);
+      }
+    }
+    return output;
   }
 
   public static findByGroup(group: string) {

@@ -6,7 +6,7 @@ import { SocketConnectionService } from '../connection-handler';
 export function EnableSocketServer(config: {
   origins?: string[];
   path: string;
-  onConnection: (socket: SocketIO.Socket) => SocketConnection;
+  onConnection: (socket: socketIO.Socket) => SocketConnection<unknown>;
   allowConnection?: (request: any) => Promise<boolean>;
   verifyConnection?: (socket: socketIO.Socket) => Promise<boolean>;
   eventHandlers?: SocketEventHandler[];

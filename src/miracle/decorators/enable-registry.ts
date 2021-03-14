@@ -37,7 +37,7 @@ export function EnableMiracleRegistry(config: {
         data,
       });
     } catch (error) {
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve) => {
         const interval = setInterval(async () => {
           try {
             keyStoreAuthResult = await Axios({

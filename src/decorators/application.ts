@@ -78,65 +78,41 @@ export function Application(config: ApplicationConfig) {
       const gatewayMiddleware = new MiracleGatewayMiddleware(config.gateway);
       target.prototype.middleware.push(gatewayMiddleware);
     }
-    target.prototype.listen = () => {
-      const startServer = () => {
-        target.prototype.logger.info('', 'Starting server...');
-        target.prototype.server.listen(
-          target.prototype.port,
-          (error: Error) => {
-            if (error) {
-              target.prototype.logger.error('listen', '' + error.stack);
-              return;
-            }
-            console.log(`
+    target.prototype.listen = async () => {
+      return await new Promise((resolve) => {
+        const startServer = () => {
+          target.prototype.logger.info('', 'Starting server...');
+          resolve(
+            target.prototype.server.listen(
+              target.prototype.port,
+              (error: Error) => {
+                if (error) {
+                  target.prototype.logger.error('listen', '' + error.stack);
+                  return;
+                }
+                console.log(`
             ${ConsoleColors.FgMagenta}Purple Cheetah${ConsoleColors.Reset} - ${ConsoleColors.FgGreen}Started Successfully${ConsoleColors.Reset}
             -------------------------------------             
             PORT: ${target.prototype.port}
             PID: ${process.pid}
             \n`);
-          },
-        );
-      };
-      if (!PurpleCheetah.Queue.hasItems()) {
-        startServer();
-      } else {
-        const popSub = PurpleCheetah.Queue.subscribe(
-          (type, name, hasQueueItems) => {
-            if (!hasQueueItems) {
-              popSub();
-              startServer();
-            }
-          },
-        );
-      }
-      // new Promise<void>((resolve) => {
-      //   const interval = setInterval(() => {
-      //     if (
-      //       PurpleCheetah.isQueueFree() === true &&
-      //       PurpleCheetah.initialized
-      //     ) {
-      //       clearInterval(interval);
-      //       resolve();
-      //     }
-      //   }, 50);
-      // }).then(() => {
-      //   target.prototype.logger.info('', 'Starting server...');
-      //   target.prototype.server.listen(
-      //     target.prototype.port,
-      //     (error: Error) => {
-      //       if (error) {
-      //         target.prototype.logger.error('listen', '' + error.stack);
-      //         return;
-      //       }
-      //       console.log(`
-      //       ${ConsoleColors.FgMagenta}Purple Cheetah${ConsoleColors.Reset} - ${ConsoleColors.FgGreen}Started Successfully${ConsoleColors.Reset}
-      //       -------------------------------------
-      //       PORT: ${target.prototype.port}
-      //       PID: ${process.pid}
-      //       \n`);
-      //     },
-      //   );
-      // });
+              },
+            ),
+          );
+        };
+        if (!PurpleCheetah.Queue.hasItems()) {
+          startServer();
+        } else {
+          const popSub = PurpleCheetah.Queue.subscribe(
+            (type, name, hasQueueItems) => {
+              if (!hasQueueItems) {
+                popSub();
+                startServer();
+              }
+            },
+          );
+        }
+      });
     };
     popQueue();
   };

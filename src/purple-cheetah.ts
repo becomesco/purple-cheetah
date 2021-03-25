@@ -1,5 +1,6 @@
 import * as express from 'express';
 import * as path from 'path';
+import {Server} from 'http';
 
 import { Logger } from './logging';
 import { MiddlewarePrototype } from './interfaces';
@@ -16,7 +17,7 @@ export abstract class PurpleCheetah {
 
   public static readonly Queue = new Queue();
   public static initialized = false;
-  
+
   protected start(): void {
     // User implementation
   }
@@ -65,9 +66,15 @@ export abstract class PurpleCheetah {
       );
     }
     if (config && config.logFileLocation) {
-      Logger.setLogPath(config.logFileLocation);
+      Logger.setLogPath(config.logFileLocation).catch((error) => {
+        console.error(error);
+        process.exit(1);
+      });
     } else {
-      Logger.setLogPath(path.join(process.cwd(), 'logs'));
+      Logger.setLogPath(path.join(process.cwd(), 'logs')).catch((error) => {
+        console.error(error);
+        process.exit(1);
+      });
     }
     if (config && config.staticContentDirectory) {
       this.staticContentDir = config.staticContentDirectory;
@@ -109,5 +116,5 @@ export abstract class PurpleCheetah {
     });
   }
 
-  public listen: () => void;
+  public listen: () => Promise<Server>;
 }

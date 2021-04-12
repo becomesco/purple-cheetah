@@ -22,7 +22,7 @@ export class Model<T extends FSDBEntity> {
   findOne(query: (entity: T) => boolean): T | undefined {
     const entities = FSDBManager.get<T>(this.collection) as T[];
     for (const i in entities) {
-      const entity = entities[i];
+      const entity = JSON.parse(JSON.stringify(entities[i])) as T;
       if (query(entity) === true) {
         return entity;
       }
@@ -33,7 +33,7 @@ export class Model<T extends FSDBEntity> {
     const entities = FSDBManager.get<T>(this.collection) as T[];
     const output: T[] = [];
     for (const i in entities) {
-      const entity = entities[i];
+      const entity = JSON.parse(JSON.stringify(entities[i])) as T;
       if (!query || query(entity) === true) {
         output.push(entity);
       }
@@ -62,7 +62,10 @@ export class Model<T extends FSDBEntity> {
       this.logger.error('add', error.message);
       return false;
     }
-    FSDBManager.update(this.collection, entity);
+    FSDBManager.update(
+      this.collection,
+      JSON.parse(JSON.stringify(entity)) as T,
+    );
     return true;
   }
 
@@ -91,7 +94,10 @@ export class Model<T extends FSDBEntity> {
       this.logger.error('update', error.message);
       return false;
     }
-    FSDBManager.update(this.collection, entity);
+    FSDBManager.update(
+      this.collection,
+      JSON.parse(JSON.stringify(entity)) as T,
+    );
     return true;
   }
 
@@ -100,7 +106,10 @@ export class Model<T extends FSDBEntity> {
     for (const i in entities) {
       const entity = entities[i];
       if (query(entity)) {
-        FSDBManager.update(this.collection, update(entity));
+        FSDBManager.update(
+          this.collection,
+          update(JSON.parse(JSON.stringify(entity)) as T),
+        );
       }
     }
   }

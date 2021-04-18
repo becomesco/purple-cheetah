@@ -1,4 +1,5 @@
-import * as socketIO from 'socket.io';
+import type { Socket } from 'socket.io';
+import { Server as SocketIO } from 'socket.io';
 import { Logger } from '../../logging';
 import { SocketEventHandler, SocketConnection } from '../interfaces';
 import { SocketConnectionService } from '../connection-handler';
@@ -6,9 +7,9 @@ import { SocketConnectionService } from '../connection-handler';
 export function EnableSocketServer(config: {
   origins?: string[];
   path: string;
-  onConnection: (socket: socketIO.Socket) => SocketConnection<unknown>;
+  onConnection: (socket: Socket) => SocketConnection<unknown>;
   allowConnection?: (request: any) => Promise<boolean>;
-  verifyConnection?: (socket: socketIO.Socket) => Promise<boolean>;
+  verifyConnection?: (socket: Socket) => Promise<boolean>;
   eventHandlers?: SocketEventHandler[];
 }) {
   if (!config.eventHandlers) {
@@ -23,9 +24,9 @@ export function EnableSocketServer(config: {
       );
       throw new Error('Missing HTTP server object.');
     }
-    const socketIOServer = socketIO(target.prototype.server, {
+    const socketIOServer = new SocketIO(target.prototype.server, {
       path: config.path,
-      origins: config.origins,
+      // origins: config.origins,
       cookie: false,
       allowRequest: async (request, callback) => {
         logger.info('.allowConnection', 'Incoming connection...');

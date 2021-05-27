@@ -1,2 +1,2 @@
-export * from './fs';
-export * from './logger';
+export * from './util/fs';
+export * from './util/logger';

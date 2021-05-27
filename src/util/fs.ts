@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as util from 'util';
 import * as fse from 'fs-extra';
 
-import type { CreateFSConfig, FS } from './types';
+import type { CreateFSConfig, FS } from '../types';
 import { useLogger } from './logger';
 
 export function createFS(config?: CreateFSConfig): FS {

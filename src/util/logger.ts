@@ -1,4 +1,4 @@
-import type { FS, Logger, UpdateLoggerConfig, UseLoggerConfig } from './types';
+import type { FS, Logger, UpdateLoggerConfig, UseLoggerConfig } from '../types';
 import * as path from 'path';
 import { createFS } from './fs';
 
@@ -51,7 +51,11 @@ function toOutput(messageParts: string[]) {
 }
 
 export function updateLogger(config: UpdateLoggerConfig) {
-  output = config.output;
+  if (config.output.startsWith('/')) {
+    output = config.output;
+  } else {
+    output = path.join(process.cwd(), config.output);
+  }
 }
 export function useLogger(config: UseLoggerConfig): Logger {
   if (!fs) {

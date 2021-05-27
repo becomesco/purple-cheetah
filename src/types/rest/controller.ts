@@ -1,19 +1,8 @@
-import type { Logger } from '../logger';
+import type { Logger } from '../util/logger';
 import type { NextFunction, Request, Response, Router } from 'express';
+import type { HTTPError } from './error';
 
 export type ControllerMethodType = 'get' | 'post' | 'put' | 'delete';
-export type ControllerMethodPreRequestHandler<T> = (data: {
-  request: Request;
-  response: Response;
-}) => Promise<T>;
-export type ControllerMethodHandler<PreRequestHandlerReturnType, ReturnType> =
-  (data: {
-    request: Request;
-    response: Response;
-    next: NextFunction;
-    pre: PreRequestHandlerReturnType;
-    logger: Logger;
-  }) => Promise<ReturnType>;
 export interface ControllerMethod {
   type: ControllerMethodType;
   path: string;
@@ -27,10 +16,20 @@ export interface ControllerMethodConfig<
   PreRequestHandlerReturnType,
   ReturnType,
 > {
+  name?: string;
   type: ControllerMethodType;
   path: string;
-  preRequestHandler?: ControllerMethodPreRequestHandler<PreRequestHandlerReturnType>;
-  handler: ControllerMethodHandler<PreRequestHandlerReturnType, ReturnType>;
+  preRequestHandler?(data: {
+    request: Request;
+    response: Response;
+  }): Promise<PreRequestHandlerReturnType>;
+  handler(data: {
+    request: Request;
+    response: Response;
+    pre?: PreRequestHandlerReturnType;
+    logger: Logger;
+    errorHandler: HTTPError;
+  }): Promise<ReturnType>;
 }
 
 export interface ControllerConfig {
@@ -65,6 +64,6 @@ export interface Controller {
   path: string;
   logger: Logger;
   router: Router;
-  initRouter: () => void;
+  // initRouter: () => void;
   methods: ControllerMethod[];
 }

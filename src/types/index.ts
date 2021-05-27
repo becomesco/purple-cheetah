@@ -1,4 +1,7 @@
+export * from './modules';
 export * from './rest';
+export * from './util';
 
-export * from './fs';
-export * from './logger';
+export * from './util/fs';
+export * from './util/logger';
+export * from './main';

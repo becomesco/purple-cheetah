@@ -7,29 +7,23 @@
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "target": "es5",
+    "strict": true,
+    "target": "ES2020",
     "outDir": "./dist",
     "baseUrl": "./",
-    "incremental": true
+    "incremental": true,
+    "importsNotUsedAsValues": "error"
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist",  "public"],
   "typedocOptions": {
-    "name": "GetCV | SDK",
+    "name": "Purple Cheetah | API",
     "theme": "./node_modules/typedoc-neo-theme/bin/default",
     "plugin": "typedoc-neo-theme",
-    "mode": "file",
     "out": "doc",
     "outline": [
       {
-        "Client SDK": {
-          "Overview": "interfaces/getcvclientprototype",
-          "User": "interfaces/userhandlerprototype",
-          "Company": "interfaces/companyhandlerprototype",
-          "Invitation": "interfaces/invitationhandlerprototype",
-          "Job": "interfaces/jobhandlerprototype",
-          "Candidate": "interfaces/candidatehandlerprototype",
-          "Socket": "interfaces/sockethandlerprototype"
+        "Main": {
         }
       }
     ]

@@ -6,11 +6,24 @@ import type {
   PurpleCheetah,
   PurpleCheetahConfig,
 } from './types';
-import { createQueue, updateLogger, useLogger } from './util';
+import {
+  ConsoleColors,
+  initializeFS,
+  initializeLogger,
+  updateLogger,
+  useLogger,
+} from './util';
+import {
+  createHTTPExceptionHandlerMiddleware,
+  createNotFoundMiddleware,
+} from './rest';
 
 export function createPurpleCheetah(
   config: PurpleCheetahConfig,
 ): PurpleCheetah {
+  initializeFS();
+  initializeLogger();
+
   if (!config.controllers) {
     config.controllers = [];
   }
@@ -22,11 +35,13 @@ export function createPurpleCheetah(
       output: config.logPath,
     });
   }
+  const modules = config.modules ? config.modules : [];
   const logger = useLogger({
     name: 'Purple Cheetah',
   });
   const app = express();
   const server = http.createServer(app);
+  let ready = false;
 
   if (config.requestLoggerMiddleware) {
     config.requestLoggerMiddleware.after = false;
@@ -36,13 +51,13 @@ export function createPurpleCheetah(
     config.httpExceptionHandlerMiddleware.after = true;
     config.middleware.push(config.httpExceptionHandlerMiddleware);
   } else {
-    // TODO: Add default
+    config.middleware.push(createHTTPExceptionHandlerMiddleware());
   }
   if (config.notFoundMiddleware) {
     config.notFoundMiddleware.after = true;
     config.middleware.push(config.notFoundMiddleware);
   } else {
-    // TODO: Add default
+    config.middleware.push(createNotFoundMiddleware());
   }
 
   function initializeControllers(controllers: Controller[]): void {
@@ -68,55 +83,84 @@ export function createPurpleCheetah(
         app.use(mv.path, mv.handler);
       });
   }
-  function initialize(controllers: Controller[], middleware: Middleware[]) {
-    if (config.staticContentDir) {
-      app.use(express.static(config.staticContentDir));
-    }
-    if (config.start) {
-      config.start();
-    }
-    initializeMiddleware(middleware, false);
-    if (config.middle) {
-      config.middle();
-    }
-    initializeControllers(controllers);
-    initializeMiddleware(middleware, true);
-    if (config.finalize) {
-      config.finalize();
+  function loadNextModule() {
+    if (modules.length > 0) {
+      const module = modules.splice(0, 1)[0];
+      module.initialize({
+        name: module.name,
+        onDone(error?: Error) {
+          if (error) {
+            logger.error('loadModule', {
+              name: module.name,
+              error,
+            });
+            process.exit(1);
+          } else {
+            loadNextModule();
+          }
+        },
+      });
     }
   }
-
-  const queue = createQueue();
-  const popQueue = queue.push('Initialize');
-  const popSub = queue.subscribe((type, name, hasQueueItems, queueItems) => {
-    if (type === 'push') {
-      logger.info('queue', `"${name}" has been registered.`);
-    } else {
-      logger.info('queue', `"${name}" has been unregistered.`);
-      if (queueItems.length === 1 && queueItems[0] === 'Initialize') {
-        initialize(
-          config.controllers as Controller[],
-          config.middleware as Middleware[],
-        );
-        popSub();
-        popQueue();
+  modules.push({
+    name: 'Purple Cheetah Initialize',
+    initialize(moduleConfig) {
+      if (!config.middleware) {
+        config.middleware = [];
       }
-    }
+      if (!config.controllers) {
+        config.controllers = [];
+      }
+      if (config.staticContentDir) {
+        app.use(express.static(config.staticContentDir));
+      }
+      if (config.start) {
+        config.start();
+      }
+      initializeMiddleware(config.middleware, false);
+      if (config.middle) {
+        config.middle();
+      }
+      initializeControllers(config.controllers);
+      initializeMiddleware(config.middleware, true);
+      if (config.finalize) {
+        config.finalize();
+      }
+      moduleConfig.onDone();
+    },
   });
-  if (config.modules) {
-    // TODO: Initialize modules
-  } else {
-    popSub();
-    popQueue();
-    initialize(config.controllers, config.middleware);
-  }
+  modules.push({
+    name: 'Start Server',
+    initialize(moduleConfig) {
+      try {
+        logger.info(moduleConfig.name, 'working...');
+        app.listen(config.port, () => {
+          console.log(`
+            ${ConsoleColors.FgMagenta}Purple Cheetah${ConsoleColors.Reset} - ${ConsoleColors.FgGreen}Started Successfully${ConsoleColors.Reset}
+            -------------------------------------             
+            PORT: ${config.port}
+            PID: ${process.pid}
+            \n`);
+          ready = true;
+          if (config.onReady) {
+            config.onReady(self);
+          }
+          moduleConfig.onDone();
+        });
+      } catch (error) {
+        moduleConfig.onDone(error);
+      }
+    },
+  });
 
-  return {
+  loadNextModule();
+
+  const self: PurpleCheetah = {
     app,
     server,
-    isInitialized() {
-      return initialized;
+    isReady() {
+      return ready;
     },
-    async listen() {},
   };
+  return self;
 }

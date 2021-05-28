@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import type {
+  FSDBCacheCollection,
   FSDBEntity,
   FSDBRepository,
   FSDBRepositoryConfig,
@@ -9,11 +10,15 @@ import { useFSDB } from './main';
 
 const objectUtility = useObjectUtility();
 
-export function createFSDBRepository<T extends FSDBEntity>({
+export function useFSDBRepository<T extends FSDBEntity>(collection: string) {
+  return useFSDB().repo.use<T>(collection);
+}
+export function createFSDBRepository<T extends FSDBEntity, K>({
   name,
   collection,
   schema,
-}: FSDBRepositoryConfig): FSDBRepository<T> {
+  methods,
+}: FSDBRepositoryConfig<T, K>): FSDBRepository<T, K> {
   const logger = useLogger({ name });
   const fsdb = useFSDB().register<T>(collection);
 
@@ -27,29 +32,41 @@ export function createFSDBRepository<T extends FSDBEntity>({
     logger.error(place, message);
     return Error(message as string);
   }
+  function getAllEntities(): T[] {
+    const output: T[] = [];
+    const entities: FSDBCacheCollection<T> = JSON.parse(
+      JSON.stringify(fsdb.get()),
+    );
+    const entityIds = Object.keys(entities);
+    for (let i = 0; i < entityIds.length; i++) {
+      output.push(entities[entityIds[i]]);
+    }
+    return output;
+  }
 
-  const self: FSDBRepository<T> = {
+  const self: FSDBRepository<T, K> = {
+    methods: undefined as never,
     async findBy(query) {
-      const entries: T[] = JSON.parse(JSON.stringify(fsdb.get()));
-      for (const id in entries) {
-        if (query(entries[id])) {
-          return entries[id];
+      const entities = getAllEntities();
+      for (let i = 0; i < entities.length; i++) {
+        if (query(entities[i])) {
+          return entities[i];
         }
       }
       return null;
     },
     async findAllBy(query) {
-      const entries: T[] = JSON.parse(JSON.stringify(fsdb.get()));
+      const entities = getAllEntities();
       const output: T[] = [];
-      for (const id in entries) {
-        if (query(entries[id])) {
-          output.push(entries[id]);
+      for (let i = 0; i < entities.length; i++) {
+        if (query(entities[i])) {
+          output.push(entities[i]);
         }
       }
       return output;
     },
     async findAll() {
-      return JSON.parse(JSON.stringify(fsdb.get()));
+      return getAllEntities();
     },
     async findById(id) {
       return self.findBy((e) => e._id === id);
@@ -62,7 +79,7 @@ export function createFSDBRepository<T extends FSDBEntity>({
         entity._id = uuidv4();
       } else {
         if (await self.findById(entity._id)) {
-          throwError(
+          throw throwError(
             'add',
             `Entity with ID "${entity._id}" already exist. ` +
               `Please use "update" method.`,
@@ -90,20 +107,84 @@ export function createFSDBRepository<T extends FSDBEntity>({
     async update(entity) {
       const targetEntity = await self.findById(entity._id);
       if (!targetEntity) {
-        throwError(
+        throw throwError(
           'update',
           `Entity with ID "${entity._id}" does not exist. ` +
             `Please use "add" method.`,
         );
       }
-      entity.createdAt = targetEntity._id;
+      entity.createdAt = targetEntity.createdAt;
       entity.updatedAt = Date.now();
+      try {
+        checkSchema(entity);
+      } catch (e) {
+        logger.error('update', e);
+        throw e;
+      }
+      fsdb.set(entity);
+      return entity;
     },
-    async updateMany(query, update) {},
-    async deleteById(id: string) {},
-    async deleteOne(query) {},
-    async deleteMany(query) {},
-    async count() {},
+    async updateMany(query, update) {
+      const output: T[] = [];
+      const entities = getAllEntities();
+      for (let i = 0; i < entities.length; i++) {
+        let entity = entities[i];
+        const targetEntity: T = JSON.parse(JSON.stringify(entity));
+        if (query(entity)) {
+          entity = update(entity);
+          entity._id = targetEntity._id;
+          entity.createdAt = targetEntity.createdAt;
+          entity.updatedAt = Date.now();
+          try {
+            checkSchema(entity);
+          } catch (e) {
+            logger.error('updateMany', e);
+            throw e;
+          }
+          fsdb.set(entity);
+          output.push(entity);
+        }
+      }
+      return output;
+    },
+    async deleteById(id: string) {
+      return self.deleteOne((e) => e._id === id);
+    },
+    async deleteAllById(ids) {
+      return self.deleteMany((e) => ids.includes(e._id));
+    },
+    async deleteOne(query) {
+      const entities = getAllEntities();
+      for (let i = 0; i < entities.length; i++) {
+        if (query(entities[i])) {
+          fsdb.remove(entities[i]._id);
+          return true;
+        }
+      }
+      return false;
+    },
+    async deleteMany(query) {
+      const entities = getAllEntities();
+      for (let i = 0; i < entities.length; i++) {
+        if (query(entities[i])) {
+          fsdb.remove(entities[i]._id);
+        }
+      }
+      return true;
+    },
+    async count() {
+      return Object.keys(fsdb.get()).length;
+    },
   };
+  if (methods) {
+    self.methods = methods({
+      name,
+      collection,
+      schema,
+      repo: self,
+      logger,
+    });
+  }
+  useFSDB().repo.create(collection, self);
   return self;
 }

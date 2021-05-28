@@ -3,25 +3,35 @@ import * as path from 'path';
 import * as util from 'util';
 import * as fse from 'fs-extra';
 
-import type { CreateFSConfig, FS } from '../types';
+import type { CreateFSConfig, FS, Logger } from '../types';
 import { useLogger } from './logger';
 
-export function createFS(config?: CreateFSConfig): FS {
+let logger: Logger;
+
+export function initializeFS() {
+  if (!logger) {
+    logger = useLogger({
+      name: 'FS',
+    });
+  }
+}
+export function useFS(config?: CreateFSConfig): FS {
   if (!config) {
     config = {};
   }
   const baseRoot = config.base ? config.base : '';
-  const logger = useLogger({
-    name: 'FS',
-  });
 
   const self: FS = {
     async save(root, data) {
-      const parts = root.split('/');
+      const parts = root.split('/').filter((e) => !!e);
       let base = `${baseRoot}`;
       for (let j = 0; j < parts.length; j = j + 1) {
         if (parts[j].indexOf('.') === -1) {
-          base = path.join(base, parts[j]);
+          if (base) {
+            base = path.join(base, parts[j]);
+          } else {
+            base = path.join('/', parts[j]);
+          }
           try {
             if ((await util.promisify(fs.exists)(base)) === false) {
               await util.promisify(fs.mkdir)(base);
@@ -38,7 +48,7 @@ export function createFS(config?: CreateFSConfig): FS {
     },
     async exist(root, isFile) {
       return new Promise<boolean>((resolve, reject) => {
-        fs.stat(root, (err, stats) => {
+        fs.stat(path.join(baseRoot, root), (err, stats) => {
           if (err) {
             if (err.code === 'ENOENT') {
               resolve(false);

@@ -1,9 +1,14 @@
-import type { FS, Logger, UpdateLoggerConfig, UseLoggerConfig } from '../types';
+import * as nodeFS from 'fs';
 import * as path from 'path';
-import { createFS } from './fs';
+import * as util from 'util';
+import type { FS, Logger, UpdateLoggerConfig, UseLoggerConfig } from '../types';
+import { useFS } from './fs';
+import { setInterval } from 'timers';
 
 let output = path.join(process.cwd(), 'logs');
 let fs: FS;
+const outputBuffer: string[] = [];
+let saveInterval: NodeJS.Timeout;
 
 // eslint-disable-next-line no-shadow
 export enum ConsoleColors {
@@ -35,32 +40,55 @@ export enum ConsoleColors {
 }
 
 function toOutput(messageParts: string[]) {
-  const date = new Date();
   console.log(messageParts.join(' '));
   messageParts = [...messageParts, '\n'];
-  fs.save(
-    path.join(
-      output,
-      `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}.log`,
-    ),
-    messageParts.join(' '),
-  ).catch((err) => {
-    console.error(err);
-    process.exit(1);
-  });
+  outputBuffer.push(messageParts.join(' '));
+}
+async function save() {
+  const date = new Date();
+  const filePath = path.join(
+    output,
+    `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}.log`,
+  );
+  if (!(await fs.exist(filePath))) {
+    await fs.save(filePath, '');
+  }
+  const outputData = outputBuffer.splice(0, outputBuffer.length);
+  await util.promisify(nodeFS.appendFile)(filePath, outputData.join(''));
 }
 
 export function updateLogger(config: UpdateLoggerConfig) {
-  if (config.output.startsWith('/')) {
-    output = config.output;
-  } else {
-    output = path.join(process.cwd(), config.output);
+  if (config.output) {
+    if (config.output.startsWith('/')) {
+      output = config.output;
+    } else {
+      output = path.join(process.cwd(), config.output);
+    }
+  }
+  if (config.saveInterval) {
+    clearInterval(saveInterval);
+    saveInterval = setInterval(() => {
+      save().catch((error) => {
+        console.error(error);
+        process.exit(1);
+      });
+    }, config.saveInterval);
+  }
+}
+export function initializeLogger() {
+  if (!fs) {
+    fs = useFS();
+  }
+  if (!saveInterval) {
+    saveInterval = setInterval(() => {
+      save().catch((error) => {
+        console.error(error);
+        process.exit(1);
+      });
+    }, 1000);
   }
 }
 export function useLogger(config: UseLoggerConfig): Logger {
-  if (!fs) {
-    fs = createFS();
-  }
   return {
     info(place, message) {
       let print = '';

@@ -17,7 +17,8 @@
     "test:active": "mocha -r ts-node/register test/integration/*.active.test.ts --recursive --exit",
     "test:unit": "mocha -r ts-node/register test/unit/*.test.ts --recursive --exit",
     "test:active:unit": "mocha -r ts-node/register test/unit/*.active.test.ts --recursive --exit",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts",
+    "example:hello-world": "nodemon examples/hello-world/main.ts"
   },
   "repository": {
     "type": "git",
@@ -79,11 +80,8 @@
   },
   "nodemonConfig": {
     "watch": [
-      "src/"
+      "examples", "src", "test"
     ],
-    "ext": "ts",
-    "events": {
-      "start": "npm run bundle"
-    }
+    "ext": "ts"
   }
 }

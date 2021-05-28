@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import type {
   Controller,
   ControllerConfig,
@@ -16,14 +17,10 @@ export function createControllerMethod<PreRequestHandlerReturnType, ReturnType>(
 }
 function wrapControllerMethod<PreRequestHandlerReturnType, ReturnType>(
   logger: Logger,
-  {
-    name,
-    type,
-    path,
-    handler,
-    preRequestHandler,
-  }: ControllerMethodConfig<PreRequestHandlerReturnType, ReturnType>,
+  config: ControllerMethodConfig<PreRequestHandlerReturnType, ReturnType>,
 ): ControllerMethod {
+  const name = config.name ? config.name : uuidv4();
+  let path = config.path ? config.path : '';
   if (!path.startsWith('/')) {
     path = '/' + path;
   }
@@ -78,12 +75,12 @@ export function createController(config: ControllerConfig): Controller {
   if (!config.path.startsWith('/')) {
     config.path = '/' + config.path;
   }
-  const router = Router();
   const methods: ControllerMethod[] = [];
   for (let i = 0; i < config.methods.length; i++) {
     const method = config.methods[i];
     methods.push(
       wrapControllerMethod(logger, {
+        name: method.name,
         type: method.type,
         path: method.path,
         preRequestHandler: method.preRequestHandler,
@@ -97,6 +94,5 @@ export function createController(config: ControllerConfig): Controller {
     path: config.path,
     methods,
     logger,
-    router,
   };
 }

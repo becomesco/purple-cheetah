@@ -1,15 +1,15 @@
 import * as crypto from 'crypto';
 import * as path from 'path';
 import type {
-  FS,
   FSDB,
   FSDBCache,
   FSDBCacheCollection,
   FSDBConfig,
   FSDBEntity,
+  FSDBRepository,
   Module,
 } from '../../../types';
-import { createFS, useLogger } from '../../../util';
+import { useFS, useLogger } from '../../../util';
 
 let output = path.join(process.cwd(), '.fsdb.json');
 let saveInterval: NodeJS.Timeout;
@@ -18,7 +18,10 @@ let cacheHash = '';
 const logger = useLogger({
   name: 'FSDB',
 });
-const fs = createFS();
+const fs = useFS();
+const repos: {
+  [collection: string]: FSDBRepository<FSDBEntity>;
+} = {};
 const fsdb: FSDB = {
   register<T extends FSDBEntity>(collection: string) {
     if (!cache[collection]) {
@@ -35,6 +38,22 @@ const fsdb: FSDB = {
         delete cache[collection][id];
       },
     };
+  },
+  repo: {
+    create<T extends FSDBEntity>(
+      collection: string,
+      repo: FSDBRepository<T>,
+    ): void {
+      if (!repos[collection]) {
+        repos[collection] = repo;
+      }
+    },
+    use<T extends FSDBEntity>(collection: string): FSDBRepository<T> | null {
+      if (repos[collection]) {
+        return repos[collection] as FSDBRepository<T>;
+      }
+      return null;
+    },
   },
 };
 
@@ -83,14 +102,12 @@ export function createFSDB(config: FSDBConfig): Module {
   return {
     name: 'FSDB',
     initialize(moduleConfig) {
-      const popQueue = moduleConfig.queue.push('FSDB');
       init(config)
         .then(() => {
-          popQueue();
+          moduleConfig.onDone();
         })
         .catch((error) => {
-          logger.error('init', error);
-          process.exit(1);
+          moduleConfig.onDone(error);
         });
     },
   };

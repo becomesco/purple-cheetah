@@ -1,8 +1,6 @@
-import type { Queue } from '../util';
-
 export interface ModuleConfig {
   name: string;
-  queue: Queue;
+  onDone(error?: Error): void;
 }
 export interface Module {
   name: string;

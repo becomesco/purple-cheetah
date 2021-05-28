@@ -1,4 +1,4 @@
-import type { Logger } from '../util/logger';
+import type { Logger } from '../util';
 import type { NextFunction, Request, Response, Router } from 'express';
 import type { HTTPError } from './error';
 
@@ -18,12 +18,16 @@ export interface ControllerMethodConfig<
 > {
   name?: string;
   type: ControllerMethodType;
-  path: string;
+  path?: string;
   preRequestHandler?(data: {
+    name: string,
+    logger: Logger,
+    errorHandler: HTTPError,
     request: Request;
     response: Response;
   }): Promise<PreRequestHandlerReturnType>;
   handler(data: {
+    name: string;
     request: Request;
     response: Response;
     pre?: PreRequestHandlerReturnType;
@@ -63,7 +67,5 @@ export interface Controller {
    */
   path: string;
   logger: Logger;
-  router: Router;
-  // initRouter: () => void;
   methods: ControllerMethod[];
 }

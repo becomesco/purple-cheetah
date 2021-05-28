@@ -11,5 +11,9 @@ export interface UpdateLoggerConfig {
    * Path to output directory. If output starts with "/", it will
    * used as absolute path.
    */
-  output: string;
+  output?: string;
+  /**
+   * Default: 1000
+   */
+  saveInterval?: number;
 }

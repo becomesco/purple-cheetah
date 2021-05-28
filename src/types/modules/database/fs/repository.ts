@@ -3,13 +3,21 @@ import type { Logger, ObjectSchema } from '../../../util';
 
 export type FSDBRepositoryQuery<T> = (entity: T) => boolean;
 
-export interface FSDBRepositoryConfig {
+export interface FSDBRepositoryConfig<T extends FSDBEntity, K> {
   name: string;
   schema: ObjectSchema;
   collection: string;
+  methods?(data: {
+    name: string;
+    schema: ObjectSchema;
+    collection: string;
+    repo: FSDBRepository<T, unknown>;
+    logger: Logger;
+  }): K;
 }
 
-export interface FSDBRepository<T extends FSDBEntity> {
+export interface FSDBRepository<T extends FSDBEntity, K> {
+  methods: K;
   findBy(query: FSDBRepositoryQuery<T>): Promise<T | null>;
   findAllBy(query: FSDBRepositoryQuery<T>): Promise<T[]>;
   findAll(): Promise<T[]>;

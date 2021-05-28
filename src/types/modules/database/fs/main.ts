@@ -1,4 +1,5 @@
 import type { FSDBEntity } from './entity';
+import type { FSDBRepository } from './repository';
 
 export interface FSDBCacheCollection<T extends FSDBEntity> {
   [id: string]: T;
@@ -14,6 +15,13 @@ export interface FSDB {
     get(): FSDBCacheCollection<T>;
     set(entity: T): void;
     remove(id: string): void;
+  };
+  repo: {
+    create<T extends FSDBEntity>(
+      collection: string,
+      repo: FSDBRepository<T>,
+    ): void;
+    use<T extends FSDBEntity>(collection: string): FSDBRepository<T> | null;
   };
 }
 

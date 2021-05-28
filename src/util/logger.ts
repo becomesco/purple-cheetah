@@ -50,11 +50,13 @@ async function save() {
     output,
     `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}.log`,
   );
-  if (!(await fs.exist(filePath))) {
+  if (!(await fs.exist(filePath, true))) {
     await fs.save(filePath, '');
   }
   const outputData = outputBuffer.splice(0, outputBuffer.length);
-  await util.promisify(nodeFS.appendFile)(filePath, outputData.join(''));
+  if (outputData.length > 0) {
+    await util.promisify(nodeFS.appendFile)(filePath, outputData.join(''));
+  }
 }
 
 export function updateLogger(config: UpdateLoggerConfig) {
@@ -85,7 +87,7 @@ export function initializeLogger() {
         console.error(error);
         process.exit(1);
       });
-    }, 1000);
+    }, 10000);
   }
 }
 export function useLogger(config: UseLoggerConfig): Logger {

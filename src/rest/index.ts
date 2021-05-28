@@ -1,3 +1,5 @@
+export * from './pre-request-handlers';
+
 export * from './controller';
 export * from './error';
 export * from './middleware';

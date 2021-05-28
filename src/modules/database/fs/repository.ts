@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import * as crypto from 'crypto';
 import type {
   FSDBCacheCollection,
   FSDBEntity,
@@ -10,8 +10,8 @@ import { useFSDB } from './main';
 
 const objectUtility = useObjectUtility();
 
-export function useFSDBRepository<T extends FSDBEntity>(collection: string) {
-  return useFSDB().repo.use<T>(collection);
+export function useFSDBRepository<T extends FSDBEntity, K>(collection: string) {
+  return useFSDB().repo.use<T, K>(collection);
 }
 export function createFSDBRepository<T extends FSDBEntity, K>({
   name,
@@ -76,7 +76,10 @@ export function createFSDBRepository<T extends FSDBEntity, K>({
     },
     async add(entity) {
       if (!entity._id) {
-        entity._id = uuidv4();
+        entity._id = crypto
+          .createHash('sha256')
+          .update(Date.now() + crypto.randomBytes(8).toString('hex'))
+          .digest('hex');
       } else {
         if (await self.findById(entity._id)) {
           throw throwError(

@@ -20,7 +20,7 @@ const logger = useLogger({
 });
 const fs = useFS();
 const repos: {
-  [collection: string]: FSDBRepository<FSDBEntity>;
+  [collection: string]: FSDBRepository<FSDBEntity, unknown>;
 } = {};
 const fsdb: FSDB = {
   register<T extends FSDBEntity>(collection: string) {
@@ -40,17 +40,19 @@ const fsdb: FSDB = {
     };
   },
   repo: {
-    create<T extends FSDBEntity>(
+    create<T extends FSDBEntity, K>(
       collection: string,
-      repo: FSDBRepository<T>,
+      repo: FSDBRepository<T, K>,
     ): void {
       if (!repos[collection]) {
         repos[collection] = repo;
       }
     },
-    use<T extends FSDBEntity>(collection: string): FSDBRepository<T> | null {
+    use<T extends FSDBEntity, K>(
+      collection: string,
+    ): FSDBRepository<T, K> | null {
       if (repos[collection]) {
-        return repos[collection] as FSDBRepository<T>;
+        return repos[collection] as FSDBRepository<T, K>;
       }
       return null;
     },
@@ -67,7 +69,10 @@ async function save(): Promise<void> {
 }
 async function init(config: FSDBConfig): Promise<void> {
   if (await fs.exist(output, true)) {
-    cache = JSON.parse((await fs.read(output)).toString());
+    const temp = (await fs.read(output)).toString();
+    if (temp !== '{}') {
+      cache = JSON.parse(temp);
+    }
   } else {
     await fs.save(output, '{}');
   }

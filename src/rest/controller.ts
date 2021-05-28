@@ -7,7 +7,6 @@ import type {
   Logger,
 } from '../types';
 import { useLogger } from '../util';
-import { Router } from 'express';
 import { createHTTPError } from './error';
 
 export function createControllerMethod<PreRequestHandlerReturnType, ReturnType>(
@@ -29,28 +28,33 @@ function wrapControllerMethod<PreRequestHandlerReturnType, ReturnType>(
     logger,
   });
   return {
-    type,
+    type: config.type,
     path,
     handler: async (request, response, next) => {
       try {
         let preRequestHandlerResult: PreRequestHandlerReturnType | undefined =
           undefined;
-        if (preRequestHandler) {
-          preRequestHandlerResult = await preRequestHandler({
+        if (config.preRequestHandler) {
+          preRequestHandlerResult = await config.preRequestHandler({
             request,
             response,
+            name,
+            logger,
+            errorHandler,
           });
         }
-        const handlerResult = await handler({
+        const handlerResult = await config.handler({
           logger,
           errorHandler,
           request,
           response,
-          pre: preRequestHandlerResult,
+          pre: preRequestHandlerResult as never,
+          name,
         });
         if (handlerResult instanceof Buffer) {
           response.send(handlerResult);
         } else if (typeof handlerResult === 'object') {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const obj = handlerResult as any;
           if (typeof obj.__file !== 'undefined') {
             response.sendFile(obj.__file);

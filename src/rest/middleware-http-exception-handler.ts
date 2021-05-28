@@ -17,6 +17,7 @@ export function createHTTPExceptionHandlerMiddleware(): Middleware {
           next();
         } else {
           const exception = error as HTTPException<unknown>;
+          console.log(exception);
           if (exception.status && exception.message) {
             if (typeof exception.message === 'object') {
               response.status(exception.status).json(exception.message);
@@ -29,7 +30,10 @@ export function createHTTPExceptionHandlerMiddleware(): Middleware {
             data.logger.error('', {
               method: request.method,
               path: request.url,
-              error,
+              error: {
+                message: error.message,
+                stack: error.stack.split('\n'),
+              },
             });
             response.status(500).json({ message: 'Unknown exception' });
           }

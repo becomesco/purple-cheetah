@@ -38,3 +38,4 @@ lerna-debug.log*
 
 # Test temp
 _test
+*.fsdb.json

@@ -1214,7 +1214,7 @@ export class App extends PurpleCheetah {
 Next step is to create a model of Todo entity/document.
 
 ```ts
-// ---> todo/models/todo.ts
+// ---> todo-fsdb/models/todo-fsdb.ts
 
 import { Entity, IEntity } from '@becomes/purple-cheetah';
 import { Schema, Types } from 'mongoose';
@@ -1250,7 +1250,7 @@ at this position.
 With model created, next step is to create a repository.
 
 ```ts
-// ---> todo/repositories/todo.ts
+// ---> todo-fsdb/repositories/todo-fsdb.ts
 
 import {
   Logger,
@@ -1286,7 +1286,7 @@ With this done everything related with MongoDB is set up and controller can be
 created, which will implement an application logic.
 
 ```ts
-// ---> todo/controller.ts
+// ---> todo-fsdb/controller.ts
 
 import {
   Controller,
@@ -1306,7 +1306,7 @@ import { Types } from 'mongoose';
 import { Todo } from './models';
 import { TodoRepository } from './repositories';
 
-@Controller('/todo')
+@Controller('/todo-fsdb')
 export class TodoController implements ControllerPrototype {
   baseUri: string;
   initRouter: () => void;
@@ -1462,7 +1462,7 @@ import {
   BodyParserMiddleware,
   PurpleCheetah,
 } from '@becomes/purple-cheetah';
-import { TodoController } from './todo';
+import { TodoController } from './todo-fsdb';
 
 @Application({
   port: process.env.PORT ? parseInt(
@@ -1480,7 +1480,7 @@ export class App extends PurpleCheetah {
 ```
 
 ```ts
-// ---> todo/models/todo.ts
+// ---> todo-fsdb/models/todo-fsdb.ts
 
 import { FSDBEntity, ObjectSchema } from '@becomes/purple-cheetah';
 
@@ -1519,7 +1519,7 @@ export class Todo implements FSDBEntity {
 With model created, next step is to create a repository.
 
 ```ts
-// ---> todo/repositories/todo.ts
+// ---> todo-fsdb/repositories/todo-fsdb.ts
 
 import {
   FSDBRepositoryPrototype,
@@ -1558,7 +1558,7 @@ With the repository created, controller logic can be implemented and added to
 the application controller array.
 
 ```ts
-// ---> todo/repositories/todo.ts
+// ---> todo-fsdb/repositories/todo-fsdb.ts
 
 import { randomBytes } from 'crypto';
 import {
@@ -1576,7 +1576,7 @@ import { Request, Router } from 'express';
 import { Todo } from './models';
 import { TodoRepo } from './repositories';
 
-@Controller('/todo')
+@Controller('/todo-fsdb')
 export class TodoController implements ControllerPrototype {
   baseUri: string;
   initRouter: () => void;
@@ -1752,7 +1752,7 @@ _Figure 5 - GraphiQL._
 Next step is to create a Todo Object.
 
 ```ts
-// ---> todo/gql/objects/todo.ts
+// ---> todo-fsdb/gql/objects/todo-fsdb.ts
 
 import {
   QLFieldPrototype,

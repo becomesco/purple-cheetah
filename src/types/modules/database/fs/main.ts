@@ -17,11 +17,13 @@ export interface FSDB {
     remove(id: string): void;
   };
   repo: {
-    create<T extends FSDBEntity>(
+    create<T extends FSDBEntity, K>(
       collection: string,
-      repo: FSDBRepository<T>,
+      repo: FSDBRepository<T, K>,
     ): void;
-    use<T extends FSDBEntity>(collection: string): FSDBRepository<T> | null;
+    use<T extends FSDBEntity, K>(
+      collection: string,
+    ): FSDBRepository<T, K> | null;
   };
 }
 

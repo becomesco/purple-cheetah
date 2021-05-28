@@ -7,7 +7,7 @@ export interface TodoRepositoryMethods {
 export const TodoRepository = createFSDBRepository<Todo, TodoRepositoryMethods>(
   {
     name: 'Todo Repository',
-    collection: 'todo',
+    collection: 'todo-fsdb',
     schema: TodoSchema,
     methods({ repo }) {
       return {

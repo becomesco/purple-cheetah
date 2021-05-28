@@ -18,7 +18,8 @@
     "test:unit": "mocha -r ts-node/register test/unit/*.test.ts --recursive --exit",
     "test:active:unit": "mocha -r ts-node/register test/unit/*.active.test.ts --recursive --exit",
     "lint": "eslint . --ext .ts",
-    "example:hello-world": "nodemon examples/hello-world/main.ts"
+    "example:hello-world": "nodemon examples/hello-world/main.ts",
+    "example:todo-fsdb": "nodemon examples/todo-fsdb/main.ts"
   },
   "repository": {
     "type": "git",
@@ -80,7 +81,9 @@
   },
   "nodemonConfig": {
     "watch": [
-      "examples", "src", "test"
+      "examples",
+      "src",
+      "test"
     ],
     "ext": "ts"
   }

@@ -1,6 +1,6 @@
-// eslint-disable-next-line no-shadow
 import type { ObjectSchema } from '../../util';
 
+// eslint-disable-next-line no-shadow
 export enum JWTPermissionName {
   READ = 'READ',
   WRITE = 'WRITE',
@@ -9,7 +9,7 @@ export enum JWTPermissionName {
 }
 
 export interface JWTPermission {
-  name: PermissionName;
+  name: JWTPermissionName;
 }
 
 export const JWTPermissionSchema: ObjectSchema = {

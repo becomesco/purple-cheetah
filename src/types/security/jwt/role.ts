@@ -1,6 +1,5 @@
-import type { JWTPermission } from './permission';
 import type { ObjectSchema } from '../../util';
-import { JWTPermissionName, JWTPermissionSchema } from './permission';
+import { JWTPermission, JWTPermissionSchema } from './permission';
 
 // eslint-disable-next-line no-shadow
 export enum JWTRoleName {

@@ -1,6 +1,5 @@
-import type { JWTRole } from './role';
+import { JWTRole, JWTRoleSchema } from './role';
 import type { ObjectSchema } from '../../util';
-import { JWTRoleSchema } from './role';
 
 export interface JWTPayload<T> {
   jti: string;
@@ -11,7 +10,7 @@ export interface JWTPayload<T> {
   rls: JWTRole[];
   props: T;
 }
-export const JWTPayload: ObjectSchema = {
+export const JWTPayloadSchema: ObjectSchema = {
   jti: {
     __type: 'string',
     __required: true,

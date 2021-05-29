@@ -8,18 +8,11 @@ import {
   JWTEncoding,
 } from '../../types';
 
-function b64Url(text: string): string {
-  return Buffer.from(text)
-    .toString('base64')
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
-}
 const objectUtil = useObjectUtility();
 const encoding: JWTEncoding = {
   encode(jwt) {
-    const header = b64Url(JSON.stringify(jwt.header));
-    const payload = b64Url(JSON.stringify(jwt.payload));
+    const header = encoding.b64Url(JSON.stringify(jwt.header));
+    const payload = encoding.b64Url(JSON.stringify(jwt.payload));
     return header + '.' + payload + '.' + jwt.signature;
   },
   decode<T>(encodedJwt: string): JWT<T> | Error {
@@ -51,7 +44,7 @@ const encoding: JWTEncoding = {
       result = objectUtil.compareWithSchema(
         payload,
         JWTPermissionSchema,
-        'token.payload',
+        'jwt.payload',
       );
       if (!result.ok) {
         return Error(result.error);
@@ -64,6 +57,13 @@ const encoding: JWTEncoding = {
     } catch (error) {
       return new Error('Bad token encoding.');
     }
+  },
+  b64Url(text: string): string {
+    return Buffer.from(text)
+      .toString('base64')
+      .replace(/=/g, '')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_');
   },
 };
 

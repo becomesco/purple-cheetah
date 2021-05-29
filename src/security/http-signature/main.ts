@@ -5,18 +5,20 @@ import {
   HTTPSignatureManagerCreateData,
   HTTPSignatureScope,
   HttpSignatureSchema,
+  ObjectUtilityError,
+  HTTPSignatureError,
 } from '../../types';
 import { useObjectUtility } from '../../util';
 
-const scopes: {
-  [scope: string]: HTTPSignatureScope;
-} = {};
 let manager: HTTPSignatureManager;
 
 export function initializeHttpSignature(config: {
   scopes: HTTPSignatureScope[];
   clearInterval?: number;
 }): void {
+  const scopes: {
+    [scope: string]: HTTPSignatureScope;
+  } = {};
   for (let i = 0; i < config.scopes.length; i++) {
     scopes[config.scopes[i].scope] = config.scopes[i];
   }
@@ -54,10 +56,13 @@ export function initializeHttpSignature(config: {
   manager = {
     create<T>(
       data: HTTPSignatureManagerCreateData<T>,
-    ): HTTPSignature<T> | Error {
+    ): HTTPSignature<T> | HTTPSignatureError {
       const scope = scopes[data.scope];
       if (!scope) {
-        return Error(`Scope "${data.scope}" does not exist`);
+        return new HTTPSignatureError(
+          'e1',
+          `Scope "${data.scope}" does not exist`,
+        );
       }
       const sig: HTTPSignature<T> = {
         scope: scope.scope,
@@ -86,27 +91,30 @@ export function initializeHttpSignature(config: {
       sig.payload = data.payload;
       return sig;
     },
-    verify<T>(httpSignature: HTTPSignature<T>): void | Error {
+    verify<T>(httpSignature: HTTPSignature<T>): void | HTTPSignatureError {
       if (isInvalidSign(httpSignature.nonce, httpSignature.timestamp)) {
-        return Error('This nonce is blocked.');
+        return new HTTPSignatureError('e2', 'This nonce is blocked.');
       }
       const checkObject = objectUtil.compareWithSchema(
         httpSignature,
         HttpSignatureSchema,
         'httpSignature',
       );
-      if (!checkObject.ok) {
-        return Error(checkObject.error);
+      if (checkObject instanceof ObjectUtilityError) {
+        return new HTTPSignatureError('e3', checkObject.message);
       }
       const scope = scopes[httpSignature.scope];
       if (!scope) {
-        return Error(`Scope "${httpSignature.scope}" does not exist`);
+        return new HTTPSignatureError(
+          'e4',
+          `Scope "${httpSignature.scope}" does not exist`,
+        );
       }
       if (
         httpSignature.timestamp < Date.now() - scope.timestampRange ||
         httpSignature.timestamp > Date.now()
       ) {
-        throw new Error('Timestamp is out if range.');
+        return new HTTPSignatureError('e5', 'Timestamp is out if range.');
       }
       const hmac = crypto.createHmac('sha256', scope.secret);
       hmac.setEncoding('hex');
@@ -126,7 +134,7 @@ export function initializeHttpSignature(config: {
       hmac.end();
       const checkSignature = hmac.read().toString();
       if (checkSignature !== httpSignature.signature) {
-        throw new Error('Invalid signature.');
+        return new HTTPSignatureError('e6', 'Invalid signature.');
       }
       invalidSigns[httpSignature.nonce + httpSignature.timestamp] = {
         nonce: httpSignature.nonce,
@@ -139,32 +147,32 @@ export function initializeHttpSignature(config: {
         nonce: '',
         signature: '',
         timestamp: 0,
-        payload: {},
+        payload: request.body,
         scope: '',
       };
       if (typeof request.params.nonce !== 'string') {
-        return Error('Missing "nonce"');
+        return new HTTPSignatureError('e7', 'Missing "nonce"');
       }
       sig.nonce = request.params.nonce;
       if (typeof request.params.scope !== 'string') {
-        return Error('Missing "scope"');
+        return new HTTPSignatureError('e8', 'Missing "scope"');
       }
       sig.scope = request.params.scope;
       if (typeof request.params.signature !== 'string') {
-        return Error('Missing "signature"');
+        return new HTTPSignatureError('e9', 'Missing "signature"');
       }
       sig.signature = request.params.signature;
       if (typeof request.params.timestamp !== 'string') {
-        return Error('Missing "timestamp"');
+        return new HTTPSignatureError('e10', 'Missing "timestamp"');
       }
       try {
         const timestamp = parseInt(request.params.timestamp);
         if (isNaN(timestamp)) {
-          return Error('Invalid timestamp value.');
+          return new HTTPSignatureError('e11', 'Invalid timestamp value.');
         }
         sig.timestamp = timestamp;
       } catch (e) {
-        return Error('Invalid timestamp value.');
+        return new HTTPSignatureError('e12', 'Invalid timestamp value.');
       }
       return manager.verify(sig);
     },

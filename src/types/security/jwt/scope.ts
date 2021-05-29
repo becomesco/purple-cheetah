@@ -1,6 +1,6 @@
 import type { JWTAlgorithm } from './header';
 
-export interface JWTInfo {
+export interface JWTScope {
   secret: string;
   expIn: number;
   issuer: string;

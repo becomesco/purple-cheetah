@@ -1,11 +1,12 @@
 import { useObjectUtility } from '../../util';
 import {
   JWTHeaderSchema,
-  JWTPermissionSchema,
   JWT,
   JWTHeader,
   JWTPayload,
   JWTEncoding,
+  ObjectUtilityError,
+  JWTPayloadSchema,
 } from '../../types';
 
 const objectUtil = useObjectUtility();
@@ -38,16 +39,16 @@ const encoding: JWTEncoding = {
         JWTHeaderSchema,
         'jwt.header',
       );
-      if (!result.ok) {
-        return Error(result.error);
+      if (result instanceof ObjectUtilityError) {
+        return Error(result.message);
       }
       result = objectUtil.compareWithSchema(
         payload,
-        JWTPermissionSchema,
+        JWTPayloadSchema,
         'jwt.payload',
       );
-      if (!result.ok) {
-        return Error(result.error);
+      if (result instanceof ObjectUtilityError) {
+        return Error(result.message);
       }
       return {
         header,

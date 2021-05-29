@@ -1,9 +1,10 @@
 import * as crypto from 'crypto';
-import type {
+import {
   FSDBCacheCollection,
   FSDBEntity,
   FSDBRepository,
   FSDBRepositoryConfig,
+  ObjectUtilityError,
 } from '../../../types';
 import { useLogger, useObjectUtility } from '../../../util';
 import { useFSDB } from './main';
@@ -24,8 +25,8 @@ export function createFSDBRepository<T extends FSDBEntity, K>({
 
   function checkSchema(entity: T) {
     const result = objectUtility.compareWithSchema(entity, schema, 'entity');
-    if (!result.ok) {
-      throw new Error(`Invalid Entity schema: ${result.error}`);
+    if (result instanceof ObjectUtilityError) {
+      throw new Error(`Invalid Entity schema: ${result.message}`);
     }
   }
   function throwError(place: string, message: unknown) {

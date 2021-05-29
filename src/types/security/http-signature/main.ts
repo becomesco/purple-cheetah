@@ -32,8 +32,30 @@ export interface HTTPSignatureManagerCreateData<T> {
   payload: T;
 }
 
+export type HTTPSignatureErrorCode =
+  | 'e1'
+  | 'e2'
+  | 'e3'
+  | 'e4'
+  | 'e5'
+  | 'e6'
+  | 'e7'
+  | 'e8'
+  | 'e9'
+  | 'e10'
+  | 'e11'
+  | 'e12';
+export class HTTPSignatureError {
+  constructor(
+    public errorCode: HTTPSignatureErrorCode,
+    public message: string,
+  ) {}
+}
+
 export interface HTTPSignatureManager {
-  create<T>(data: HTTPSignatureManagerCreateData<T>): HTTPSignature<T> | Error;
-  verify<T>(httpSignature: HTTPSignature<T>): void | Error;
-  verifyRequest(request: Request): void | Error;
+  create<T>(
+    data: HTTPSignatureManagerCreateData<T>,
+  ): HTTPSignature<T> | HTTPSignatureError;
+  verify<T>(httpSignature: HTTPSignature<T>): void | HTTPSignatureError;
+  verifyRequest(request: Request): void | HTTPSignatureError;
 }

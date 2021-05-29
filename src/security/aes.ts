@@ -1,19 +1,23 @@
 import * as crypto from 'crypto';
 import type { AES256GCM, AESConfig } from '../types';
 
-function getCypher(config: AESConfig): {
+function getCypher(
+  config: AESConfig & {
+    alg: 'aes-256-gcm';
+  },
+): {
   cipher: crypto.Cipher;
   decipher: crypto.Decipher;
 } {
   const key = crypto.scryptSync(config.password, config.salt, 32);
 
   return {
-    cipher: crypto.createCipheriv('aes-256-gcm', key, config.iv),
-    decipher: crypto.createDecipheriv('aes-256-gcm', key, config.iv),
+    cipher: crypto.createCipheriv(config.alg, key, config.iv),
+    decipher: crypto.createDecipheriv(config.alg, key, config.iv),
   };
 }
 export function createAES256GCM(config: AESConfig): AES256GCM {
-  const { cipher, decipher } = getCypher(config);
+  const { cipher, decipher } = getCypher({ ...config, alg: 'aes-256-gcm' });
   return {
     encrypt(text, encoding) {
       let encText = '';

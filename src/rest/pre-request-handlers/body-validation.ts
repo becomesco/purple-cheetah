@@ -2,6 +2,7 @@ import {
   ControllerPreRequestHandler,
   ObjectSchema,
   HTTPStatus,
+  ObjectUtilityError,
 } from '../../types';
 import { useObjectUtility } from '../../util';
 
@@ -12,8 +13,8 @@ export function createBodyValidationPreRequestHandler<T>(
 
   return async ({ request, errorHandler }) => {
     const result = objectUtil.compareWithSchema(request.body, schema, 'body');
-    if (!result.ok) {
-      throw errorHandler.occurred(HTTPStatus.BAD_REQUEST, result.error);
+    if (result instanceof ObjectUtilityError) {
+      throw errorHandler.occurred(HTTPStatus.BAD_REQUEST, result.message);
     }
     return request.body;
   };

@@ -18,13 +18,25 @@ export interface ObjectPropSchema {
 export interface ObjectSchema {
   [key: string]: ObjectPropSchema;
 }
+
+export type ObjecUtilityErrorCode =
+  | 'e1'
+  | 'e2'
+  | 'e3'
+  | 'e4'
+  | 'e5'
+  | 'e6'
+  | 'e7'
+  | 'e8';
+export class ObjectUtilityError {
+  constructor(public errorCode: string, public message: string) {}
+}
+
 export interface ObjectUtility {
   compareWithSchema(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     object: any,
     schema: ObjectSchema,
     level?: string,
-  ): {
-    ok: boolean;
-    error?: string;
-  };
+  ): void | ObjectUtilityError;
 }

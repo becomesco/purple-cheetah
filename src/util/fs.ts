@@ -23,22 +23,27 @@ export function useFS(config?: CreateFSConfig): FS {
 
   const self: FS = {
     async save(root, data) {
-      const parts = root.split('/').filter((e) => !!e);
-      let base = `${baseRoot}`;
-      for (let j = 0; j < parts.length; j = j + 1) {
-        if (parts[j].indexOf('.') === -1) {
-          if (base) {
-            base = path.join(base, parts[j]);
-          } else {
-            base = path.join('/', parts[j]);
+      let parts = root.split('/').filter((e) => !!e);
+      let base = root.startsWith('/') ? '' : `${baseRoot}`;
+      if (root.startsWith('/')) {
+        base = '';
+      } else {
+        parts = ['', ...parts];
+        base = `${baseRoot}`;
+      }
+      for (let j = 0; j < parts.length - 1; j++) {
+        if (base) {
+          base = path.join(base, parts[j]);
+        } else {
+          base = path.join('/', parts[j]);
+        }
+        try {
+          if (!(await self.exist(base))) {
+            console.log('create', base);
+            await util.promisify(fs.mkdir)(base);
           }
-          try {
-            if ((await util.promisify(fs.exists)(base)) === false) {
-              await util.promisify(fs.mkdir)(base);
-            }
-          } catch (error) {
-            logger.warn('save', `Failed to create directory '${base}'`);
-          }
+        } catch (error) {
+          logger.warn('save', `Failed to create directory '${base}'`);
         }
       }
       await util.promisify(fs.writeFile)(
@@ -48,7 +53,8 @@ export function useFS(config?: CreateFSConfig): FS {
     },
     async exist(root, isFile) {
       return new Promise<boolean>((resolve, reject) => {
-        fs.stat(path.join(baseRoot, root), (err, stats) => {
+        const pth = root.startsWith('/') ? root : path.join(baseRoot, root);
+        fs.stat(pth, (err, stats) => {
           if (err) {
             if (err.code === 'ENOENT') {
               resolve(false);

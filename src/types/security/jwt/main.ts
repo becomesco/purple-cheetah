@@ -2,7 +2,7 @@ import { JWTHeader, JWTHeaderSchema } from './header';
 import { JWTPayload, JWTPayloadSchema } from './payload';
 import type { JWTRole, JWTRoleName } from './role';
 import type { JWTPermissionName } from './permission';
-import type { JWTInfo } from './info';
+import type { JWTScope } from './scope';
 import type { ObjectSchema } from '../../util';
 
 export interface JWT<T> {
@@ -24,7 +24,7 @@ export const JWTSchema: ObjectSchema = {
 };
 
 export interface JWTManagerConfig {
-  jwtInfo: JWTInfo[];
+  scopes: JWTScope[];
 }
 
 export interface JWTManagerCreateData<T> {
@@ -44,13 +44,28 @@ export interface JWTManagerGetData {
   permissionName: JWTPermissionName;
 }
 
+export type JWTErrorCode =
+  | 'e1'
+  | 'e2'
+  | 'e3'
+  | 'e4'
+  | 'e5'
+  | 'e6'
+  | 'e7'
+  | 'e8'
+  | 'e9'
+  | 'e10';
+export class JWTError {
+  constructor(public errorCode: JWTErrorCode, public message: string) {}
+}
+
 export interface JWTManager {
-  create<T>(data: JWTManagerCreateData<T>): JWT<T> | Error;
-  sign<T>(jwt: JWT<T>): JWT<T> | Error;
-  validate<T>(jwt: JWT<T>): void | Error;
-  checkPermissions<T>(data: JWTManagerCheckPermissionsData<T>): void | Error;
+  create<T>(data: JWTManagerCreateData<T>): JWT<T> | JWTError;
+  sign<T>(jwt: JWT<T>): JWT<T> | JWTError;
+  validate<T>(jwt: JWT<T>): void | JWTError;
+  checkPermissions<T>(data: JWTManagerCheckPermissionsData<T>): void | JWTError;
   validateAndCheckPermissions<T>(
     data: JWTManagerCheckPermissionsData<T>,
-  ): void | Error;
-  get<T>(data: JWTManagerGetData): Error | JWT<T>;
+  ): void | JWTError;
+  get<T>(data: JWTManagerGetData): JWTError | JWT<T>;
 }

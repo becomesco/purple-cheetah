@@ -68,7 +68,7 @@ export function createHttpClient(config: HttpClientConfig): HttpClient {
             ? httpsRequest
             : httpRequest;
 
-        const request = sender({}, (res) => {
+        const request = sender(requestConfig, (res) => {
           let rawData = '';
           res.on('data', (chunk) => {
             rawData += chunk;
@@ -95,15 +95,6 @@ export function createHttpClient(config: HttpClientConfig): HttpClient {
                   : rawData,
                 res,
               );
-              // const output: HttpResponseError = {
-              //   status: res.statusCode,
-              //   err: res,
-              //   headers: res.headers,
-              //   data:
-              //     res.headers['content-type'] === 'application/json'
-              //       ? JSON.parse(rawData)
-              //       : rawData,
-              // };
               resolve(output);
               return;
             }

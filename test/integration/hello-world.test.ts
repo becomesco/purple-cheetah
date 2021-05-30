@@ -6,6 +6,7 @@ import {
   createPurpleCheetah,
   createRequestLoggerMiddleware,
   createHttpClient,
+  removeHttpClient,
 } from '../../src';
 import { HelloWorldController } from '../../examples/hello-world/controller';
 
@@ -19,18 +20,24 @@ describe('REST API - Hello world', async () => {
     },
   });
   before(async () => {
-    app = createPurpleCheetah({
-      port: 1280,
-      controllers: [HelloWorldController],
-      middleware: [
-        createRequestLoggerMiddleware(),
-        createBodyParserMiddleware(),
-        createCorsMiddleware(),
-      ],
+    return await new Promise<void>((resolve) => {
+      app = createPurpleCheetah({
+        port: 1280,
+        controllers: [HelloWorldController],
+        middleware: [
+          createRequestLoggerMiddleware(),
+          createBodyParserMiddleware(),
+          createCorsMiddleware(),
+        ],
+        onReady() {
+          resolve();
+        },
+      });
     });
   });
   after(async () => {
     app.server.close();
+    removeHttpClient('Hello World');
   });
   it('should start the server', async () => {
     expect(app).to.have.property('app');

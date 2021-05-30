@@ -21,11 +21,11 @@ export function createHttpClient(config: HttpClientConfig): HttpClient {
   const defaultHost = config.host ? config.host.name : 'localhost';
   const defaultPort = config.host && config.host.port ? config.host.port : '80';
   const client: HttpClient = {
-    async send<T, K>(
-      conf: HttpClientRequestConfig<T>,
-    ): Promise<HttpClientResponse<T> | HttpClientResponseError<K>> {
+    async send<T, K, R>(
+      conf: HttpClientRequestConfig<K>,
+    ): Promise<HttpClientResponse<T> | HttpClientResponseError<R>> {
       return await new Promise<
-        HttpClientResponse<T> | HttpClientResponseError<K>
+        HttpClientResponse<T> | HttpClientResponseError<R>
       >((resolve, reject) => {
         const requestConfig: RequestOptions = {
           host: conf.host ? conf.host.name : defaultHost,

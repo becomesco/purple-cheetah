@@ -70,7 +70,7 @@ async function save(): Promise<void> {
 async function init(config: FSDBConfig): Promise<void> {
   if (await fs.exist(output, true)) {
     const temp = (await fs.read(output)).toString();
-    if (temp !== '{}') {
+    if (!temp.startsWith('{}')) {
       cache = JSON.parse(temp);
     }
   } else {

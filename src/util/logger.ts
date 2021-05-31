@@ -143,6 +143,9 @@ export function useLogger(config: UseLoggerConfig): Logger {
       if (typeof message === 'object') {
         let stack: string | undefined;
         const msg = message as Error;
+        if (message instanceof Error) {
+          stack = msg.stack;
+        }
         if (msg.stack) {
           stack = msg.stack;
           delete msg.stack;

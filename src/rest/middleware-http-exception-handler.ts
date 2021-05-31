@@ -1,4 +1,4 @@
-import type { HTTPException, Middleware } from '../types';
+import { HTTPException, Middleware } from '../types';
 import { createMiddleware } from './middleware';
 import type { ErrorRequestHandler } from 'express';
 
@@ -16,15 +16,12 @@ export function createHTTPExceptionHandlerMiddleware(): Middleware {
         if (!error) {
           next();
         } else {
-          const exception = error as HTTPException<unknown>;
-          console.log(exception);
-          if (exception.status && exception.message) {
-            if (typeof exception.message === 'object') {
-              response.status(exception.status).json(exception.message);
+          if (error instanceof HTTPException) {
+            data.logger.warn('', error);
+            if (typeof error.message === 'object') {
+              response.status(error.status).json(error.message);
             } else {
-              response
-                .status(exception.status)
-                .json({ message: exception.message });
+              response.status(error.status).json({ message: error.message });
             }
           } else {
             data.logger.error('', {

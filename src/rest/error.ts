@@ -8,7 +8,7 @@ export function createHTTPError(config: HTTPErrorConfig): HTTPError {
       config.logger.warn(config.place, message);
       return {
         status,
-        stack: new Error().stack,
+        stack: (new Error().stack as string).split('\n'),
         message: typeof message === 'object' ? message : { message },
       };
     },

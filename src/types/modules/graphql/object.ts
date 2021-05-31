@@ -2,7 +2,7 @@ import type { GraphqlField } from './field';
 
 export interface GraphqlObject {
   name: string;
-  type: string;
+  type?: string;
   fields: GraphqlField[];
   description?: string;
   wrapperObject?: GraphqlObject;

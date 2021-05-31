@@ -1,19 +1,53 @@
-import type { GraphqlField } from './field';
-import type { GraphqlArg } from './arg';
+import type {
+  GraphqlResolver,
+  GraphqlResolverConfig,
+  GraphqlResponse,
+} from '../../types';
+import { HTTPException } from '../../types';
 
-// eslint-disable-next-line no-shadow
-export enum GraphqlResolverType {
-  QUERY = 'QUERY',
-  MUTATION = 'MUTATION',
-}
-
-export interface GraphqlResolverConfig<T> {
-  name: string;
-  type: GraphqlField;
-  root: {
-    args?: GraphqlArg[];
-    returnType: string;
+export function createGraphqlResolver<T>(
+  config: GraphqlResolverConfig<T>,
+): GraphqlResolver<T> {
+  return {
+    name: config.name,
+    type: config.type,
+    description: config.description,
+    root: {
+      args: config.args ? config.args : [],
+      returnType: config.returnType,
+    },
+    async resolver<K>(args: K): Promise<GraphqlResponse<T>> {
+      try {
+        const result = await config.resolver(args);
+        if (result instanceof Array) {
+          if (typeof config.unionTypeResolver === 'function') {
+            return {
+              result: config.unionTypeResolver(result),
+            };
+          }
+          return {
+            result: result,
+          };
+        }
+        if (typeof config.unionTypeResolver === 'function') {
+          return {
+            result: config.unionTypeResolver(result),
+          };
+        } else {
+          return { result: result };
+        }
+      } catch (error) {
+        if (error instanceof HTTPException) {
+          return {
+            error: {
+              status: error.status,
+              message: error.message.message,
+              stack: config.includeErrorStack ? error.stack : undefined,
+            },
+          };
+        }
+        throw error;
+      }
+    },
   };
-  description?: string;
-  resolver<K>(args: K): Promise<T>;
 }

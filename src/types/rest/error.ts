@@ -11,10 +11,12 @@ export enum HTTPStatus {
   INTERNAL_SERVER_ERROR = 500,
   SERVICE_UNAVAILABLE = 503,
 }
-export interface HTTPException<T> {
-  status: HTTPStatus | number;
-  message: T | { message: T };
-  stack: unknown;
+export class HTTPException<T> {
+  constructor(
+    public status: HTTPStatus | number,
+    public message: T | { message: T },
+    public stack: unknown,
+  ) {}
 }
 export interface HTTPErrorConfig {
   place: string;

@@ -1,7 +1,9 @@
-import type { GraphqlField } from './field';
+import type { GraphqlInput, GraphqlInputConfig } from '../../types';
 
-export interface GraphqlInput {
-  name: string;
-  fields: GraphqlField[];
-  description?: string;
+export function createGraphqlInput(config: GraphqlInputConfig): GraphqlInput {
+  return {
+    name: config.name,
+    description: config.description,
+    fields: config.fields,
+  };
 }

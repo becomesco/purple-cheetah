@@ -88,6 +88,7 @@ export function createPurpleCheetah(
       const module = modules.splice(0, 1)[0];
       module.initialize({
         name: module.name,
+        purpleCheetah: self,
         next(error?: Error) {
           if (error) {
             logger.error('loadModule', {
@@ -153,8 +154,6 @@ export function createPurpleCheetah(
     },
   });
 
-  loadNextModule();
-
   const self: PurpleCheetah = {
     app,
     server,
@@ -162,5 +161,6 @@ export function createPurpleCheetah(
       return ready;
     },
   };
+  loadNextModule();
   return self;
 }

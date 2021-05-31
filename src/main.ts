@@ -88,7 +88,7 @@ export function createPurpleCheetah(
       const module = modules.splice(0, 1)[0];
       module.initialize({
         name: module.name,
-        onDone(error?: Error) {
+        next(error?: Error) {
           if (error) {
             logger.error('loadModule', {
               name: module.name,
@@ -126,7 +126,7 @@ export function createPurpleCheetah(
       if (config.finalize) {
         config.finalize();
       }
-      moduleConfig.onDone();
+      moduleConfig.next();
     },
   });
   modules.push({
@@ -145,10 +145,10 @@ export function createPurpleCheetah(
           if (config.onReady) {
             config.onReady(self);
           }
-          moduleConfig.onDone();
+          moduleConfig.next();
         });
       } catch (error) {
-        moduleConfig.onDone(error);
+        moduleConfig.next(error);
       }
     },
   });

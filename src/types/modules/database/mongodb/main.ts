@@ -1,6 +1,10 @@
 export interface MongoDBConfig {
+  /**
+   * If set, all collection names will start with
+   * specified string.
+   */
+  collectionsPrefix?: string;
   onConnection?(): void;
-  onInitialized?(): void;
   selfHosted?: {
     user: {
       name: string;
@@ -27,4 +31,5 @@ export interface MongoDBConfig {
 
 export interface MongoDB {
   isConnected(): void;
+  getCollectionsPrefix(): string;
 }

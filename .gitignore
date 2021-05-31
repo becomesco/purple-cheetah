@@ -4,6 +4,10 @@
 /node_modules
 /typedoc
 
+# Environment
+
+.env
+
 # Logs
 logs
 *.log

@@ -20,21 +20,18 @@ export interface MongoDBRepositoryConfig<
 
 export interface MongoDBRepository<Entity extends MongoDBEntity, Methods> {
   methods: Methods;
-  findBy(query: FilterQuery<Entity>): Promise<Entity | null>;
-  findAllBy(query: FilterQuery<Entity>): Promise<Entity[]>;
+  findBy(query: FilterQuery<unknown>): Promise<Entity | null>;
+  findAllBy(query: FilterQuery<unknown>): Promise<Entity[]>;
   findAll(): Promise<Entity[]>;
   findAllById(ids: string[]): Promise<Entity[]>;
   findById(id: string): Promise<Entity | null>;
   add(entity: Entity): Promise<Entity>;
   addMany(entities: Entity[]): Promise<Entity[]>;
   update(entity: Entity): Promise<Entity>;
-  updateMany(
-    query: FilterQuery<Entity>,
-    update: (entity: Entity) => Entity,
-  ): Promise<Entity[]>;
+  updateMany(entities: Entity[]): Promise<Entity[]>;
   deleteById(id: string): Promise<boolean>;
   deleteAllById(ids: string[]): Promise<boolean>;
-  deleteOne(query: FilterQuery<Entity>): Promise<boolean>;
-  deleteMany(query: FilterQuery<Entity>): Promise<boolean>;
+  deleteOne(query: FilterQuery<unknown>): Promise<boolean>;
+  deleteMany(query: FilterQuery<unknown>): Promise<boolean>;
   count(): Promise<number>;
 }

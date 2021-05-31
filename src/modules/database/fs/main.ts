@@ -90,7 +90,7 @@ async function init(config: FSDBConfig): Promise<void> {
 }
 
 export function useFSDB(): FSDB {
-  return fsdb;
+  return { ...fsdb };
 }
 export function createFSDB(config: FSDBConfig): Module {
   if (config.output) {
@@ -109,10 +109,10 @@ export function createFSDB(config: FSDBConfig): Module {
     initialize(moduleConfig) {
       init(config)
         .then(() => {
-          moduleConfig.onDone();
+          moduleConfig.next();
         })
         .catch((error) => {
-          moduleConfig.onDone(error);
+          moduleConfig.next(error);
         });
     },
   };

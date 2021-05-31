@@ -13,13 +13,14 @@
     "unlink": "node tools.js --unlink",
     "unlink:sudo": "node tools.js --unlink --sudo",
     "typedoc": "typedoc",
-    "test": "mocha -r ts-node/register test/integration/*.test.ts --recursive --exit",
-    "test:active": "mocha -r ts-node/register test/integration/*.active.test.ts --recursive --exit --bail",
-    "test:unit": "mocha -r ts-node/register test/unit/*.test.ts --recursive --exit",
-    "test:active:unit": "mocha -r ts-node/register test/unit/*.active.test.ts --recursive --exit",
+    "test": "env-cmd mocha -r ts-node/register test/integration/*.test.ts --recursive --exit",
+    "test:active": "env-cmd mocha -r ts-node/register test/integration/*.active.test.ts --recursive --exit --bail",
+    "test:unit": "env-cmd mocha -r ts-node/register test/unit/*.test.ts --recursive --exit",
+    "test:active:unit": "env-cmd mocha -r ts-node/register test/unit/*.active.test.ts --recursive --exit",
     "lint": "eslint . --ext .ts",
     "example:hello-world": "nodemon examples/hello-world/main.ts",
-    "example:todo-fsdb": "nodemon examples/todo-fsdb/main.ts"
+    "example:todo-fsdb": "nodemon examples/todo-fsdb/main.ts",
+    "example:todo-mongodb": "env-cmd nodemon examples/todo-mongodb/main.ts"
   },
   "repository": {
     "type": "git",
@@ -60,6 +61,7 @@
     "@types/graphql": "^14.5.0",
     "@types/http-proxy-middleware": "^0.19.3",
     "@types/mocha": "^8.2.0",
+    "@types/mongoose": "^5.10.5",
     "@types/node": "^15.6.1",
     "@types/node-os-utils": "^1.2.0",
     "@types/socket.io-client": "^1.4.34",

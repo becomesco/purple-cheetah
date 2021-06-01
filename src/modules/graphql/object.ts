@@ -32,9 +32,15 @@ export function createGraphqlObject(
     type: config.type,
     description: config.description,
     fields: config.fields,
-    wrapperObject: createGraphqlResponseObject({
-      name: config.name,
-      type: config.type,
-    }).object,
+    wrapperObjects: [
+      createGraphqlResponseObject({
+        name: config.name,
+        type: config.type,
+      }).object,
+      createGraphqlResponseObject({
+        name: config.name + 'Array',
+        type: `[${config.name}!]`,
+      }).object,
+    ],
   };
 }

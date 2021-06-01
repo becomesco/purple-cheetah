@@ -1,38 +1,60 @@
 import {
   GraphqlResolver,
   GraphqlResolverConfig,
-  GraphqlResponse,
   HTTPException,
 } from '../../types';
 import { createGraphqlResponseObject } from './object';
+import { useLogger } from '../../util';
+import { createHTTPError } from '../../rest';
 
-export function createGraphqlResolver<T>(
-  config: GraphqlResolverConfig<T>,
-): GraphqlResolver<T> {
-  return {
+export function createGraphqlResolver<ReturnType, DataType>(
+  config: GraphqlResolverConfig<ReturnType, DataType>,
+): GraphqlResolver<ReturnType> {
+  const self: GraphqlResolver<ReturnType> = {
+    logger: useLogger({ name: `GQL_${config.name}` }),
+    errorHandler: createHTTPError({
+      place: config.name,
+      logger: useLogger({ name: config.name }),
+    }),
     name: config.name,
     type: config.type,
     description: config.description,
     root: {
-      args: config.args ? config.args : [],
-      returnType: createGraphqlResponseObject({ name: config.returnType }).name,
+      args: config.args ? config.args : {},
+      return: {
+        type: createGraphqlResponseObject({
+          name: config.return.type,
+        }).name,
+      },
     },
-    async resolver<K>(args: K): Promise<GraphqlResponse<T>> {
+    async resolve(args) {
       try {
-        const result = await config.resolver(args);
+        const data: { [name: string]: unknown } = {};
+        const argKeys = config.args ? Object.keys(config.args) : [];
+        for (let i = 0; i < argKeys.length; i++) {
+          if (args[argKeys[i]]) {
+            data[argKeys[i]] = args[argKeys[i]];
+          }
+        }
+        const result = await config.resolve({
+          ...data,
+          __logger: self.logger,
+          __errorHandler: self.errorHandler,
+          __resolverName: config.name,
+        } as never);
         if (result instanceof Array) {
-          if (typeof config.unionTypeResolver === 'function') {
+          if (typeof config.unionTypeResolve === 'function') {
             return {
-              result: config.unionTypeResolver(result),
+              result: config.unionTypeResolve(result),
             };
           }
           return {
             result: result,
           };
         }
-        if (typeof config.unionTypeResolver === 'function') {
+        if (typeof config.unionTypeResolve === 'function') {
           return {
-            result: config.unionTypeResolver(result),
+            result: config.unionTypeResolve(result),
           };
         } else {
           return { result };
@@ -62,4 +84,5 @@ export function createGraphqlResolver<T>(
       }
     },
   };
+  return self;
 }

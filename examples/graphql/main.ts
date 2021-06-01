@@ -10,7 +10,7 @@ createPurpleCheetah({
   modules: [
     createFSDB({}),
     createGraphql({
-      rootName: 'Test',
+      rootName: 'ExampleGraphQL',
       graphiql: true,
       collections: [TodoCollection],
     }),

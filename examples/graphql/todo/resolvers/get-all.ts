@@ -3,12 +3,12 @@ import { GraphqlResolverType } from '../../../../src/types';
 import { TodoRepository } from '../repository';
 
 export const TodoGetAllResolver = createGraphqlResolver({
-  name: 'todoGetAll',
+  name: 'getAll',
   type: GraphqlResolverType.QUERY,
-  returnType: 'TodoArray',
-  async resolver() {
-    const result = await TodoRepository.findAll();
-    console.log(result);
-    return result;
+  return: {
+    type: 'TodoArray',
+  },
+  async resolve() {
+    return await TodoRepository.findAll();
   },
 });

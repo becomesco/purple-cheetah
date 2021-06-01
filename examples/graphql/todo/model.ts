@@ -21,11 +21,11 @@ export const TodoSchema: ObjectSchema = {
   },
 };
 
-export interface AddTodoData {
+export interface TodoAddData {
   name: string;
   description: string;
 }
-export const AddTodoDataSchema: ObjectSchema = {
+export const TodoAddDataSchema: ObjectSchema = {
   name: {
     __type: 'string',
     __required: true,
@@ -36,13 +36,13 @@ export const AddTodoDataSchema: ObjectSchema = {
   },
 };
 
-export interface UpdateTodoData {
+export interface TodoUpdateData {
   _id: string;
   name?: string;
   description?: string;
   completed?: boolean;
 }
-export const UpdateTodoDataSchema: ObjectSchema = {
+export const TodoUpdateDataSchema: ObjectSchema = {
   _id: {
     __type: 'string',
     __required: true,

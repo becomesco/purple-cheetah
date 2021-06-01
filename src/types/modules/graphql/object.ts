@@ -5,7 +5,7 @@ export interface GraphqlObject {
   type?: string;
   fields: GraphqlField[];
   description?: string;
-  wrapperObject?: GraphqlObject;
+  wrapperObjects?: GraphqlObject[];
 }
 
 export interface GraphqlObjectConfig {

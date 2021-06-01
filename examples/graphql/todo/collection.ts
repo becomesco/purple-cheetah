@@ -1,15 +1,11 @@
-import {
-  createGraphqlCollection,
-  createGraphqlResponseObject,
-} from '../../../src';
+import { createGraphqlCollection } from '../../../src';
 import { TodoObject } from './objects';
-import { TodoGetAllResolver } from './resolvers';
+import { TodoAddResolver, TodoGetAllResolver } from './resolvers';
+import { TodoAddDataInput } from './inputs';
 
 export const TodoCollection = createGraphqlCollection({
-  name: 'Todo',
-  objects: [
-    createGraphqlResponseObject({ name: 'TodoArray', type: '[Todo!]' }).object,
-    TodoObject,
-  ],
-  resolvers: [TodoGetAllResolver],
+  name: 'todo',
+  inputs: [TodoAddDataInput],
+  objects: [TodoObject],
+  resolvers: [TodoAddResolver, TodoGetAllResolver],
 });

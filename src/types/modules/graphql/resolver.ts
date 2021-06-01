@@ -1,5 +1,7 @@
-import type { GraphqlArg } from './arg';
 import type { GraphqlResponse } from './response';
+import type { Logger } from '../../util';
+import type { HTTPError } from '../../rest';
+import type { GraphqlArgs } from './arg';
 
 // eslint-disable-next-line no-shadow
 export enum GraphqlResolverType {
@@ -7,23 +9,38 @@ export enum GraphqlResolverType {
   MUTATION = 'MUTATION',
 }
 export type GraphqlResolverFunction<T, K> = (args: K) => Promise<T>;
-export interface GraphqlResolverConfig<T> {
+
+export interface GraphqlResolverConfig<ReturnType, DataType> {
   name: string;
   type: GraphqlResolverType;
-  args?: GraphqlArg[];
-  returnType: string;
-  description?: string;
-  includeErrorStack?: boolean;
-  unionTypeResolver?(input: T): T & { __typename: string };
-  resolver<K>(args: K): Promise<T>;
-}
-export interface GraphqlResolver<T> {
-  name: string;
-  type: GraphqlResolverType;
-  root: {
-    args?: GraphqlArg[];
-    returnType: string;
+  args?: GraphqlArgs;
+  return: {
+    type: string;
   };
   description?: string;
-  resolver<K>(args: K): Promise<GraphqlResponse<T>>;
+  includeErrorStack?: boolean;
+  unionTypeResolve?(input: ReturnType): ReturnType & { __typename: string };
+  resolve(
+    data: DataType & {
+      __logger: Logger;
+      __errorHandler: HTTPError;
+      __resolverName: string;
+    },
+  ): Promise<ReturnType>;
+}
+
+export interface GraphqlResolver<ReturnType> {
+  name: string;
+  type: GraphqlResolverType;
+  logger: Logger;
+  errorHandler: HTTPError;
+  root: {
+    args?: GraphqlArgs;
+    return: {
+      type: string;
+    };
+  };
+  description?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  resolve(...args: any[]): Promise<GraphqlResponse<ReturnType>>;
 }

@@ -1,10 +1,10 @@
 import {
   GraphqlConfig,
-  GraphqlResolver,
   Module,
   GraphqlResolverType,
   GraphqlObject,
   GraphqlResolverFunction,
+  GraphqlArgs,
 } from '../../types';
 import { createMiddleware } from '../../rest';
 import { buildSchema } from 'graphql';
@@ -32,20 +32,21 @@ export function createGraphql(config: GraphqlConfig): Module {
               .map((field) => {
                 let fieldOutput = '';
                 if (field.description) {
-                  fieldOutput = `
+                  fieldOutput += `
                   "${field.description}"
                   ${field.name}@args: ${field.type}
                 `;
                 } else {
-                  fieldOutput = `${field.name}@args: ${field.type}`;
+                  fieldOutput += `${field.name}@args: ${field.type}`;
                 }
                 let args = '';
                 if (field.args) {
                   args =
                     '(' +
-                    field.args
-                      .map((arg) => {
-                        return `${arg.name}: ${arg.type}`;
+                    Object.keys(field.args)
+                      .map((argKey) => {
+                        const fieldArgs = field.args as GraphqlArgs;
+                        return `${argKey}: ${fieldArgs[argKey]}`;
                       })
                       .join(', ') +
                     ')';
@@ -68,7 +69,9 @@ export function createGraphql(config: GraphqlConfig): Module {
       let rootQuery = '';
       let rootMutation = '';
       const rootValue: {
-        [name: string]: GraphqlResolverFunction<unknown, unknown>;
+        [collectionResolver: string]: {
+          [resolverName: string]: GraphqlResolverFunction<unknown, unknown>;
+        };
       } = {};
 
       for (let i = 0; i < collections.length; i++) {
@@ -76,8 +79,10 @@ export function createGraphql(config: GraphqlConfig): Module {
         for (let j = 0; j < collection.objects.length; j++) {
           const obj = collection.objects[j];
           objectsSchema += createObjectSchema(obj);
-          if (obj.wrapperObject) {
-            objectsSchema += createObjectSchema(obj.wrapperObject);
+          if (obj.wrapperObjects) {
+            for (let k = 0; k < obj.wrapperObjects.length; k++) {
+              objectsSchema += createObjectSchema(obj.wrapperObjects[k]);
+            }
           }
         }
         for (let j = 0; j < collection.enums.length; j++) {
@@ -110,6 +115,8 @@ export function createGraphql(config: GraphqlConfig): Module {
                 if (field.description) {
                   return `"${field.description}"
                 ${field.name}: ${field.type}`;
+                } else {
+                  return `${field.name}: ${field.type}`;
                 }
               })
               .join('\n')}
@@ -118,19 +125,26 @@ export function createGraphql(config: GraphqlConfig): Module {
           `;
           inputsSchema += output;
         }
+        let collectionQueryType = `type ${collection.name}Query {
+        `;
+        let collectionMutationType = `type ${collection.name}Mutation {
+        `;
+        rootValue[collection.name] = {};
+        let addQuery = false;
+        let addMutation = false;
         for (let j = 0; j < collection.resolvers.length; j++) {
           const resolver = collection.resolvers[j];
-          rootValue[resolver.name] = resolver.resolver;
+          rootValue[collection.name][resolver.name] = resolver.resolve;
           let output = '';
           if (resolver.description) {
             output = `"""
             ${resolver.description}
             """
-            ${resolver.name}@args: ${resolver.root.returnType}
+            ${resolver.name}@args: ${resolver.root.return.type}
             
             `;
           } else {
-            output += `${resolver.name}@args: ${resolver.root.returnType}
+            output += `${resolver.name}@args: ${resolver.root.return.type}
             
             `;
           }
@@ -138,9 +152,10 @@ export function createGraphql(config: GraphqlConfig): Module {
           if (resolver.root.args) {
             args =
               '(' +
-              resolver.root.args
-                .map((arg) => {
-                  return `${arg.name}: ${arg.type}`;
+              Object.keys(resolver.root.args)
+                .map((argKey) => {
+                  const rootArgs = resolver.root.args as GraphqlArgs;
+                  return `${argKey}: ${rootArgs[argKey]}`;
                 })
                 .join(', ') +
               ')';
@@ -149,15 +164,35 @@ export function createGraphql(config: GraphqlConfig): Module {
           switch (resolver.type) {
             case GraphqlResolverType.QUERY:
               {
-                rootQuerySchema += output;
+                collectionQueryType += output;
+                addQuery = true;
               }
               break;
             case GraphqlResolverType.MUTATION:
               {
-                rootMutationSchema += output;
+                collectionMutationType += output;
+                addMutation = true;
               }
               break;
           }
+        }
+        collectionQueryType += `
+        }
+        
+        `;
+        collectionMutationType += `
+        }
+        
+        `;
+        if (addQuery) {
+          rootQuerySchema += `${collection.name}: ${collection.name}Query
+        `;
+          objectsSchema += collectionQueryType;
+        }
+        if (addMutation) {
+          rootMutationSchema += `${collection.name}: ${collection.name}Mutation
+        `;
+          objectsSchema += collectionMutationType;
         }
       }
 

@@ -1,8 +1,8 @@
-import type { GraphqlArg } from './arg';
+import type { GraphqlArgs } from './arg';
 
 export interface GraphqlField {
   name: string;
   type: string;
-  args?: GraphqlArg[];
+  args?: GraphqlArgs;
   description?: string;
 }

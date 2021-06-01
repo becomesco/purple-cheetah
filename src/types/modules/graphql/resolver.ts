@@ -1,4 +1,3 @@
-import type { GraphqlField } from './field';
 import type { GraphqlArg } from './arg';
 import type { GraphqlResponse } from './response';
 
@@ -7,10 +6,10 @@ export enum GraphqlResolverType {
   QUERY = 'QUERY',
   MUTATION = 'MUTATION',
 }
-
+export type GraphqlResolverFunction<T, K> = (args: K) => Promise<T>;
 export interface GraphqlResolverConfig<T> {
   name: string;
-  type: GraphqlField;
+  type: GraphqlResolverType;
   args?: GraphqlArg[];
   returnType: string;
   description?: string;
@@ -20,7 +19,7 @@ export interface GraphqlResolverConfig<T> {
 }
 export interface GraphqlResolver<T> {
   name: string;
-  type: GraphqlField;
+  type: GraphqlResolverType;
   root: {
     args?: GraphqlArg[];
     returnType: string;

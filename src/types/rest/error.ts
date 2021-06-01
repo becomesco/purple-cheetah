@@ -15,7 +15,7 @@ export class HTTPException<T> {
   constructor(
     public status: HTTPStatus | number,
     public message: T | { message: T },
-    public stack: unknown,
+    public stack: string[],
   ) {}
 }
 export interface HTTPErrorConfig {

@@ -109,7 +109,7 @@ export const TodoController = createController({
           logger.error(name, e);
           throw errorHandler.occurred(
             HTTPStatus.INTERNAL_SERVER_ERROR,
-            'Failed to updated Todo in the database.',
+            'Failed to updated Model in the database.',
           );
         }
       },
@@ -132,7 +132,7 @@ export const TodoController = createController({
           logger.error(name, e);
           throw errorHandler.occurred(
             HTTPStatus.INTERNAL_SERVER_ERROR,
-            'Failed to remove Todo item from the database.',
+            'Failed to remove Model item from the database.',
           );
         }
       },

@@ -23,7 +23,6 @@ export function createPurpleCheetah(
 ): PurpleCheetah {
   initializeFS();
   initializeLogger();
-
   if (!config.controllers) {
     config.controllers = [];
   }
@@ -86,21 +85,46 @@ export function createPurpleCheetah(
   function loadNextModule() {
     if (modules.length > 0) {
       const module = modules.splice(0, 1)[0];
-      module.initialize({
-        name: module.name,
-        purpleCheetah: self,
-        next(error?: Error) {
-          if (error) {
-            logger.error('loadModule', {
-              name: module.name,
-              error,
-            });
-            process.exit(1);
-          } else {
-            loadNextModule();
-          }
-        },
-      });
+      try {
+        module.initialize({
+          name: module.name,
+          rootConfig: config,
+          purpleCheetah: self,
+          next(error, data) {
+            if (error) {
+              logger.error('loadModule', {
+                name: module.name,
+                error: ('' + error.stack).split('\n'),
+              });
+              process.exit(1);
+            } else {
+              if (data) {
+                if (data.controllers) {
+                  for (let i = 0; i < data.controllers.length; i++) {
+                    (config.controllers as Controller[]).push(
+                      data.controllers[i],
+                    );
+                  }
+                }
+                if (data.middleware) {
+                  for (let i = 0; i < data.middleware.length; i++) {
+                    (config.middleware as Middleware[]).push(
+                      data.middleware[i],
+                    );
+                  }
+                }
+              }
+              loadNextModule();
+            }
+          },
+        });
+      } catch (e) {
+        logger.error(`loadModule`, {
+          name: module.name,
+          error: ('' + e.stack).split('\n'),
+        });
+        process.exit(1);
+      }
     }
   }
   modules.push({

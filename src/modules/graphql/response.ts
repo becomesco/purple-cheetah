@@ -1,6 +1,32 @@
-import type { GraphqlError } from './error';
-
-export interface GraphqlResponse<T> {
-  error?: GraphqlError;
-  result?: T;
+export function useGraphqlResponsePrimitives(): string {
+  return `type GraphqlError {
+    status: Int!
+    message: String!
+    stack: [String!]
+  }
+  type StringResponse {
+    error: GraphqlError
+    result: String
+  }
+  type StringArrayResponse {
+    error: GraphqlError
+    result: [String!]
+  }
+  type IntResponse {
+    error: GraphqlError
+    result: Int
+  }
+  type IntArrayResponse {
+    error: GraphqlError
+    result: [Int!]
+  }
+  type FloatResponse {
+    error: GraphqlError
+    result: Float
+  }
+  type FloatArrayResponse {
+    error: GraphqlError
+    result: [Float!]
+  }
+  `;
 }

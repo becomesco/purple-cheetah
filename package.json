@@ -20,7 +20,8 @@
     "lint": "eslint . --ext .ts",
     "example:hello-world": "nodemon examples/hello-world/main.ts",
     "example:todo-fsdb": "nodemon examples/todo-fsdb/main.ts",
-    "example:todo-mongodb": "env-cmd nodemon examples/todo-mongodb/main.ts"
+    "example:todo-mongodb": "env-cmd nodemon examples/todo-mongodb/main.ts",
+    "example:graphql": "env-cmd nodemon examples/graphql/main.ts"
   },
   "repository": {
     "type": "git",
@@ -39,7 +40,7 @@
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "express-graphql": "^0.9.0",
+    "express-graphql": "^0.12.0",
     "fs-extra": "^8.1.0",
     "graphql": "^14.7.0",
     "http-proxy-middleware": "^1.0.6",
@@ -56,7 +57,6 @@
     "@types/chai": "^4.2.14",
     "@types/cors": "^2.8.9",
     "@types/express": "^4.17.12",
-    "@types/express-graphql": "^0.8.2",
     "@types/fs-extra": "^8.1.1",
     "@types/graphql": "^14.5.0",
     "@types/http-proxy-middleware": "^0.19.3",

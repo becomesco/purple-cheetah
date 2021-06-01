@@ -20,7 +20,7 @@ import type {
   UpdateTodoData,
 } from '../../examples/todo-mongodb/models';
 
-describe('REST API - Todo MongoDB', async () => {
+describe('REST API - Model MongoDB', async () => {
   let app: PurpleCheetah;
   const http = createHttpClient({
     name: 'todo',

@@ -1,9 +1,10 @@
-import type {
+import {
   GraphqlResolver,
   GraphqlResolverConfig,
   GraphqlResponse,
+  HTTPException,
 } from '../../types';
-import { HTTPException } from '../../types';
+import { createGraphqlResponseObject } from './object';
 
 export function createGraphqlResolver<T>(
   config: GraphqlResolverConfig<T>,
@@ -14,7 +15,7 @@ export function createGraphqlResolver<T>(
     description: config.description,
     root: {
       args: config.args ? config.args : [],
-      returnType: config.returnType,
+      returnType: createGraphqlResponseObject({ name: config.returnType }).name,
     },
     async resolver<K>(args: K): Promise<GraphqlResponse<T>> {
       try {
@@ -34,19 +35,30 @@ export function createGraphqlResolver<T>(
             result: config.unionTypeResolver(result),
           };
         } else {
-          return { result: result };
+          return { result };
         }
       } catch (error) {
         if (error instanceof HTTPException) {
+          const err = error as HTTPException<never>;
           return {
             error: {
-              status: error.status,
-              message: error.message.message,
+              status: err.status,
+              message:
+                err.message && err.message.message ? error.message.message : '',
               stack: config.includeErrorStack ? error.stack : undefined,
             },
           };
         }
-        throw error;
+        return {
+          error: {
+            status: 500,
+            message: error.message,
+            stack:
+              error.stack && config.includeErrorStack
+                ? error.stack.split('\n')
+                : undefined,
+          },
+        };
       }
     },
   };

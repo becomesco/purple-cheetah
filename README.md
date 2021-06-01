@@ -1167,7 +1167,7 @@ The Best way to explain how this works is by using an example.
 <div id="database-mongodb-example"></div>
 
 Example from [Application](#application-example) section will be extended and
-simple Todo API will be created. First, MongoDB will be enabled by decorating
+simple Model API will be created. First, MongoDB will be enabled by decorating
 the application class with `EnableMongoDB`.
 
 ```ts
@@ -1211,7 +1211,7 @@ export class App extends PurpleCheetah {
 }
 ```
 
-Next step is to create a model of Todo entity/document.
+Next step is to create a model of Model entity/document.
 
 ```ts
 // ---> todo-fsdb/models/todo-fsdb.ts
@@ -1223,7 +1223,7 @@ export interface ITodo extends IEntity {
   task: string;
 }
 
-export class Todo implements Entity {
+export class Model implements Entity {
   constructor(
     public _id: Types.ObjectId,
     public createdAt: number,
@@ -1243,7 +1243,7 @@ export class Todo implements Entity {
 }
 ```
 
-Have in mind that in Todo class, properties `_id`, `createdAt` and `updatedAt`
+Have in mind that in Model class, properties `_id`, `createdAt` and `updatedAt`
 are required, and their types are predefined. Static method `schema` is optional
 at this position.
 
@@ -1258,24 +1258,24 @@ import {
   MongoDBRepositoryPrototype,
 } from '@becomes/purple-cheetah';
 import { Model } from 'mongoose';
-import { ITodo, Todo } from '../models';
+import { ITodo, Model } from '../models';
 
 @MongoDBRepository({
   entity: {
-    schema: Todo.schema,
+    schema: Model.schema,
   },
   name: 'todos',
 })
-export class TodoRepository implements MongoDBRepositoryPrototype<Todo, ITodo> {
+export class TodoRepository implements MongoDBRepositoryPrototype<Model, ITodo> {
   repo: Model<ITodo>;
   logger: Logger;
-  findAll: () => Promise<Todo[]>;
-  findAllById: (ids: string[]) => Promise<Todo[]>;
-  findAllBy: <Q>(query: Q) => Promise<Todo[]>;
-  findById: (id: string) => Promise<Todo>;
-  findBy: <Q>(query: Q) => Promise<Todo>;
-  add: (e: Todo) => Promise<boolean>;
-  update: (e: Todo) => Promise<boolean>;
+  findAll: () => Promise<Model[]>;
+  findAllById: (ids: string[]) => Promise<Model[]>;
+  findAllBy: <Q>(query: Q) => Promise<Model[]>;
+  findById: (id: string) => Promise<Model>;
+  findBy: <Q>(query: Q) => Promise<Model>;
+  add: (e: Model) => Promise<boolean>;
+  update: (e: Model) => Promise<boolean>;
   deleteById: (id: string) => Promise<boolean>;
   deleteAllById: (ids: string[]) => Promise<number | boolean>;
   count: () => Promise<number>;
@@ -1303,7 +1303,7 @@ import {
 } from '@becomes/purple-cheetah';
 import { Request, Router } from 'express';
 import { Types } from 'mongoose';
-import { Todo } from './models';
+import { Model } from './models';
 import { TodoRepository } from './repositories';
 
 @Controller('/todo-fsdb')
@@ -1318,12 +1318,12 @@ export class TodoController implements ControllerPrototype {
   private todoRepo: TodoRepository;
 
   @Get('/all')
-  async getAll(): Promise<{ todos: Todo[] }> {
+  async getAll(): Promise<{ todos: Model[] }> {
     return { todos: await this.todoRepo.findAll() };
   }
 
   @Get('/:id')
-  async getById(request: Request): Promise<{ todo: Todo }> {
+  async getById(request: Request): Promise<{ todo: Model }> {
     const error = HttpErrorFactory.instance(
       'getById',
       this.logger
@@ -1344,14 +1344,14 @@ export class TodoController implements ControllerPrototype {
     if (!todo) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        `Todo with ID "${request.params.id}" does not exist.`,
+        `Model with ID "${request.params.id}" does not exist.`,
       );
     }
     return { todo };
   }
 
   @Post()
-  async create(request: Request): Promise<{ todo: Todo }> {
+  async create(request: Request): Promise<{ todo: Model }> {
     const error = HttpErrorFactory.instance(
       'create',
       this.logger
@@ -1373,7 +1373,7 @@ export class TodoController implements ControllerPrototype {
         e.message
       );
     }
-    const todo = new Todo(
+    const todo = new Model(
       new Types.ObjectId(),
       Date.now(),
       Date.now(),
@@ -1383,7 +1383,7 @@ export class TodoController implements ControllerPrototype {
     if (addResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
-        'Failed to add Todo to the database.',
+        'Failed to add Model to the database.',
       );
     }
     return { todo };
@@ -1411,14 +1411,14 @@ export class TodoController implements ControllerPrototype {
     if (!todo) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        `Todo with ID "${request.params.id}" does not exist.`,
+        `Model with ID "${request.params.id}" does not exist.`,
       );
     }
     const deleteResult = await this.todoRepo.deleteById(request.params.id);
     if (deleteResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
-        'Failed to delete Todo from the database.',
+        'Failed to delete Model from the database.',
       );
     }
     return { message: 'Success.' };
@@ -1451,7 +1451,7 @@ way to describe how this module works is to show an example.
 Simple application will be created which uses FSDB as a database. Same
 application which was created in [MongoDB example](#database-mongodb-example)
 will be used, but instead of MongoDB, FSDB will be used. First step is to create
-a Todo model.
+a Model model.
 
 ```ts
 // ---> app.ts
@@ -1484,7 +1484,7 @@ export class App extends PurpleCheetah {
 
 import { FSDBEntity, ObjectSchema } from '@becomes/purple-cheetah';
 
-export class Todo implements FSDBEntity {
+export class Model implements FSDBEntity {
   constructor(
     public _id: string,
     public createdAt: number,
@@ -1527,27 +1527,27 @@ import {
   Logger,
   FSDBRepository,
 } from '@becomes/purple-cheetah';
-import { Todo } from '../models';
+import { Model } from '../models';
 
 @FSDBRepository({
-  schema: Todo.schema,
+  schema: Model.schema,
   collectionName: 'todos',
 })
-export class TodoRepository implements FSDBRepositoryPrototype<Todo> {
-  repo: Model<Todo>;
+export class TodoRepository implements FSDBRepositoryPrototype<Model> {
+  repo: Model<Model>;
   logger: Logger;
-  findAll: () => Promise<Todo[]>;
-  findAllBy: (query: (e: Todo) => boolean) => Promise<Todo[]>;
-  findAllById: (ids: string[]) => Promise<Todo[]>;
-  findBy: (query: (e: Todo) => boolean) => Promise<Todo>;
-  findById: (id: string) => Promise<Todo>;
-  add: (e: Todo) => Promise<void>;
-  addMany: (e: Todo[]) => Promise<void>;
-  update: (e: Todo) => Promise<boolean>;
+  findAll: () => Promise<Model[]>;
+  findAllBy: (query: (e: Model) => boolean) => Promise<Model[]>;
+  findAllById: (ids: string[]) => Promise<Model[]>;
+  findBy: (query: (e: Model) => boolean) => Promise<Model>;
+  findById: (id: string) => Promise<Model>;
+  add: (e: Model) => Promise<void>;
+  addMany: (e: Model[]) => Promise<void>;
+  update: (e: Model) => Promise<boolean>;
   deleteById: (id: string) => Promise<boolean>;
   deleteAllById: (ids: string[]) => Promise<number | boolean>;
-  deleteOne: (query: (e: Todo) => boolean) => Promise<void>;
-  deleteMany: (query: (e: Todo) => boolean) => Promise<void>;
+  deleteOne: (query: (e: Model) => boolean) => Promise<void>;
+  deleteMany: (query: (e: Model) => boolean) => Promise<void>;
   count: () => Promise<number>;
 }
 
@@ -1573,7 +1573,7 @@ import {
   Post,
 } from '@becomes/purple-cheetah';
 import { Request, Router } from 'express';
-import { Todo } from './models';
+import { Model } from './models';
 import { TodoRepo } from './repositories';
 
 @Controller('/todo-fsdb')
@@ -1585,12 +1585,12 @@ export class TodoController implements ControllerPrototype {
   router: Router;
 
   @Get('/all')
-  async getAll(): Promise<{ todos: Todo[] }> {
+  async getAll(): Promise<{ todos: Model[] }> {
     return { todos: await TodoRepo.findAll() };
   }
 
   @Get('/:id')
-  async getById(request: Request): Promise<{ todo: Todo }> {
+  async getById(request: Request): Promise<{ todo: Model }> {
     const error = HttpErrorFactory.instance(
       'getById',
       this.logger
@@ -1605,14 +1605,14 @@ export class TodoController implements ControllerPrototype {
     if (!todo) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        `Todo with ID "${request.params.id}" does not exist.`,
+        `Model with ID "${request.params.id}" does not exist.`,
       );
     }
     return { todo };
   }
 
   @Post()
-  async create(request: Request): Promise<{ todo: Todo }> {
+  async create(request: Request): Promise<{ todo: Model }> {
     const error = HttpErrorFactory.instance(
       'create',
       this.logger
@@ -1634,7 +1634,7 @@ export class TodoController implements ControllerPrototype {
         e.message
       );
     }
-    const todo = new Todo(
+    const todo = new Model(
       randomBytes(24).toString('hex'),
       Date.now(),
       Date.now(),
@@ -1645,7 +1645,7 @@ export class TodoController implements ControllerPrototype {
     } catch (e) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
-        'Failed to add Todo to the database.',
+        'Failed to add Model to the database.',
       );
     }
     return { todo };
@@ -1667,14 +1667,14 @@ export class TodoController implements ControllerPrototype {
     if (!todo) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        `Todo with ID "${request.params.id}" does not exist.`,
+        `Model with ID "${request.params.id}" does not exist.`,
       );
     }
     const deleteResult = await TodoRepo.deleteById(request.params.id);
     if (deleteResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
-        'Failed to delete Todo from the database.',
+        'Failed to delete Model from the database.',
       );
     }
     return { message: 'Success.' };
@@ -1702,7 +1702,7 @@ to explain this is by using an example.
 
 <div id="graphql-example"></div>
 
-In this example simple Todo list GraphQL API will be created, the same one
+In this example simple Model list GraphQL API will be created, the same one
 showed in [FBDB example](#database-fs-example), therefore FSDB will be used
 as a database while controller methods will be replaced with a GraphQL
 resolvers. First thing to do is to decorate the application
@@ -1749,7 +1749,7 @@ url in a browser, Graph*i*QL can be seen, as shown in Figure 5.
 
 _Figure 5 - GraphiQL._
 
-Next step is to create a Todo Object.
+Next step is to create a Model Object.
 
 ```ts
 // ---> todo-fsdb/gql/objects/todo-fsdb.ts
@@ -1761,7 +1761,7 @@ import {
 } from '@becomes/purple-cheetah';
 
 @QLObject({
-  name: 'Todo',
+  name: 'Model',
   fields: [
     {
       name: '_id',

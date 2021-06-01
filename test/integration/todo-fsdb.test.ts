@@ -23,7 +23,7 @@ import type {
   UpdateTodoData,
 } from '../../examples/todo-fsdb/models';
 
-describe('REST API - Todo FSDB', async () => {
+describe('REST API - Model FSDB', async () => {
   let app: PurpleCheetah;
   const http = createHttpClient({
     name: 'todo',

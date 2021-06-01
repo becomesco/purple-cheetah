@@ -1,9 +1,14 @@
 import * as nodeFS from 'fs';
 import * as path from 'path';
 import * as util from 'util';
-import type { FS, Logger, UpdateLoggerConfig, UseLoggerConfig } from '../types';
+import {
+  FS,
+  Logger,
+  UpdateLoggerConfig,
+  UseLoggerConfig,
+  HTTPException,
+} from '../types';
 import { useFS } from './fs';
-import { setInterval } from 'timers';
 
 let output = path.join(process.cwd(), 'logs');
 let fs: FS;
@@ -142,17 +147,16 @@ export function useLogger(config: UseLoggerConfig): Logger {
       let print = '';
       if (typeof message === 'object') {
         let stack: string | undefined;
-        const msg = message as Error;
         if (message instanceof Error) {
-          stack = msg.stack;
+          stack = message.stack;
+        } else if (message instanceof HTTPException) {
+          stack = message.stack.join('\n');
         }
-        if (msg.stack) {
-          stack = msg.stack;
-          delete msg.stack;
-        }
-        print = `\r\n${ConsoleColors.FgRed}${JSON.stringify(message, null, 2)}${
-          ConsoleColors.Reset
-        }`;
+        print = `\r\n${ConsoleColors.FgRed}${JSON.stringify(
+          message,
+          null,
+          '  ',
+        )}${ConsoleColors.Reset}`;
         if (stack) {
           print =
             print + `\r\n${ConsoleColors.FgRed}${stack}${ConsoleColors.Reset}`;

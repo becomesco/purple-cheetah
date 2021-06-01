@@ -1,10 +1,18 @@
 import { FSDBEntity, FSDBEntitySchema, ObjectSchema } from '../../../src/types';
 
+// eslint-disable-next-line no-shadow
+export enum TodoType {
+  IMPORTANT = 'IMPORTANT',
+  FLEXIBLE = 'FLEXIBLE',
+}
+
 export interface TodoModel extends FSDBEntity {
   name: string;
   description: string;
   completed: boolean;
+  type: TodoType;
 }
+
 export const TodoSchema: ObjectSchema = {
   ...FSDBEntitySchema,
   name: {
@@ -19,44 +27,22 @@ export const TodoSchema: ObjectSchema = {
     __type: 'boolean',
     __required: true,
   },
+  type: {
+    __type: 'string',
+    __required: true,
+  },
 };
 
 export interface TodoAddData {
   name: string;
   description: string;
+  type: TodoType;
 }
-export const TodoAddDataSchema: ObjectSchema = {
-  name: {
-    __type: 'string',
-    __required: true,
-  },
-  description: {
-    __type: 'string',
-    __required: true,
-  },
-};
 
 export interface TodoUpdateData {
   _id: string;
   name?: string;
   description?: string;
   completed?: boolean;
+  type?: TodoType;
 }
-export const TodoUpdateDataSchema: ObjectSchema = {
-  _id: {
-    __type: 'string',
-    __required: true,
-  },
-  name: {
-    __type: 'string',
-    __required: false,
-  },
-  description: {
-    __type: 'string',
-    __required: false,
-  },
-  completed: {
-    __type: 'boolean',
-    __required: false,
-  },
-};

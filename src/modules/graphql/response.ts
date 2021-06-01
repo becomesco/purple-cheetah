@@ -20,6 +20,14 @@ export function useGraphqlResponsePrimitives(): string {
     error: GraphqlError
     result: [Int!]
   }
+  type BooleanResponse {
+    error: GraphqlError
+    result: Boolean
+  }
+  type BooleanArrayResponse {
+    error: GraphqlError
+    result: [Boolean!]
+  }
   type FloatResponse {
     error: GraphqlError
     result: Float

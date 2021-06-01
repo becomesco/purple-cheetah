@@ -1,4 +1,4 @@
-import {
+import type {
   GraphqlResolver,
   GraphqlResolverConfig,
   HTTPException,
@@ -60,7 +60,8 @@ export function createGraphqlResolver<ReturnType, DataType>(
           return { result };
         }
       } catch (error) {
-        if (error instanceof HTTPException) {
+        const exception = error as HTTPException<unknown>;
+        if (exception.status && exception.message) {
           const err = error as HTTPException<never>;
           return {
             error: {

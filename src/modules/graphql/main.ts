@@ -28,30 +28,23 @@ export function createGraphql(config: GraphqlConfig): Module {
             `;
         }
         output += `type ${obj.name} {
-            ${obj.fields
-              .map((field) => {
+            ${Object.keys(obj.fields)
+              .map((fieldKey) => {
                 let fieldOutput = '';
-                if (field.description) {
-                  fieldOutput += `
-                  "${field.description}"
-                  ${field.name}@args: ${field.type}
-                `;
-                } else {
-                  fieldOutput += `${field.name}@args: ${field.type}`;
-                }
-                let args = '';
-                if (field.args) {
-                  args =
-                    '(' +
-                    Object.keys(field.args)
-                      .map((argKey) => {
-                        const fieldArgs = field.args as GraphqlArgs;
-                        return `${argKey}: ${fieldArgs[argKey]}`;
-                      })
-                      .join(', ') +
-                    ')';
-                }
-                return fieldOutput.replace('@args', args);
+                fieldOutput += `${fieldKey}@args: ${obj.fields[fieldKey]}`;
+                // let args = '';
+                // if (field.args) {
+                //   args =
+                //     '(' +
+                //     Object.keys(field.args)
+                //       .map((argKey) => {
+                //         const fieldArgs = field.args as GraphqlArgs;
+                //         return `${argKey}: ${fieldArgs[argKey]}`;
+                //       })
+                //       .join(', ') +
+                //     ')';
+                // }
+                return fieldOutput.replace('@args', '');
               })
               .join('\n')}
           }
@@ -110,14 +103,9 @@ export function createGraphql(config: GraphqlConfig): Module {
             `;
           }
           output += `input ${input.name} {
-            ${input.fields
-              .map((field) => {
-                if (field.description) {
-                  return `"${field.description}"
-                ${field.name}: ${field.type}`;
-                } else {
-                  return `${field.name}: ${field.type}`;
-                }
+            ${Object.keys(input.fields)
+              .map((fieldKey) => {
+                return `${fieldKey}: ${input.fields[fieldKey]}`;
               })
               .join('\n')}
           }
@@ -253,23 +241,27 @@ export function createGraphql(config: GraphqlConfig): Module {
         ${schemaAvailable ? schema : ''}
       `;
 
-      console.log(fullSchema);
-
-      moduleConfig.next(undefined, {
-        middleware: [
-          createMiddleware({
-            name: 'Graphql',
-            after: false,
-            path: config.uri ? config.uri : '/graphql',
-            handler: () =>
-              graphqlHTTP({
-                schema: buildSchema(fullSchema),
-                rootValue,
-                graphiql: config.graphiql,
-              }),
-          }),
-        ],
-      });
+      try {
+        const gqlSchema = buildSchema(fullSchema);
+        moduleConfig.next(undefined, {
+          middleware: [
+            createMiddleware({
+              name: 'Graphql',
+              after: false,
+              path: config.uri ? config.uri : '/graphql',
+              handler: () =>
+                graphqlHTTP({
+                  schema: gqlSchema,
+                  rootValue,
+                  graphiql: config.graphiql,
+                }),
+            }),
+          ],
+        });
+      } catch (e) {
+        console.error(fullSchema);
+        moduleConfig.next(e);
+      }
     },
   };
 }

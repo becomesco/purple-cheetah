@@ -11,16 +11,10 @@ export function createGraphqlResponseObject(config: {
     name,
     object: {
       name,
-      fields: [
-        {
-          name: 'error',
-          type: 'GraphqlError',
-        },
-        {
-          name: 'result',
-          type: type,
-        },
-      ],
+      fields: {
+        error: 'GraphqlError',
+        result: type,
+      },
     },
   };
 }

@@ -1,12 +1,12 @@
-import type { GraphqlField } from './field';
+import type { GraphqlFields } from './field';
 
 export interface GraphqlInputConfig {
   name: string;
-  fields: GraphqlField[];
+  fields: GraphqlFields;
   description?: string;
 }
 export interface GraphqlInput {
   name: string;
-  fields: GraphqlField[];
+  fields: GraphqlFields;
   description?: string;
 }

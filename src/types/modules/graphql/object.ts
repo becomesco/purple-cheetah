@@ -1,9 +1,9 @@
-import type { GraphqlField } from './field';
+import type { GraphqlFields } from './field';
 
 export interface GraphqlObject {
   name: string;
   type?: string;
-  fields: GraphqlField[];
+  fields: GraphqlFields;
   description?: string;
   wrapperObjects?: GraphqlObject[];
 }
@@ -11,6 +11,6 @@ export interface GraphqlObject {
 export interface GraphqlObjectConfig {
   name: string;
   type?: string;
-  fields: GraphqlField[];
+  fields: GraphqlFields;
   description?: string;
 }

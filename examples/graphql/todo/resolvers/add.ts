@@ -1,7 +1,7 @@
 import { createGraphqlResolver } from '../../../../src';
 import { GraphqlResolverType, HTTPStatus } from '../../../../src/types';
 import type { TodoAddData, TodoModel } from '../model';
-import { TodoRepository } from '../../../todo-fsdb/repositories';
+import { TodoRepository } from '../repository';
 
 export const TodoAddResolver = createGraphqlResolver<
   TodoModel,
@@ -27,6 +27,7 @@ export const TodoAddResolver = createGraphqlResolver<
         name: data.name,
         description: data.description,
         completed: false,
+        type: data.type,
       });
     } catch (e) {
       __logger.error(__resolverName, e);

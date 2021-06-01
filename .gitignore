@@ -43,3 +43,4 @@ lerna-debug.log*
 # Test temp
 _test
 /test/assets/db/_*
+/.fsdb.json

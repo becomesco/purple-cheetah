@@ -14,36 +14,54 @@ export interface ControllerMethod {
   ) => Promise<void>;
 }
 
-export type ControllerPreRequestHandler<PreRequestHandlerReturnType> = (data: {
-  name: string;
-  logger: Logger;
-  errorHandler: HTTPError;
-  request: Request;
-  response: Response;
-}) => Promise<PreRequestHandlerReturnType>;
+export type ControllerPreRequestHandler<
+  PreRequestHandlerReturnType,
+  SetupResult,
+> = (
+  data: {
+    name: string;
+    logger: Logger;
+    errorHandler: HTTPError;
+    request: Request;
+    response: Response;
+  } & SetupResult,
+) => Promise<PreRequestHandlerReturnType>;
 
-export type ControllerRequestHandler<PreRequestHandlerReturnType, ReturnType> =
-  (data: {
+export type ControllerRequestHandler<
+  PreRequestHandlerReturnType,
+  ReturnType,
+  SetupResult,
+> = (
+  data: {
     name: string;
     request: Request;
     response: Response;
     pre: PreRequestHandlerReturnType;
     logger: Logger;
     errorHandler: HTTPError;
-  }) => Promise<ReturnType>;
+  } & SetupResult,
+) => Promise<ReturnType>;
 
 export interface ControllerMethodConfig<
   PreRequestHandlerReturnType,
   ReturnType,
+  SetupResult,
 > {
   name?: string;
   type: ControllerMethodType;
   path?: string;
-  preRequestHandler?: ControllerPreRequestHandler<PreRequestHandlerReturnType>;
-  handler: ControllerRequestHandler<PreRequestHandlerReturnType, ReturnType>;
+  preRequestHandler?: ControllerPreRequestHandler<
+    PreRequestHandlerReturnType,
+    SetupResult
+  >;
+  handler: ControllerRequestHandler<
+    PreRequestHandlerReturnType,
+    ReturnType,
+    SetupResult
+  >;
 }
 
-export interface ControllerConfig {
+export interface ControllerConfig<SetupResult> {
   /**
    * Name of the controller. Used for generated logger
    * and to organize errors.
@@ -57,8 +75,8 @@ export interface ControllerConfig {
    * Or: /my/controller/:slug
    */
   path: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  methods: ControllerMethodConfig<any, any>[];
+  setup(config: { name: string; path: string }): SetupResult;
+  methods: ControllerMethodConfig<unknown, unknown, SetupResult>[];
 }
 export interface Controller {
   /**

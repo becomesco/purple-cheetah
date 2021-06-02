@@ -8,7 +8,7 @@ import { useObjectUtility } from '../../util';
 
 export function createBodyValidationPreRequestHandler<T>(
   schema: ObjectSchema,
-): ControllerPreRequestHandler<T> {
+): ControllerPreRequestHandler<T, unknown> {
   const objectUtil = useObjectUtility();
 
   return async ({ request, errorHandler }) => {

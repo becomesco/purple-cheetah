@@ -3,7 +3,7 @@ import type {
   MemCacheHandler,
   MemCacheHandlerMethodsFunction,
 } from '../../../mem-cache';
-import type { Schema } from 'mongoose';
+import type { Schema, Model, Document } from 'mongoose';
 import type { Logger } from '../../../util';
 
 export interface MongoDBCachedRepositoryConfig<
@@ -21,6 +21,7 @@ export interface MongoDBCachedRepositoryConfig<
     schema: Schema;
     collection: string;
     repo: MongoDBCachedRepository<Entity, unknown>;
+    mongoDBInterface: Model<Entity & Document>;
     logger: Logger;
   }): Methods;
 }

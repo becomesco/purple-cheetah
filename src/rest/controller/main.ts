@@ -9,14 +9,31 @@ import type {
 import { useLogger } from '../../util';
 import { createHTTPError } from '../error';
 
-export function createControllerMethod<PreRequestHandlerReturnType, ReturnType>(
-  config: ControllerMethodConfig<PreRequestHandlerReturnType, ReturnType>,
+export function createControllerMethod<
+  PreRequestHandlerReturnType,
+  ReturnType,
+  SetupResult,
+>(
+  config: ControllerMethodConfig<
+    PreRequestHandlerReturnType,
+    ReturnType,
+    SetupResult
+  >,
 ) {
   return config;
 }
-function wrapControllerMethod<PreRequestHandlerReturnType, ReturnType>(
+function wrapControllerMethod<
+  PreRequestHandlerReturnType,
+  ReturnType,
+  SetupResult,
+>(
   logger: Logger,
-  config: ControllerMethodConfig<PreRequestHandlerReturnType, ReturnType>,
+  setup: SetupResult,
+  config: ControllerMethodConfig<
+    PreRequestHandlerReturnType,
+    ReturnType,
+    SetupResult
+  >,
 ): ControllerMethod {
   const name = config.name ? config.name : uuidv4();
   let path = config.path ? config.path : '';
@@ -41,6 +58,7 @@ function wrapControllerMethod<PreRequestHandlerReturnType, ReturnType>(
             name,
             logger,
             errorHandler,
+            ...setup,
           });
         }
         const handlerResult = await config.handler({
@@ -50,6 +68,7 @@ function wrapControllerMethod<PreRequestHandlerReturnType, ReturnType>(
           response,
           pre: preRequestHandlerResult as never,
           name,
+          ...setup,
         });
         if (handlerResult instanceof Buffer) {
           response.send(handlerResult);
@@ -72,18 +91,21 @@ function wrapControllerMethod<PreRequestHandlerReturnType, ReturnType>(
     },
   };
 }
-export function createController(config: ControllerConfig): Controller {
+export function createController<SetupReturn>(
+  config: ControllerConfig<SetupReturn>,
+): Controller {
   const logger = useLogger({
     name: config.name,
   });
   if (!config.path.startsWith('/')) {
     config.path = '/' + config.path;
   }
+  const setupResult = config.setup({ name: config.name, path: config.path });
   const methods: ControllerMethod[] = [];
   for (let i = 0; i < config.methods.length; i++) {
     const method = config.methods[i];
     methods.push(
-      wrapControllerMethod(logger, {
+      wrapControllerMethod(logger, setupResult, {
         name: method.name,
         type: method.type,
         path: method.path,

@@ -9,7 +9,6 @@ import { createMemCacheHandler } from '../../../mem-cache';
 
 export function createMongoDBCachedRepository<
   Entity extends MongoDBEntity,
-  Doc extends Entity & Document,
   Methods,
   CacheMethods,
 >({
@@ -27,7 +26,7 @@ export function createMongoDBCachedRepository<
   });
   let findAllLath = false;
 
-  const intf = model<Doc>(collection, schema);
+  const intf = model<Entity & Document>(collection, schema);
   const self: MongoDBCachedRepository<Entity, Methods> = {
     methods: undefined as never,
     async findAll() {
@@ -142,6 +141,7 @@ export function createMongoDBCachedRepository<
       schema,
       repo: self,
       logger,
+      mongoDBInterface: intf,
       cacheHandler,
     });
   }

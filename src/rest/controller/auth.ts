@@ -1,4 +1,3 @@
-import * as crypto from 'crypto';
 import {
   Controller,
   FSDBEntity,
@@ -14,6 +13,7 @@ import {
 import { createController, createControllerMethod } from './main';
 import { compare as bcryptCompare } from 'bcrypt';
 import { useJwt, useJwtEncoding } from '../../security';
+import { useRefreshTokenService } from '../refresh-token-service';
 
 interface EntityRequiredProps {
   password: string;
@@ -37,11 +37,7 @@ export function createAuthController<
     | FSDBRepository<FSDBEntity, Methods>
     | MongoDBRepository<MongoDBEntity, Methods>;
 }): Controller {
-  const refreshTokens: {
-    [userId: string]: {
-      [value: string]: number;
-    };
-  } = {};
+  const refreshTokenService = useRefreshTokenService();
 
   function createAccessToken(
     user: MongoDB_Entity | FSDB_Entity,
@@ -119,24 +115,8 @@ export function createAuthController<
     }
     auth.userId = authParts[0];
     auth.refreshToken = authParts[1];
-    if (!refreshTokens[auth.userId]) {
+    if (!refreshTokenService.exist(auth.userId, auth.refreshToken)) {
       logger.warn(name, 'Invalid user ID');
-      throw errorHandler.occurred(
-        HTTPStatus.UNAUTHORIZED,
-        'Invalid user ID and/or refresh token',
-      );
-    }
-    const refreshToken = refreshTokens[auth.userId][auth.refreshToken];
-    if (!refreshToken) {
-      logger.warn(name, 'Invalid refresh token');
-      throw errorHandler.occurred(
-        HTTPStatus.UNAUTHORIZED,
-        'Invalid user ID and/or refresh token',
-      );
-    }
-    if (refreshToken < Date.now()) {
-      delete refreshTokens[auth.userId][auth.refreshToken];
-      logger.warn(name, 'Refresh token expired');
       throw errorHandler.occurred(
         HTTPStatus.UNAUTHORIZED,
         'Invalid user ID and/or refresh token',
@@ -156,6 +136,9 @@ export function createAuthController<
   return createController({
     name: 'Auth',
     path: config.baseUri ? config.baseUri : '',
+    setup() {
+      return;
+    },
     methods: [
       createControllerMethod({
         path: '/login',
@@ -219,20 +202,9 @@ export function createAuthController<
               'Invalid email and/or password.',
             );
           }
-          const refreshToken = {
-            value: crypto
-              .createHash('sha512')
-              .update(crypto.randomBytes(64).toString() + Date.now())
-              .digest('hex'),
-            expAt: Date.now() + config.jwt.refreshTokenTTL,
-          };
-          if (!refreshTokens[`${user._id}`]) {
-            refreshTokens[`${user._id}`] = {};
-          }
-          refreshTokens[`${user._id}`][refreshToken.value] = refreshToken.expAt;
           return {
             accessToken: createAccessToken(user, errorHandler),
-            refreshToken: refreshToken.value,
+            refreshToken: refreshTokenService.create(`${user._id}`),
           };
         },
       }),
@@ -273,7 +245,7 @@ export function createAuthController<
             request.headers.authorization as string,
             name,
           );
-          delete refreshTokens[data.auth.userId][data.auth.refreshToken];
+          refreshTokenService.remove(data.auth.userId, data.auth.refreshToken);
           return {
             status: 'ok',
           };

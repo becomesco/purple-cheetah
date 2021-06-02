@@ -114,5 +114,5 @@ const objectUtility: ObjectUtility = {
 };
 
 export function useObjectUtility() {
-  return objectUtility;
+  return { ...objectUtility };
 }

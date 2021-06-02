@@ -1,6 +1,6 @@
 import * as cors from 'cors';
-import type { Middleware } from '../types';
-import { createMiddleware } from './middleware';
+import type { Middleware } from '../../types';
+import { createMiddleware } from './main';
 
 export function createCorsMiddleware(config?: cors.CorsOptions): Middleware {
   return createMiddleware({

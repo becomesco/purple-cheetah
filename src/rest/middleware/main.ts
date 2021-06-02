@@ -1,5 +1,5 @@
-import type { Middleware, MiddlewareConfig } from '../types';
-import { useLogger } from '../util';
+import type { Middleware, MiddlewareConfig } from '../../types';
+import { useLogger } from '../../util';
 
 export function createMiddleware(config: MiddlewareConfig): Middleware {
   const after = !!config.after;

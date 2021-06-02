@@ -449,7 +449,7 @@ specified class have properties of a controller.
 <div id="network-controller-example"></div>
 
 Project structure from [Application example](#application-example) will be
-extended to contain `hello-world` directory with `index.ts` and `controller.ts`
+extended to contain `hello-world` directory with `index.ts` and `main.ts`
 files inside it (it is important to know that controller file does not need to
 have a `controller` name, this can be any name).
 
@@ -460,7 +460,7 @@ project
        └--- app.ts
        └--- hello-world
              └--- index.ts
-             └--- controller.ts
+             └--- main.ts
 ```
 
 Index pattern will be used to expose children files, therefore inside
@@ -472,14 +472,14 @@ the `index.ts`, controller file will be exported.
 export * from './controller';
 ```
 
-Inside the `controller.ts` controller class `HelloWorldController` will be
+Inside the `main.ts` controller class `HelloWorldController` will be
 created, which implements controller interface and is annotated by the
 controller decorator. This controller will have only one get method at
 path `/hello/world`, which will return a JSON response with property `message`
 and constant value of `Hello World!`.
 
 ```ts
-// ---> hello-world/controller.ts
+// ---> hello-world/main.ts
 
 import {
   ControllerPrototype,
@@ -547,7 +547,7 @@ an Express application. Because of this, by adding a new get method with the
 path parameter `name`, dynamic response can be created.
 
 ```ts
-// ---> hello-world/controller.ts
+// ---> hello-world/main.ts
 
 // ...
 
@@ -653,7 +653,7 @@ indicate that next handler in a chain should be executed. Now the controller
 method will be modified to use this new header property.
 
 ```ts
-// ---> hello-world/controller.ts
+// ---> hello-world/main.ts
 
 // ...
 
@@ -1286,7 +1286,7 @@ With this done everything related with MongoDB is set up and controller can be
 created, which will implement an application logic.
 
 ```ts
-// ---> todo-fsdb/controller.ts
+// ---> todo-fsdb/main.ts
 
 import {
   Controller,
@@ -1752,7 +1752,7 @@ _Figure 5 - GraphiQL._
 Next step is to create a Model Object.
 
 ```ts
-// ---> todo-fsdb/gql/objects/todo-fsdb.ts
+// ---> todo-fsdb/gql/_objects/todo-fsdb.ts
 
 import {
   QLFieldPrototype,

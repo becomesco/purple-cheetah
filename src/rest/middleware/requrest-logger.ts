@@ -1,5 +1,5 @@
-import type { Middleware } from '../types';
-import { createMiddleware } from './middleware';
+import type { Middleware } from '../../types';
+import { createMiddleware } from './main';
 import type { RequestHandler } from 'express';
 
 export function createRequestLoggerMiddleware(): Middleware {

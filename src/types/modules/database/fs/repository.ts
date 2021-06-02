@@ -1,9 +1,9 @@
 import type { FSDBEntity } from './entity';
 import type { Logger, ObjectSchema } from '../../../util';
 
-export type FSDBRepositoryQuery<T> = (entity: T) => boolean;
+export type FSDBRepositoryQuery<Entity> = (entity: Entity) => boolean;
 
-export interface FSDBRepositoryConfig<T extends FSDBEntity, K> {
+export interface FSDBRepositoryConfig<Entity extends FSDBEntity, Methods> {
   name: string;
   schema: ObjectSchema;
   collection: string;
@@ -11,28 +11,28 @@ export interface FSDBRepositoryConfig<T extends FSDBEntity, K> {
     name: string;
     schema: ObjectSchema;
     collection: string;
-    repo: FSDBRepository<T, unknown>;
+    repo: FSDBRepository<Entity, unknown>;
     logger: Logger;
-  }): K;
+  }): Methods;
 }
 
-export interface FSDBRepository<T extends FSDBEntity, K> {
-  methods: K;
-  findBy(query: FSDBRepositoryQuery<T>): Promise<T | null>;
-  findAllBy(query: FSDBRepositoryQuery<T>): Promise<T[]>;
-  findAll(): Promise<T[]>;
-  findAllById(ids: string[]): Promise<T[]>;
-  findById(id: string): Promise<T | null>;
-  add(entity: T): Promise<T>;
-  addMany(entities: T[]): Promise<T[]>;
-  update(entity: T): Promise<T>;
+export interface FSDBRepository<Entity extends FSDBEntity, Methods> {
+  methods: Methods;
+  findBy(query: FSDBRepositoryQuery<Entity>): Promise<Entity | null>;
+  findAllBy(query: FSDBRepositoryQuery<Entity>): Promise<Entity[]>;
+  findAll(): Promise<Entity[]>;
+  findAllById(ids: string[]): Promise<Entity[]>;
+  findById(id: string): Promise<Entity | null>;
+  add(entity: Entity): Promise<Entity>;
+  addMany(entities: Entity[]): Promise<Entity[]>;
+  update(entity: Entity): Promise<Entity>;
   updateMany(
-    query: FSDBRepositoryQuery<T>,
-    update: (entity: T) => T,
-  ): Promise<T[]>;
+    query: FSDBRepositoryQuery<Entity>,
+    update: (entity: Entity) => Entity,
+  ): Promise<Entity[]>;
   deleteById(id: string): Promise<boolean>;
   deleteAllById(ids: string[]): Promise<boolean>;
-  deleteOne(query: FSDBRepositoryQuery<T>): Promise<boolean>;
-  deleteMany(query: FSDBRepositoryQuery<T>): Promise<boolean>;
+  deleteOne(query: FSDBRepositoryQuery<Entity>): Promise<boolean>;
+  deleteMany(query: FSDBRepositoryQuery<Entity>): Promise<boolean>;
   count(): Promise<number>;
 }

@@ -5,9 +5,9 @@ import type {
   ControllerMethod,
   ControllerMethodConfig,
   Logger,
-} from '../types';
-import { useLogger } from '../util';
-import { createHTTPError } from './error';
+} from '../../types';
+import { useLogger } from '../../util';
+import { createHTTPError } from '../error';
 
 export function createControllerMethod<PreRequestHandlerReturnType, ReturnType>(
   config: ControllerMethodConfig<PreRequestHandlerReturnType, ReturnType>,

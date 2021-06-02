@@ -150,19 +150,19 @@ export function initializeHttpSignature(config: {
         payload: request.body,
         scope: '',
       };
-      if (typeof request.params.nonce !== 'string') {
+      if (typeof request.query.nonce !== 'string') {
         return new HTTPSignatureError('e7', 'Missing "nonce"');
       }
       sig.nonce = request.params.nonce;
-      if (typeof request.params.scope !== 'string') {
+      if (typeof request.query.scope !== 'string') {
         return new HTTPSignatureError('e8', 'Missing "scope"');
       }
       sig.scope = request.params.scope;
-      if (typeof request.params.signature !== 'string') {
+      if (typeof request.query.signature !== 'string') {
         return new HTTPSignatureError('e9', 'Missing "signature"');
       }
       sig.signature = request.params.signature;
-      if (typeof request.params.timestamp !== 'string') {
+      if (typeof request.query.timestamp !== 'string') {
         return new HTTPSignatureError('e10', 'Missing "timestamp"');
       }
       try {

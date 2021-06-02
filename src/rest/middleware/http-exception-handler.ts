@@ -1,5 +1,5 @@
-import type { HTTPException, Middleware } from '../types';
-import { createMiddleware } from './middleware';
+import type { HTTPException, Middleware } from '../../types';
+import { createMiddleware } from './main';
 import type { ErrorRequestHandler } from 'express';
 
 export function createHTTPExceptionHandlerMiddleware(): Middleware {

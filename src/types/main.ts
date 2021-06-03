@@ -9,7 +9,6 @@ export interface PurpleCheetahConfig {
   staticContentDir?: string;
   controllers?: Controller[];
   middleware?: Middleware[];
-  requestLoggerMiddleware?: Middleware;
   notFoundMiddleware?: Middleware;
   httpExceptionHandlerMiddleware?: Middleware;
   start?(): void;
@@ -21,7 +20,5 @@ export interface PurpleCheetahConfig {
 export interface PurpleCheetah {
   app: Express;
   server: Server;
-  // isInitialized(): boolean;
-  // listen(): Promise<Server>;
   isReady(): boolean;
 }

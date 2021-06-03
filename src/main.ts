@@ -42,47 +42,46 @@ export function createPurpleCheetah(
   const server = http.createServer(app);
   let ready = false;
 
-  if (config.requestLoggerMiddleware) {
-    config.requestLoggerMiddleware.after = false;
-    config.middleware.push(config.requestLoggerMiddleware);
-  }
-  if (config.httpExceptionHandlerMiddleware) {
-    config.httpExceptionHandlerMiddleware.after = true;
-    config.middleware.push(config.httpExceptionHandlerMiddleware);
-  } else {
-    config.middleware.push(createHTTPExceptionHandlerMiddleware());
-  }
-  if (config.notFoundMiddleware) {
-    config.notFoundMiddleware.after = true;
-    config.middleware.push(config.notFoundMiddleware);
-  } else {
-    config.middleware.push(createNotFoundMiddleware());
-  }
-
   function initializeControllers(controllers: Controller[]): void {
     controllers.forEach((controller) => {
       if (controller) {
         const data = controller();
-        logger.info('controller', `Mapping [${data.name}]`);
+        logger.info('controller', `${data.name}`);
         const methods = data.methods();
         methods.forEach((method) => {
           const path = (data.path + method.path).replace(/\/\//g, '/');
-          logger.info('controller', ` ---> ${path}`);
+          logger.info('controller', `    --> ${path}`);
           app[method.type](path, method.handler);
         });
       }
     });
   }
   function initializeMiddleware(
-    middleware: Middleware[],
+    _middleware: Middleware[],
     after: boolean,
   ): void {
+    const middleware = _middleware.map((e) => e());
     middleware
       .filter((mv) => mv.after === after)
       .forEach((mv) => {
-        logger.info('middleware', `Mapping [${mv.name}] --> ${mv.path}`);
+        logger.info('middleware', `${mv.name} --> ${mv.path}`);
         app.use(mv.path, mv.handler);
       });
+    if (after) {
+      const exceptionMin = config.httpExceptionHandlerMiddleware
+        ? config.httpExceptionHandlerMiddleware()
+        : createHTTPExceptionHandlerMiddleware()();
+      exceptionMin.after = true;
+      logger.info('middleware', `Exception handler --> /*`);
+      app.use(exceptionMin.handler);
+
+      const notFoundMid = config.notFoundMiddleware
+        ? config.notFoundMiddleware()
+        : createNotFoundMiddleware()();
+      notFoundMid.after = true;
+      logger.info('middleware', `404 --> /*`);
+      app.use(notFoundMid.handler);
+    }
   }
   function loadNextModule() {
     if (modules.length > 0) {

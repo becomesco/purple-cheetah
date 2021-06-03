@@ -17,7 +17,8 @@ export interface MiddlewareConfig {
     | ErrorRequestHandler
     | NextHandleFunction;
 }
-export interface Middleware {
+export type Middleware = () => MiddlewareData;
+export interface MiddlewareData {
   name: string;
   path: string;
   after: boolean;

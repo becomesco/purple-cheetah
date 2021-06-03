@@ -8,15 +8,17 @@ export function createMiddleware(config: MiddlewareConfig): Middleware {
     path = config.path.startsWith('/') ? config.path : '/' + config.path;
   }
   const logger = useLogger({ name: config.name });
-  return {
-    path,
-    after,
-    name: config.name,
-    handler: config.handler({
-      name: config.name,
-      after,
+  return () => {
+    return {
       path,
-      logger,
-    }),
+      after,
+      name: config.name,
+      handler: config.handler({
+        name: config.name,
+        after,
+        path,
+        logger,
+      }),
+    };
   };
 }

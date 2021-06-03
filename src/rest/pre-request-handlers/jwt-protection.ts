@@ -1,5 +1,5 @@
 import {
-  ControllerPreRequestHandler,
+  ControllerMethodPreRequestHandler,
   JWT,
   JWTPermissionName,
   JWTRoleName,
@@ -11,7 +11,7 @@ import { useJwt } from '../../security';
 export function createJwtProtectionPreRequestHandler<JWTCustomProps>(
   roles: JWTRoleName[],
   permission: JWTPermissionName,
-): ControllerPreRequestHandler<{ accessToken: JWT<JWTCustomProps> }, unknown> {
+): ControllerMethodPreRequestHandler<{ accessToken: JWT<JWTCustomProps> }> {
   const jwt = useJwt();
   return async ({ request, errorHandler }) => {
     const accessToken = jwt.get<JWTCustomProps>({

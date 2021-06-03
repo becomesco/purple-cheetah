@@ -62,9 +62,11 @@ export function createPurpleCheetah(
   function initializeControllers(controllers: Controller[]): void {
     controllers.forEach((controller) => {
       if (controller) {
-        logger.info('controller', `Mapping [${controller.name}]`);
-        controller.methods.forEach((method) => {
-          const path = (controller.path + method.path).replace(/\/\//g, '/');
+        const data = controller();
+        logger.info('controller', `Mapping [${data.name}]`);
+        const methods = data.methods();
+        methods.forEach((method) => {
+          const path = (data.path + method.path).replace(/\/\//g, '/');
           logger.info('controller', ` ---> ${path}`);
           app[method.type](path, method.handler);
         });

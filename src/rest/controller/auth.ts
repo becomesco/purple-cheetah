@@ -136,121 +136,120 @@ export function createAuthController<
   return createController({
     name: 'Auth',
     path: config.baseUri ? config.baseUri : '',
-    setup() {
-      return;
+    methods() {
+      return {
+        login: createControllerMethod({
+          path: '/login',
+          type: 'post',
+          async handler({ request, errorHandler, logger, name }): Promise<{
+            accessToken: string;
+            refreshToken: string;
+          }> {
+            const authorization = request.headers.authorization;
+            if (!authorization) {
+              throw errorHandler.occurred(
+                HTTPStatus.FORBIDDEN,
+                'Missing authorization header.',
+              );
+            }
+            const auth = {
+              email: '',
+              password: '',
+            };
+            let authParts: string[];
+            try {
+              authParts = Buffer.from(
+                authorization.replace('Basic ', ''),
+                'base64',
+              )
+                .toString()
+                .split(':');
+            } catch (e) {
+              throw errorHandler.occurred(
+                HTTPStatus.FORBIDDEN,
+                'Invalid authorization header format',
+              );
+            }
+            if (authParts.length !== 2) {
+              throw errorHandler.occurred(
+                HTTPStatus.FORBIDDEN,
+                'Invalid authorization header format.',
+              );
+            }
+            auth.email = authParts[0];
+            auth.password = authParts[1];
+            const user = await config.userRepository.methods.findByEmail(
+              auth.email,
+            );
+            if (!user) {
+              logger.warn(name, 'Bad email.');
+              throw errorHandler.occurred(
+                HTTPStatus.UNAUTHORIZED,
+                'Invalid email and/or password.',
+              );
+            }
+            const checkPassword = await bcryptCompare(
+              auth.password,
+              user.password,
+            );
+            if (!checkPassword) {
+              logger.warn(name, 'Bad password');
+              throw errorHandler.occurred(
+                HTTPStatus.UNAUTHORIZED,
+                'Invalid email and/or password.',
+              );
+            }
+            return {
+              accessToken: createAccessToken(user, errorHandler),
+              refreshToken: refreshTokenService.create(`${user._id}`),
+            };
+          },
+        }),
+        refreshAccess: createControllerMethod({
+          path: '/refresh-access',
+          type: 'post',
+          async handler({
+            request,
+            errorHandler,
+            logger,
+            name,
+          }): Promise<{ accessToken: string }> {
+            const data = await getRefreshTokenData(
+              errorHandler,
+              logger,
+              request.headers.authorization as string,
+              name,
+            );
+            return {
+              accessToken: createAccessToken(data.user, errorHandler),
+            };
+          },
+        }),
+        logout: createControllerMethod({
+          path: '/logout',
+          type: 'post',
+          async handler({
+            request,
+            errorHandler,
+            logger,
+            name,
+          }): Promise<{ status: string }> {
+            const data = await getRefreshTokenData(
+              errorHandler,
+              logger,
+              request.headers.authorization as string,
+              name,
+            );
+            refreshTokenService.remove(
+              data.auth.userId,
+              data.auth.refreshToken,
+            );
+            return {
+              status: 'ok',
+            };
+          },
+        }),
+      };
     },
-    methods: [
-      createControllerMethod({
-        path: '/login',
-        name: 'login',
-        type: 'post',
-        async handler({ request, errorHandler, logger, name }): Promise<{
-          accessToken: string;
-          refreshToken: string;
-        }> {
-          const authorization = request.headers.authorization;
-          if (!authorization) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              'Missing authorization header.',
-            );
-          }
-          const auth = {
-            email: '',
-            password: '',
-          };
-          let authParts: string[];
-          try {
-            authParts = Buffer.from(
-              authorization.replace('Basic ', ''),
-              'base64',
-            )
-              .toString()
-              .split(':');
-          } catch (e) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              'Invalid authorization header format',
-            );
-          }
-          if (authParts.length !== 2) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              'Invalid authorization header format.',
-            );
-          }
-          auth.email = authParts[0];
-          auth.password = authParts[1];
-          const user = await config.userRepository.methods.findByEmail(
-            auth.email,
-          );
-          if (!user) {
-            logger.warn(name, 'Bad email.');
-            throw errorHandler.occurred(
-              HTTPStatus.UNAUTHORIZED,
-              'Invalid email and/or password.',
-            );
-          }
-          const checkPassword = await bcryptCompare(
-            auth.password,
-            user.password,
-          );
-          if (!checkPassword) {
-            logger.warn(name, 'Bad password');
-            throw errorHandler.occurred(
-              HTTPStatus.UNAUTHORIZED,
-              'Invalid email and/or password.',
-            );
-          }
-          return {
-            accessToken: createAccessToken(user, errorHandler),
-            refreshToken: refreshTokenService.create(`${user._id}`),
-          };
-        },
-      }),
-      createControllerMethod({
-        path: '/refresh-access',
-        name: 'refreshAccess',
-        type: 'post',
-        async handler({
-          request,
-          errorHandler,
-          logger,
-          name,
-        }): Promise<{ accessToken: string }> {
-          const data = await getRefreshTokenData(
-            errorHandler,
-            logger,
-            request.headers.authorization as string,
-            name,
-          );
-          return {
-            accessToken: createAccessToken(data.user, errorHandler),
-          };
-        },
-      }),
-      createControllerMethod({
-        path: '/logout',
-        name: 'logout',
-        type: 'post',
-        async handler({
-          request,
-          errorHandler,
-          logger,
-          name,
-        }): Promise<{ status: string }> {
-          const data = await getRefreshTokenData(
-            errorHandler,
-            logger,
-            request.headers.authorization as string,
-            name,
-          );
-          refreshTokenService.remove(data.auth.userId, data.auth.refreshToken);
-          return {
-            status: 'ok',
-          };
-        },
-      }),
-    ],
   });
 }

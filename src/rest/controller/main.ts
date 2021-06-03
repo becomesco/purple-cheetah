@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
 import type {
   Controller,
   ControllerConfig,
@@ -9,33 +8,19 @@ import type {
 import { useLogger } from '../../util';
 import { createHTTPError } from '../error';
 
-export function createControllerMethod<
-  PreRequestHandlerReturnType,
-  ReturnType,
-  SetupResult,
->(
-  config: ControllerMethodConfig<
-    PreRequestHandlerReturnType,
-    ReturnType,
-    SetupResult
-  >,
+export function createControllerMethod<PreRequestHandlerReturnType, ReturnType>(
+  config: ControllerMethodConfig<PreRequestHandlerReturnType, ReturnType>,
 ) {
   return config;
 }
-function wrapControllerMethod<
-  PreRequestHandlerReturnType,
-  ReturnType,
-  SetupResult,
->(
+
+function wrapControllerMethod<SetupResult, PreRequestHandlerResult, ReturnType>(
   logger: Logger,
-  setup: SetupResult,
-  config: ControllerMethodConfig<
-    PreRequestHandlerReturnType,
-    ReturnType,
-    SetupResult
-  >,
+  setupResult: SetupResult,
+  methodName: string,
+  config: ControllerMethodConfig<PreRequestHandlerResult, ReturnType>,
 ): ControllerMethod {
-  const name = config.name ? config.name : uuidv4();
+  const name = methodName;
   let path = config.path ? config.path : '';
   if (!path.startsWith('/')) {
     path = '/' + path;
@@ -44,21 +29,20 @@ function wrapControllerMethod<
     place: name ? name : path,
     logger,
   });
+
   return {
     type: config.type,
     path,
     handler: async (request, response, next) => {
       try {
-        let preRequestHandlerResult: PreRequestHandlerReturnType | undefined =
-          undefined;
+        let preRequestHandlerResult: PreRequestHandlerResult = {} as never;
         if (config.preRequestHandler) {
           preRequestHandlerResult = await config.preRequestHandler({
+            logger,
+            errorHandler,
             request,
             response,
             name,
-            logger,
-            errorHandler,
-            ...setup,
           });
         }
         const handlerResult = await config.handler({
@@ -66,9 +50,8 @@ function wrapControllerMethod<
           errorHandler,
           request,
           response,
-          pre: preRequestHandlerResult as never,
           name,
-          ...setup,
+          ...preRequestHandlerResult,
         });
         if (handlerResult instanceof Buffer) {
           response.send(handlerResult);
@@ -91,34 +74,46 @@ function wrapControllerMethod<
     },
   };
 }
-export function createController<SetupReturn>(
-  config: ControllerConfig<SetupReturn>,
+export function createController<SetupResult>(
+  config: ControllerConfig<SetupResult>,
 ): Controller {
-  const logger = useLogger({
-    name: config.name,
-  });
-  if (!config.path.startsWith('/')) {
-    config.path = '/' + config.path;
-  }
-  const setupResult = config.setup({ name: config.name, path: config.path });
-  const methods: ControllerMethod[] = [];
-  for (let i = 0; i < config.methods.length; i++) {
-    const method = config.methods[i];
-    methods.push(
-      wrapControllerMethod(logger, setupResult, {
-        name: method.name,
-        type: method.type,
-        path: method.path,
-        preRequestHandler: method.preRequestHandler,
-        handler: method.handler,
-      }),
-    );
-  }
+  return () => {
+    const logger = useLogger({
+      name: config.name,
+    });
+    if (!config.path.startsWith('/')) {
+      config.path = '/' + config.path;
+    }
+    const setupResult = config.setup
+      ? config.setup({
+          controllerName: config.name,
+          controllerPath: config.path,
+        })
+      : ({} as never);
 
-  return {
-    name: config.name,
-    path: config.path,
-    methods,
-    logger,
+    function getMethods() {
+      const configMethods = config.methods(setupResult);
+      const methodNames = Object.keys(configMethods);
+      const methods: ControllerMethod[] = [];
+      for (let i = 0; i < methodNames.length; i++) {
+        const method = configMethods[methodNames[i]];
+        methods.push(
+          wrapControllerMethod(logger, setupResult, methodNames[i], {
+            type: method.type,
+            path: method.path,
+            preRequestHandler: method.preRequestHandler,
+            handler: method.handler,
+          }),
+        );
+      }
+      return methods;
+    }
+
+    return {
+      name: config.name,
+      path: config.path,
+      methods: getMethods,
+      logger,
+    };
   };
 }

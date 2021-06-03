@@ -19,9 +19,9 @@ dependencies for creating Web APIs (REST and/or GraphQL).
   an express server. For more information see
   the [example](#application-example).
 - [Networking](#network)
-  - [Controllers](#network-controller) - Controller is an abstraction which
+  - [Controllers](#network-controller) - Main is an abstraction which
     allows you to split routes into logical units by decorating a class
-    with `Controller` decorator. At the end, controller class will add its
+    with `Main` decorator. At the end, controller class will add its
     network methods to the express router. For more information see
     the [example](#network-controller-example).
   - [Middleware](#network-middleware) - Middleware is an abstraction that allows
@@ -412,7 +412,7 @@ tools in Purple Cheetah. For now, tools for creating REST, GraphQL and Socket
 APIs are available. Since GraphQL tool set is big (in comparison to the REST
 tool set) it will be covered in a [separate section](#graphql).
 
-### Controller abstraction
+### Main abstraction
 
 <div id="network-controller"></div>
 
@@ -433,13 +433,13 @@ app.get(
 ```
 
 This is all very nice but writing a code this way can be messy and organizing it
-can be a challenge. Because of this, abstracts like Controller, Controller
+can be a challenge. Because of this, abstracts like Main, Main
 method and Middleware exist in Purple Cheetah tool set. In this section,
-Controller abstract will be covered.
+Main abstract will be covered.
 
-Controller abstraction in Purple Cheetah is nothing more than abstraction which
+Main abstraction in Purple Cheetah is nothing more than abstraction which
 allows better code readability. There are 2 important parts to
-know, `Controller` decorator and `ControllerPrototype` interface, which are used
+know, `Main` decorator and `ControllerPrototype` interface, which are used
 in conjunction on a controller class. Decorator is used to annotate the class
 and inject metadata, while the interface is used to tell type checker, that
 specified class have properties of a controller.
@@ -484,12 +484,12 @@ and constant value of `Hello World!`.
 import {
   ControllerPrototype,
   Logger,
-  Controller,
+  Main,
   Get,
 } from '@becomes/purple-cheetah';
 import { Router } from 'express';
 
-@Controller('/hello')
+@Main('/hello')
 export class HelloWorldController implements ControllerPrototype {
   baseUri: string;
   initRouter: () => void;
@@ -551,7 +551,7 @@ path parameter `name`, dynamic response can be created.
 
 // ...
 
-@Controller('/hello')
+@Main('/hello')
 export class HelloWorldController implements ControllerPrototype {
   // ...
 
@@ -570,9 +570,9 @@ After application is restarted, by going to, for
 example `localhost:1280/hello/john`
 , **Hello john!** message will be sent as a response, as shown in Figure 3.
 
-![Figure 3 - Controller method which greets a user.](assets/doc/figures/3.png)
+![Figure 3 - Main method which greets a user.](assets/doc/figures/3.png)
 
-_Figure 3 - Controller method which greets a user._
+_Figure 3 - Main method which greets a user._
 
 ### Middleware abstraction
 
@@ -657,7 +657,7 @@ method will be modified to use this new header property.
 
 // ...
 
-@Controller('/hello')
+@Main('/hello')
 export class HelloWorldController implements ControllerPrototype {
 
   // ...
@@ -929,10 +929,10 @@ export function MyFunction() {
 ```
 
 Have in mind that some Purple Cheetah decorators will inject logger by default.
-One example is the Controller decorator. By taking a look
-at [Controller Example](#network-controller-example), it can be seen that
+One example is the Main decorator. By taking a look
+at [Main Example](#network-controller-example), it can be seen that
 HelloWorldController class have `logger` property. This is an instance of the
-Logger class created by the `@Controller` decorator, therefore it can be used
+Logger class created by the `@Main` decorator, therefore it can be used
 for logging messages inside the class.
 
 ## Error Handling
@@ -945,7 +945,7 @@ vulnerabilities in application since running a code after unhandled error might
 lead to unpredictable behaviors. In short, errors are bad in all application
 types and large part of developing a backend application is spent on handling
 errors. Because of this, Purple Cheetah comes with simple http error handler
-which wraps all http methods created using `@Controller` decorator.
+which wraps all http methods created using `@Main` decorator.
 
 Basic idea is that errors can be split into 2 groups:
 
@@ -1058,7 +1058,7 @@ like this.
 
 ```ts
 import {
-  Controller,
+  Main,
   ControllerPrototype,
   Get,
   HttpErrorFactory,
@@ -1067,7 +1067,7 @@ import {
 } from '@becomes/purple-cheetah';
 import { Request, Router } from 'express';
 
-@Controller('/user')
+@Main('/user')
 export class UserController implements ControllerPrototype {
   baseUri: string;
   initRouter: () => void;
@@ -1289,7 +1289,7 @@ created, which will implement an application logic.
 // ---> todo-fsdb/main.ts
 
 import {
-  Controller,
+  Main,
   ControllerPrototype,
   Delete,
   Get,
@@ -1306,7 +1306,7 @@ import { Types } from 'mongoose';
 import { Model } from './models';
 import { TodoRepository } from './repositories';
 
-@Controller('/todo-fsdb')
+@Main('/todo-fsdb')
 export class TodoController implements ControllerPrototype {
   baseUri: string;
   initRouter: () => void;
@@ -1562,7 +1562,7 @@ the application controller array.
 
 import { randomBytes } from 'crypto';
 import {
-  Controller,
+  Main,
   ControllerPrototype,
   Delete,
   Get,
@@ -1576,7 +1576,7 @@ import { Request, Router } from 'express';
 import { Model } from './models';
 import { TodoRepo } from './repositories';
 
-@Controller('/todo-fsdb')
+@Main('/todo-fsdb')
 export class TodoController implements ControllerPrototype {
   baseUri: string;
   initRouter: () => void;

@@ -1,5 +1,9 @@
 import type { HTTPError, HTTPErrorConfig } from '../types';
 
+/**
+ * Creates an HTTP error object which is used for throwing controlled
+ * HTTP exceptions.
+ */
 export function createHTTPError(config: HTTPErrorConfig): HTTPError {
   return {
     place: config.place,

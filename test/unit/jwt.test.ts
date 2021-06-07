@@ -7,17 +7,12 @@ import {
   JWTRoleName,
   JWTSchema,
 } from '../../src/types';
-import {
-  initializeJwt,
-  useJwt,
-  useJwtEncoding,
-  useObjectUtility,
-} from '../../src';
+import { createJwt, useJwt, useJwtEncoding, useObjectUtility } from '../../src';
 
 let token: JWT<{
   test: string;
 }>;
-initializeJwt({
+const m = createJwt({
   scopes: [
     {
       alg: JWTAlgorithm.HMACSHA256,
@@ -32,6 +27,14 @@ initializeJwt({
       secret: 'secret2',
     },
   ],
+});
+m.initialize({
+  next() {
+    // Nothing
+  },
+  name: 'JWT',
+  rootConfig: undefined as never,
+  purpleCheetah: undefined as never,
 });
 const objectUtil = useObjectUtility();
 

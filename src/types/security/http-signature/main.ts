@@ -52,10 +52,21 @@ export class HTTPSignatureError {
   ) {}
 }
 
+/**
+ * Object for accessing HTTP signature API which can be consumed
+ * by using `useHttpSignature` function.
+ */
 export interface HTTPSignatureManager {
+  /**
+   * Creates an HTTP signature for specified scope.
+   */
   create<T>(
     data: HTTPSignatureManagerCreateData<T>,
   ): HTTPSignature<T> | HTTPSignatureError;
+
+  /**
+   * Returns an error if passed HTTP signature object is not valid.
+   */
   verify<T>(httpSignature: HTTPSignature<T>): void | HTTPSignatureError;
   verifyRequest(request: Request): void | HTTPSignatureError;
 }

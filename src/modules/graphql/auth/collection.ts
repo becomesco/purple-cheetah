@@ -16,7 +16,7 @@ import {
   Logger,
   MongoDBRepository,
 } from '../../../types';
-import { useJwt, useJwtEncoding } from '../../../security';
+import { useJwt, useJwtEncoding } from '../../../modules';
 import { createGraphqlResolver } from '../resolver';
 import { compare as bcryptCompare } from 'bcrypt';
 import * as crypto from 'crypto';

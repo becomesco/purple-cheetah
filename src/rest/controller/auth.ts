@@ -12,7 +12,7 @@ import {
 } from '../../types';
 import { createController, createControllerMethod } from './main';
 import { compare as bcryptCompare } from 'bcrypt';
-import { useJwt, useJwtEncoding } from '../../security';
+import { useJwt, useJwtEncoding } from '../../modules';
 import { useRefreshTokenService } from '../refresh-token-service';
 
 interface EntityRequiredProps {

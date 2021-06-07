@@ -6,6 +6,10 @@ import {
 } from '../../types';
 import { useObjectUtility } from '../../util';
 
+/**
+ * Creates a Controller pre request handler function for validating
+ * request body using the Object Utility.
+ */
 export function createBodyValidationPreRequestHandler<T>(
   schema: ObjectSchema,
 ): ControllerMethodPreRequestHandler<{ body: T }> {

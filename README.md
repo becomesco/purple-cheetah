@@ -144,15 +144,6 @@ the end result of each endpoint.
 
 Please see [Todo](examples/todo-fsdb) for more detailed example.
 
-### Controller setup
-
-Controller configuration object provides a method called `setup`. This method is
-executed by the Purple Cheetah before the Controller is mounted, and output from
-the method is piped to `methods` method. The setup method is useful when there
-is a dependency
-
-### Pre request handler
-
 ## Middleware
 
 ## Modules

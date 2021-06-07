@@ -47,6 +47,9 @@ function init(): RefreshTokenService {
 
 const service = init();
 
+/**
+ * Get access to the refresh token service.
+ */
 export function useRefreshTokenService() {
   return service;
 }

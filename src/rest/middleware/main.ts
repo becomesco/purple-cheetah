@@ -1,6 +1,9 @@
 import type { Middleware, MiddlewareConfig } from '../../types';
 import { useLogger } from '../../util';
 
+/**
+ * Will create a middleware object using specified configuration.
+ */
 export function createMiddleware(config: MiddlewareConfig): Middleware {
   const after = !!config.after;
   let path = '/';

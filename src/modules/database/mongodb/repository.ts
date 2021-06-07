@@ -8,7 +8,6 @@ import { model, Document, FilterQuery, Types, UpdateQuery } from 'mongoose';
 
 export function createMongoDBRepository<
   Entity extends MongoDBEntity,
-  Doc extends Entity & Document,
   Methods,
 >({
   name,
@@ -18,7 +17,7 @@ export function createMongoDBRepository<
 }: MongoDBRepositoryConfig<Entity, Methods>) {
   const logger = useLogger({ name });
 
-  const intf = model<Doc>(collection, schema);
+  const intf = model<Entity & Document>(collection, schema);
   const self: MongoDBRepository<Entity, Methods> = {
     methods: undefined as never,
     async findBy(query) {
@@ -103,6 +102,7 @@ export function createMongoDBRepository<
       collection,
       schema,
       repo: self,
+      mongoDBInterface: intf,
       logger,
     });
   }

@@ -1,10 +1,15 @@
+/**
+ * MongoDB configuration object.
+ */
 export interface MongoDBConfig {
   /**
-   * If set, all collection names will start with
-   * specified string.
+   * Method which will be called when handler is successfully
+   * connected to the MongoDB database.
    */
-  collectionsPrefix?: string;
   onConnection?(): void;
+  /**
+   * Configuration for self hosted MongoDB database.
+   */
   selfHosted?: {
     user: {
       name: string;
@@ -16,6 +21,9 @@ export interface MongoDBConfig {
       port?: number;
     };
   };
+  /**
+   * Configuration for MongoDB Atlas, cloud database.
+   */
   atlas?: {
     user: {
       name: string;
@@ -29,7 +37,12 @@ export interface MongoDBConfig {
   };
 }
 
+/**
+ * MongoDB object.
+ */
 export interface MongoDB {
+  /**
+   * Returns `true` if handler is connected to the MongoDB database.
+   */
   isConnected(): void;
-  getCollectionsPrefix(): string;
 }

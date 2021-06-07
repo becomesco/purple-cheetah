@@ -5,7 +5,7 @@ import type {
 } from '../../../types';
 import { useLogger } from '../../../util';
 import { model, Document, FilterQuery, Types, UpdateQuery } from 'mongoose';
-import { createMemCacheHandler } from '../../../mem-cache';
+import { createMemCacheHandler } from '../../mem-cache';
 
 export function createMongoDBCachedRepository<
   Entity extends MongoDBEntity,

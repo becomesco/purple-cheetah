@@ -1,13 +1,24 @@
 import type { FSDBEntity } from './entity';
 import type { FSDBRepository } from './repository';
 
+/**
+ * Collection of objects. For example: `users`
+ */
 export interface FSDBCacheCollection<T extends FSDBEntity> {
   [id: string]: T;
 }
+
+/**
+ * FSDB cache object. Used for internal logic and to minimize file
+ * system read/write operations.
+ */
 export interface FSDBCache {
   [collection: string]: FSDBCacheCollection<FSDBEntity>;
 }
 
+/**
+ * FSDB manager object. Should not be used directly.
+ */
 export interface FSDB {
   register<T extends FSDBEntity>(
     collection: string,
@@ -27,18 +38,22 @@ export interface FSDB {
   };
 }
 
+/**
+ * Configuration object for creating FSDB.
+ */
 export interface FSDBConfig {
   /**
    * Path to file which manager will use as storage. If string starts with
    * "/", path will be used as absolute.
    *
-   * For example: db/example ---> results in: CWD/db/example.fsdb.json
-   * Default: CWD/.fsdb.json
+   * For example: `db/example` ---> results in: `${process.cwd()}/db/example.fsdb.json`
+   * Default: `${process.cwd()}/.fsdb.json`
    */
   output?: string;
   /**
-   * How often will be cache checked for changes and updated if
-   * there are any.
+   * Time in milliseconds. How often will changes be saved to the output file.
+   * Lower time results in more checks and faster output file updates but
+   * can also result in more file system writes.
    *
    * Default: 10000
    */

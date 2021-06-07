@@ -89,9 +89,18 @@ async function init(config: FSDBConfig): Promise<void> {
   }, config.saveInterval);
 }
 
+/**
+ * Returns an FSDB object created by mounting FSDB module. FSDB module is
+ * created by calling `createFSDB` from Purple Cheetah configuration
+ * module array.
+ */
 export function useFSDB(): FSDB {
-  return { ...fsdb };
+  return fsdb;
 }
+
+/**
+ * Creates a FSDB module which is a simple file system database.
+ */
 export function createFSDB(config: FSDBConfig): Module {
   if (config.output) {
     if (config.output.startsWith('/')) {
@@ -117,6 +126,8 @@ export function createFSDB(config: FSDBConfig): Module {
     },
   };
 }
+
+
 export function deleteFSDB() {
   clearInterval(saveInterval);
 }

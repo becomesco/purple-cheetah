@@ -1,4 +1,4 @@
-import type { MemCache, MemCacheItems } from './main';
+import type { MemCacheItems } from './main';
 
 export type MemCacheHandlerQuery<Item> = (item: Item) => boolean;
 

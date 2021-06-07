@@ -11,9 +11,22 @@ import { useFSDB } from './main';
 
 const objectUtility = useObjectUtility();
 
-export function useFSDBRepository<T extends FSDBEntity, K>(collection: string) {
+/**
+ * Get an instance of previously created FSDB repository.
+ */
+export function useFSDBRepository<T extends FSDBEntity, K>(
+  /**
+   * Name of the collection to which target repository is connected.
+   */
+  collection: string,
+) {
   return useFSDB().repo.use<T, K>(collection);
 }
+
+/**
+ * Create the FSDB repository. To call this function successfully,
+ * FSDB module must be mounted.
+ */
 export function createFSDBRepository<T extends FSDBEntity, K>({
   name,
   collection,

@@ -5,8 +5,8 @@ import type {
   MemCacheHandler,
   MemCacheHandlerConfig,
   MemCacheItems,
-} from '../types';
-import { useLogger } from '../util';
+} from '../../types';
+import { useLogger } from '../../util';
 
 export function createMemCacheHandler<Item, Methods>(
   config: MemCacheHandlerConfig<Item, Methods>,

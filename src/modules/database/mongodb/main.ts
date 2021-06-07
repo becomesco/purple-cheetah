@@ -3,23 +3,16 @@ import type { Module, MongoDB, MongoDBConfig } from '../../../types';
 import { useLogger } from '../../../util';
 
 let connected = false;
-let collectionsPrefix = '';
 const mongoDB: MongoDB = {
-  getCollectionsPrefix() {
-    return '' + collectionsPrefix;
-  },
   isConnected() {
     return connected;
   },
 };
 
 export function useMongoDB() {
-  return { ...mongoDB };
+  return mongoDB;
 }
 export function createMongoDB(config: MongoDBConfig): Module {
-  if (config.collectionsPrefix) {
-    collectionsPrefix = '' + config.collectionsPrefix;
-  }
   const logger = useLogger({ name: 'MongoDB' });
 
   async function openConnection(): Promise<void | Error> {

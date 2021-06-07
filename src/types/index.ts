@@ -1,4 +1,3 @@
-export * from './mem-cache';
 export * from './modules';
 export * from './rest';
 export * from './security';

@@ -21,6 +21,7 @@ import {
 export function createPurpleCheetah(
   config: PurpleCheetahConfig,
 ): PurpleCheetah {
+  const rootTimeOffset = Date.now();
   initializeFS();
   initializeLogger();
   if (!config.controllers) {
@@ -86,6 +87,10 @@ export function createPurpleCheetah(
   function loadNextModule() {
     if (modules.length > 0) {
       const module = modules.splice(0, 1)[0];
+      if (modules.length > 1) {
+        logger.info('loadModule', module.name + ' ...');
+      }
+      const timeOffset = Date.now();
       try {
         module.initialize({
           name: module.name,
@@ -115,6 +120,12 @@ export function createPurpleCheetah(
                   }
                 }
               }
+              if (modules.length > 1) {
+                logger.info(
+                  'loadModule',
+                  `    Done in: ${(Date.now() - timeOffset) / 1000}s`,
+                );
+              }
               loadNextModule();
             }
           },
@@ -128,6 +139,7 @@ export function createPurpleCheetah(
       }
     }
   }
+
   modules.push({
     name: 'Purple Cheetah Initialize',
     initialize(moduleConfig) {
@@ -162,10 +174,13 @@ export function createPurpleCheetah(
         logger.info(moduleConfig.name, 'working...');
         app.listen(config.port, () => {
           console.log(`
-            ${ConsoleColors.FgMagenta}Purple Cheetah${ConsoleColors.Reset} - ${ConsoleColors.FgGreen}Started Successfully${ConsoleColors.Reset}
+            ${ConsoleColors.FgMagenta}Purple Cheetah${ConsoleColors.Reset} - ${
+            ConsoleColors.FgGreen
+          }Started Successfully${ConsoleColors.Reset}
             -------------------------------------             
             PORT: ${config.port}
             PID: ${process.pid}
+            TTS: ${(Date.now() - rootTimeOffset) / 1000}s
             \n`);
           ready = true;
           if (config.onReady) {

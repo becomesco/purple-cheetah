@@ -18,6 +18,38 @@ import {
   createNotFoundMiddleware,
 } from './rest';
 
+/**
+ * Will create a Purple Cheetah object. This includes mounting all module,
+ * controller and middleware objects, creating Express application and
+ * starting the HTTP server. It is important to know that this function
+ * is asynchronous with `onReady` callback function. Mounding is
+ * performed in specific order:
+ *
+ * - First step is mounting modules. They are mounded in FIFO order
+ * and once 1 module is mounted, it will trigger a callback which will mount
+ * the next module, and so on.
+ * - With all modules mounted, if `start` function is present in the
+ * configuration, it will be called.
+ * - Next step is mounting middleware objects which have flag **after**
+ * equal to *false*.
+ * - After that, is `middle` function is present in the configuration, it will
+ * be called.
+ * - In next step, all [controller](#controller) objects will be mounted in
+ * FIFO order.
+ * - With all controllers mounted successfully, all middleware objects, with
+ * flag **after** equal to *true*, will be mounted.
+ * - If `finalize` function is present in the configuration, it will be called.
+ * - With all above steps completed successfully, HTTP server will be started
+ * and it will print like shown below:
+ *
+ * ```text
+ * Purple Cheetah - Started Successfully
+ * -------------------------------------
+ * PORT: 1280
+ * PID: 24720
+ * TTS: 0.007s
+ * ```
+ */
 export function createPurpleCheetah(
   config: PurpleCheetahConfig,
 ): PurpleCheetah {

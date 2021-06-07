@@ -8,6 +8,10 @@ import type {
 import { useLogger } from '../../util';
 import { createHTTPError } from '../error';
 
+/**
+ * Function which creates a Controller method object. This function is mant to
+ * be used in a Controller object.
+ */
 export function createControllerMethod<PreRequestHandlerReturnType, ReturnType>(
   config: ControllerMethodConfig<PreRequestHandlerReturnType, ReturnType>,
 ) {
@@ -74,6 +78,12 @@ function wrapControllerMethod<SetupResult, PreRequestHandlerResult, ReturnType>(
     },
   };
 }
+
+/**
+ * Function which create a Controller object. Output of this function is used
+ * in `controllers` property of the `createPurpleCheetah` function
+ * configuration.
+ */
 export function createController<SetupResult>(
   config: ControllerConfig<SetupResult>,
 ): Controller {

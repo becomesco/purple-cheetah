@@ -15,15 +15,21 @@
     "importsNotUsedAsValues": "error"
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist",  "public"],
+  "exclude": ["node_modules", "dist", "public"],
   "typedocOptions": {
+    "entryPoints": ["src"],
     "name": "Purple Cheetah | API",
     "theme": "./node_modules/typedoc-neo-theme/bin/default",
-    "plugin": "typedoc-neo-theme",
     "out": "doc",
+    "source": [{
+      "path": "https://github.com/becomesco/purple-cheetah",
+      "line": "L"
+    }],
     "outline": [
       {
-        "Main": {
+        "Core": {
+          "createPurpleCheetah": "modules/main",
+          "createController": "modules/rest_controller_main"
         }
       }
     ]

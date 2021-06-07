@@ -20,6 +20,33 @@ interface EntityRequiredProps {
   roles: JWTRole[];
 }
 
+/**
+ * 3 methods are exposed by this controller.
+ *
+ * - `/login` - Endpoint of on which user credentials are exchanged for
+ * access and refresh token pairs. User credentials are sent using
+ * Basic authorization method which includes sending users email and
+ * password in the Basic Authorization header.
+ *
+ * ```ts
+ * request.addHeader('Authorization',
+ *   'Basic ' +
+ *   Buffer.from([user.email, user.pass].join(':')).toString('base64')
+ * );
+ * ```
+ *
+ * - `/refresh-access` - Send a user ID and refresh token as a Bearer to
+ * receive a new access token.
+ *
+ * ```ts
+ * request.addHeader('Authorization',
+ *   'Bearer ' +
+ *   Buffer.from([user.id, refreshToken].join(':')).toString('base64')
+ * );
+ * ```
+ *
+ * - `/logout` - Send a user ID and refresh token as a Bearer to logout user.
+ */
 export function createAuthController<
   FSDB_Entity extends FSDBEntity & EntityRequiredProps,
   MongoDB_Entity extends MongoDBEntity & EntityRequiredProps,
@@ -98,7 +125,7 @@ export function createAuthController<
     };
     let authParts: string[];
     try {
-      authParts = Buffer.from(authorization.replace('Basic ', ''), 'base64')
+      authParts = Buffer.from(authorization.replace('Bearer ', ''), 'base64')
         .toString()
         .split(':');
     } catch (e) {

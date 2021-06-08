@@ -1,12 +1,11 @@
 import { createMongoDBRepository } from '../../../src';
-import { Todo, TodoDocument, TodoSchema } from '../models';
+import { Todo, TodoSchema } from '../models';
 
 export interface TodoRepositoryMethods {
   findAllByCompleted(completed: boolean): Promise<Todo[]>;
 }
 export const TodoRepository = createMongoDBRepository<
   Todo,
-  TodoDocument,
   TodoRepositoryMethods
 >({
   name: 'Todo Repository',

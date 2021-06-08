@@ -107,7 +107,7 @@ export function createSocket(config: SocketConfig): Module {
   return {
     name: 'Socket',
     initialize(moduleConfig) {
-      server = new Server(moduleConfig.purpleCheetah.server, {
+      server = new Server(moduleConfig.purpleCheetah.getServer(), {
         path: config.path,
         cookie: false,
         async allowRequest(req, callback) {

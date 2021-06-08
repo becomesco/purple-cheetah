@@ -44,7 +44,6 @@ describe('REST API - Model MongoDB', async () => {
         ],
         modules: [
           createMongoDB({
-            collectionsPrefix: 'todo',
             atlas: {
               user: {
                 name: process.env.MONGODB_USER as string,
@@ -65,13 +64,16 @@ describe('REST API - Model MongoDB', async () => {
     });
   });
   after(async () => {
-    app.server.close();
+    await new Promise<void>((resolve, reject) => {
+      app.getServer().close((err) => {
+        if (err) {
+          reject(err);
+        } else resolve();
+      });
+    });
     removeHttpClient('todo');
   });
 
-  it('should check if server is started', async () => {
-    expect(app).to.have.property('app');
-  });
   it('should create a todo item', async () => {
     const data: AddTodoData = {
       name: 'todo 1',

@@ -19,7 +19,7 @@ describe('REST API - Hello world', async () => {
       port: '1280',
     },
   });
-  before(async () => {
+  before('start server', async () => {
     return await new Promise<void>((resolve) => {
       app = createPurpleCheetah({
         port: 1280,
@@ -35,15 +35,20 @@ describe('REST API - Hello world', async () => {
       });
     });
   });
-  after(async () => {
-    app.server.close();
+  after('close server', async () => {
+    console.log('c serv');
+    await new Promise<void>((resolve, reject) => {
+      app.getServer().close((err) => {
+        if (err) {
+          reject(err);
+        } else resolve();
+      });
+    });
+    console.log('c serv done');
     removeHttpClient('Hello World');
   });
-  it('should start the server', async () => {
-    expect(app).to.have.property('app');
-  });
-  it('should class /hello/world', async () => {
-    const res = await http.send<{ message: string }, unknown>({
+  it('should call /hello/world', async () => {
+    const res = await http.send<{ message: string }, unknown, unknown>({
       path: '/hello/world',
       method: 'get',
     });
@@ -54,8 +59,8 @@ describe('REST API - Hello world', async () => {
       .to.have.property('data')
       .to.have.property('message', 'Hello World!');
   });
-  it('should class /hello/this-is-test', async () => {
-    const res = await http.send<{ message: string }, unknown>({
+  it('should call /hello/this-is-test', async () => {
+    const res = await http.send<{ message: string }, unknown, unknown>({
       path: '/hello/this-is-test',
       method: 'get',
     });

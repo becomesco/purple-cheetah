@@ -72,7 +72,7 @@ export function createPurpleCheetah(
     name: 'Purple Cheetah',
   });
   const app = express();
-  const server = http.createServer(app);
+  let server = http.createServer(app);
   let ready = false;
 
   function initializeControllers(controllers: Controller[]): void {
@@ -204,7 +204,7 @@ export function createPurpleCheetah(
     initialize(moduleConfig) {
       try {
         logger.info(moduleConfig.name, 'working...');
-        app.listen(config.port, () => {
+        server = app.listen(config.port, () => {
           console.log(`
             ${ConsoleColors.FgMagenta}Purple Cheetah${ConsoleColors.Reset} - ${
             ConsoleColors.FgGreen
@@ -227,8 +227,12 @@ export function createPurpleCheetah(
   });
 
   const self: PurpleCheetah = {
-    app,
-    server,
+    getExpress() {
+      return app;
+    },
+    getServer() {
+      return server;
+    },
     isReady() {
       return ready;
     },

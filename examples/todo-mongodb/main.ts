@@ -17,7 +17,6 @@ createPurpleCheetah({
   ],
   modules: [
     createMongoDB({
-      collectionsPrefix: 'todo',
       atlas: {
         user: {
           name: process.env.MONGODB_USER as string,

@@ -76,15 +76,15 @@ export interface PurpleCheetah {
   /**
    * Pure Express application object.
    */
-  app: Express;
+  getExpress(): Express;
   /**
    * NodeJS HTTP server object.
    */
-  server: Server;
+  getServer(): Server;
   /**
    * Method which returns information about HTTP server
    * state. If it returns true, HTTP server is ready and
-   * available on specified port. 
+   * available on specified port.
    */
   isReady(): boolean;
 }

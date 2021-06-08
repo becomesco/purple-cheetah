@@ -3,14 +3,13 @@ import {
   MongoDBEntitySchema,
   ObjectSchema,
 } from '../../../src/types';
-import { Document, Schema } from 'mongoose';
+import { Schema } from 'mongoose';
 
 export interface Todo extends MongoDBEntity {
   name: string;
   description: string;
   completed: boolean;
 }
-export type TodoDocument = Todo & Document;
 export const TodoSchema = new Schema({
   ...MongoDBEntitySchema,
   name: {

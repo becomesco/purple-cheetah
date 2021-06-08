@@ -7,6 +7,11 @@ import {
 } from '../../../../../src/types';
 import { UserPersonal, UserPersonalSchema } from './personal';
 
+export interface UserJWTProps {
+  email: string;
+  personal: UserPersonal;
+}
+
 export interface User extends FSDBEntity {
   username: string;
   email: string;
@@ -43,3 +48,10 @@ export const UserSchema: ObjectSchema = {
     __child: UserPersonalSchema,
   },
 };
+
+export interface UserProtected extends FSDBEntity {
+  username: string;
+  email: string;
+  roles: JWTRole[];
+  personal: UserPersonal;
+}

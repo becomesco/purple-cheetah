@@ -20,6 +20,9 @@ import { useObjectUtility } from '../../util';
 
 let manager: JWTManager;
 
+/**
+ * Creates a JWT module using specified configuration.
+ */
 export function createJwt(config: JWTManagerConfig): Module {
   return {
     name: 'JWT',
@@ -180,6 +183,9 @@ export function createJwt(config: JWTManagerConfig): Module {
   };
 }
 
+/**
+ * Return an instance of JWT manager object.
+ */
 export function useJwt(): JWTManager {
   return manager;
 }

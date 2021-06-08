@@ -68,6 +68,9 @@ const encoding: JWTEncoding = {
   },
 };
 
+/**
+ * Returns an instance of JWT encoder object.
+ */
 export function useJwtEncoding(): JWTEncoding {
   return encoding;
 }

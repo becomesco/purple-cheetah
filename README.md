@@ -16,8 +16,8 @@ dependencies for creating Web APIs (REST and/or GraphQL).
 - [Getting started](#getting-started)
 - [Creating Purple Cheetah application](#creating-purple-cheetah-application)
 - [Controller](#controller)
-  - [Controller setup](#controller-setup)
-  - [Pre request handler](#pre-request-handler)
+    - [Controller setup](#controller-setup)
+    - [Pre request handler](#pre-request-handler)
 - [Middleware](#middleware)
 - [Modules](#modules)
 
@@ -30,8 +30,8 @@ are annotated as `x.y.z` where:
   indicates that there are some braking changes in the package.
 - `y` - indicates if a package is a stable production ready version, or a
   development version, and it can only be 0 or 1.
-  - **1** - stable production ready (ex. `3.1.12`)
-  - **0** - development (ex. `3.0.32`)
+    - **1** - stable production ready (ex. `3.1.12`)
+    - **0** - development (ex. `3.0.32`)
 - `z` - indicates a minor version of the package. Changes to this parameter
   indicates only audits, performance improvements and some overall improvements
   that do not have effect on package usage.
@@ -93,11 +93,14 @@ response. This is as easy as creating an HTTP route handler for specified
 method. In pure Express application this could be done like shown in Snippet 1.
 
 ```ts
-app.get('/user', (request, response) => {
-  // Get user from the database
-  // ...
-  response.json(user);
-});
+app.get(
+  '/user',
+  (request, response) => {
+    // Get user from the database
+    // ...
+    response.json(user);
+  }
+);
 ```
 
 _Snippet 1 - Creating an endpoint using ExpressJS_
@@ -136,6 +139,9 @@ createController({
 });
 ```
 
+_Snippet 2 - Create an endpoint using Purple Cheetah controller/method
+approach._
+
 Much more code is written in Snippet 2 compared to 1, so why is this better?
 Second example provides structure and consistency (which is not easy to spot on
 such a short example) and unified way to create REST endpoints. This means that
@@ -146,7 +152,64 @@ Please see [Todo](examples/todo-fsdb) for more detailed example.
 
 ## Middleware
 
+Middleware is similar to a controller, but it is usually used to transform
+incoming or outgoing data in some shape or form. Because of this, middleware is
+triggered for all methods on all routes which are starting with a specified
+route.
+
+Like the `createController` function, `createMiddleware` function returns the
+_Middleware_ object which is used in Purple Cheetah configuration object in the
+middleware array property. Example for creating a middleware object is shown in
+Snippet 3.
+
+```ts
+createMiddleware({
+  name: 'Test middleware',
+  path: '/test',
+  handler() {
+    return async () => {
+      // Middleware logic.
+    };
+  },
+});
+```
+
+_Snippet 3 - Creating a simple middleware object._
+
+Purple Cheetah comes with few predefined middleware objects:
+
+- Body parser - Is a middleware which uses the functionality of
+  the [body-parser](https://www.npmjs.com/package/body-parser) package. This
+  middleware is not added to the Purple Cheetah application by default. To add
+  it to the application, call `createBodyParserMiddleware` in middleware array
+  of the Purple Cheetah configuration object.
+- CORS - Is a middleware which uses the functionality of
+  the [cors](https://www.npmjs.com/package/cors) package. This middleware is not
+  added to the Purple Cheetah application by default. To add it to the
+  application, call `createCorsMiddleware` in middleware array of the Purple
+  Cheetah configuration object.
+- HTTP exception handler - Is a simple middleware which checks if
+  the [next function](https://expressjs.com/en/4x/api.html#router.use) was
+  called with error. If the error is of type _HttpException_, error payload will
+  be sent to the client, and warning log message will be printed. If the error
+  is the native JavaScript error, error log message will be printed and the
+  client will receive response with status 500 and no details. This middleware
+  is added to the Purple Cheetah by default and can be overwritten in the
+  configuration object.
+- Endpoint not found (404) - Is a simple middleware which return JSON object to
+  the client if requested route does not exist. This middleware is added to the
+  Purple Cheetah by default and can be overwritten in the configuration object.
+- Request logger - Is a simple middleware which uses logger to log all incoming
+  requests. This middleware is not added to the Purple Cheetah application by
+  default. To add it to the application, call `createRequestLoggerMiddleware` in
+  middleware array of the Purple Cheetah configuration object.
+
 ## Modules
 
+Module is the core abstract in the Purple Cheetah which allows external code to
+access the pipe. Modules are passed to the configuration object in `modules`
+array.
+
 [npm-image]: https://img.shields.io/npm/v/@becomes/purple-cheetah.svg
+
 [npm-url]: https://npmjs.org/package/@becomes/purple-cheetah

@@ -8,6 +8,9 @@ import type {
 } from '../../types';
 import { useLogger } from '../../util';
 
+/**
+ * Creates a mem-cache handler.
+ */
 export function createMemCacheHandler<Item, Methods>(
   config: MemCacheHandlerConfig<Item, Methods>,
 ): MemCacheHandler<Item, Methods> {

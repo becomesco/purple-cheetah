@@ -10,6 +10,7 @@ import { createMiddleware } from './main';
 export function createBodyParserMiddleware(config?: OptionsJson): Middleware {
   return createMiddleware({
     name: 'Body Parser Middleware',
+
     after: false,
     handler: () => {
       return json(config);

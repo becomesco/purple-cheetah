@@ -7,6 +7,9 @@ import type {
 
 let memCache: MemCache;
 
+/**
+ * Creates the mam-cache module with specified configuration.
+ */
 export function createMemCache(config: MemCacheConfig): Module {
   return {
     name: 'Mem Cache',
@@ -46,6 +49,9 @@ export function createMemCache(config: MemCacheConfig): Module {
   };
 }
 
+/**
+ * Returns an instance of mem-cache manager.
+ */
 export function useMemCache(): MemCache {
   return memCache;
 }

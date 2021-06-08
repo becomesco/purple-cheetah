@@ -10,7 +10,7 @@ const stringUtility: StringUtility = {
       .replace(/_/g, '-')
       .replace(/[^a-z0-9 - ---]/g, '');
   },
-  toSlugUnderScore(data) {
+  toSlugUnderscore(data) {
     return data
       .toLowerCase()
       .replace(/ /g, '_')
@@ -39,5 +39,5 @@ const stringUtility: StringUtility = {
 };
 
 export function useStringUtility() {
-  return { ...stringUtility };
+  return stringUtility;
 }

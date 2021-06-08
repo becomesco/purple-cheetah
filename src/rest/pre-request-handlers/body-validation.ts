@@ -3,6 +3,7 @@ import {
   ObjectSchema,
   HTTPStatus,
   ObjectUtilityError,
+  BodyValidationPreRequestHandlerResult,
 } from '../../types';
 import { useObjectUtility } from '../../util';
 
@@ -12,7 +13,7 @@ import { useObjectUtility } from '../../util';
  */
 export function createBodyValidationPreRequestHandler<T>(
   schema: ObjectSchema,
-): ControllerMethodPreRequestHandler<{ body: T }> {
+): ControllerMethodPreRequestHandler<BodyValidationPreRequestHandlerResult<T>> {
   const objectUtil = useObjectUtility();
 
   return async ({ request, errorHandler }) => {

@@ -4,6 +4,21 @@
 
 [![NPM Version][npm-image]][npm-url]
 
+## Important - Version 3 coming soon
+
+Version 3 is coming out on Jun 7. If you are starting a new project, please wait until V3 is out.
+Meanwhile, you can use `next` branch to explore and test new API.
+
+V3 and V2 will be completely incompatible because of the API redesign. Current version uses
+TypeScript decorators and Object-Oriented approach which is hard to understand and requires
+a lot of boilerplate code and does not leverage the full power of the TypeScript. This all
+changes with V3. It uses Functional approach which makes code more readable and provides strong
+type safety. In addition to that, it requires much less code to achieve same functionality
+with predictable results. Tests suite is also written for V3, and it will grow over time, which
+makes V3 first production ready version of the Purple Cheetah tool set.
+
+## Introduction
+
 Purple Cheetah is not a framework but rather a utility set
 for [ExpressJS](https://expressjs.com/), written
 in [Typescript](https://www.typescriptlang.org/). It was developed to resolve

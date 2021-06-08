@@ -44,4 +44,6 @@ lerna-debug.log*
 _test
 /test/assets/db/_*
 /.fsdb.json
+
 examples/login/rest/.fsdb.json
+examples/login/graphql/.fsdb.json

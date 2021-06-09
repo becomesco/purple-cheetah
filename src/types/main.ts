@@ -1,7 +1,7 @@
 import type { Controller, Middleware } from './rest';
 import type { Express } from 'express';
 import type { Server } from 'http';
-import type { Module } from './modules';
+import type { Module } from './module';
 
 /**
  * Configuration object for creating Express

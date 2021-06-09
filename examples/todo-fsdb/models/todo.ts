@@ -1,4 +1,5 @@
-import { FSDBEntity, FSDBEntitySchema, ObjectSchema } from '../../../src/types';
+import type { ObjectSchema } from '../../../src/types';
+import { FSDBEntity, FSDBEntitySchema } from '@becomes/purple-cheetah-mod-fsdb';
 
 export interface Todo extends FSDBEntity {
   name: string;

@@ -1,5 +1,5 @@
-import { createFSDBRepository } from '../../../src';
 import { Todo, TodoSchema } from '../models';
+import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb/repository';
 
 export interface TodoRepositoryMethods {
   findAllByCompleted(completed: boolean): Promise<Todo[]>;

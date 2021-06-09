@@ -18,12 +18,7 @@
     "test:active": "env-cmd mocha -r ts-node/register test/integration/*.active.test.ts --recursive --exit --bail",
     "test:unit": "env-cmd mocha -r ts-node/register test/unit/*.test.ts --recursive --exit",
     "test:active:unit": "env-cmd mocha -r ts-node/register test/unit/*.active.test.ts --recursive --exit",
-    "lint": "eslint . --ext .ts",
-    "example:hello-world": "nodemon examples/hello-world/main.ts",
-    "example:todo-fsdb": "nodemon examples/todo-fsdb/main.ts",
-    "example:todo-mongodb": "env-cmd nodemon examples/todo-mongodb/main.ts",
-    "example:graphql": "env-cmd nodemon examples/graphql/main.ts",
-    "example:login:rest": "env-cmd nodemon examples/login/rest/main.ts"
+    "lint": "eslint . --ext .ts"
   },
   "repository": {
     "type": "git",
@@ -41,13 +36,7 @@
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "express-graphql": "^0.12.0",
-    "fs-extra": "^10.0.0",
-    "graphql": "^15.5.0",
-    "http-proxy-middleware": "^2.0.0",
-    "mongoose": "^5.12.12",
-    "socket.io": "^4.0.1",
-    "uuid": "^8.3.2"
+    "fs-extra": "^10.0.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
@@ -56,12 +45,8 @@
     "@types/cors": "^2.8.9",
     "@types/express": "^4.17.12",
     "@types/fs-extra": "^9.0.11",
-    "@types/graphql": "^14.5.0",
     "@types/mocha": "^8.2.2",
-    "@types/mongoose": "^5.11.26",
     "@types/node": "^15.6.2",
-    "@types/socket.io-client": "^1.4.34",
-    "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.26.0",
     "@typescript-eslint/parser": "^4.26.0",
     "chai": "^4.3.4",

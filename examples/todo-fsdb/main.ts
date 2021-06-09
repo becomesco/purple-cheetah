@@ -1,11 +1,11 @@
 import {
   createBodyParserMiddleware,
   createCorsMiddleware,
-  createFSDB,
   createPurpleCheetah,
   createRequestLoggerMiddleware,
 } from '../../src';
 import { TodoController } from './controllers';
+import { createFSDB } from '@becomes/purple-cheetah-mod-fsdb/main';
 
 createPurpleCheetah({
   port: 1280,

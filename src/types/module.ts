@@ -1,5 +1,5 @@
-import type { PurpleCheetah, PurpleCheetahConfig } from '../main';
-import type { Controller, Middleware } from '../rest';
+import type { PurpleCheetah, PurpleCheetahConfig } from './main';
+import type { Controller, Middleware } from './rest';
 
 export interface ModuleConfig {
   name: string;

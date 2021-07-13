@@ -64,8 +64,10 @@ function wrapControllerMethod<SetupResult, PreRequestHandlerResult, ReturnType>(
           const obj = handlerResult as any;
           if (typeof obj.__file !== 'undefined') {
             response.sendFile(obj.__file);
+            return;
           } else {
             response.json(obj);
+            return;
           }
         } else {
           response.status(200);

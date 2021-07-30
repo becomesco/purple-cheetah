@@ -1,12 +1,12 @@
 # compiled output
 /dist
+/doc
 /node_modules
 /typedoc
-serve.sh
-push-typedoc.sh
-bundle.sh
-publish.sh
-*.test.ts
+
+# Environment
+
+.env
 
 # Logs
 logs
@@ -25,6 +25,7 @@ lerna-debug.log*
 
 # IDEs and editors
 /.idea
+.idea
 .project
 .classpath
 .c9/
@@ -38,3 +39,11 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# Test temp
+_test
+/test/assets/db/_*
+/.fsdb.json
+
+examples/login/rest/.fsdb.json
+examples/login/graphql/.fsdb.json

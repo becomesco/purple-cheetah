@@ -6,11 +6,7 @@
 
 ## Introduction
 
-Purple Cheetah is not a framework but rather a utility set
-for [ExpressJS](https://expressjs.com/), written
-in [Typescript](https://www.typescriptlang.org/). It was developed to resolve
-issues in our company and give us tools with a small amount of external
-dependencies for creating Web APIs (REST and/or GraphQL).
+Purple Cheetah is not a framework but rather a utility set for [ExpressJS](https://expressjs.com/), written in [Typescript](https://www.typescriptlang.org/). It was developed to resolve issues in our company and give us tools with a small amount of external dependencies for creating Web APIs (REST and/or GraphQL).
 
 ## Table of contents
 
@@ -18,66 +14,47 @@ dependencies for creating Web APIs (REST and/or GraphQL).
 - [Getting started](#getting-started)
 - [Creating Purple Cheetah application](#creating-purple-cheetah-application)
 - [Controller](#controller)
-    - [Controller setup](#controller-setup)
-    - [Pre request handler](#pre-request-handler)
+  - [Controller setup](#controller-setup)
+  - [Pre request handler](#pre-request-handler)
 - [Middleware](#middleware)
 - [Modules](#modules)
 
 ## Versioning
 
-It is important to know how Purple Cheetah package versions work. All versions
-are annotated as `x.y.z` where:
+It is important to know how Purple Cheetah package versions work. All versions are annotated as `x.y.z` where:
 
-- `x` - indicates a major version of the package. This number between versions
-  indicates that there are some braking changes in the package.
-- `y` - indicates if a package is a stable production ready version, or a
-  development version, and it can only be 0 or 1.
-    - **1** - stable production ready (ex. `3.1.12`)
-    - **0** - development (ex. `3.0.32`)
-- `z` - indicates a minor version of the package. Changes to this parameter
-  indicates only audits, performance improvements and some overall improvements
-  that do not have effect on package usage.
+- `x` - indicates a major version of the package. This number between versions indicates that there are some braking changes in the package.
+- `y` - indicates if a package is a stable production ready version, or a development version, and it can only be 0 or 1.
+  - **1** - stable production ready (ex. `3.1.12`)
+  - **0** - development (ex. `3.0.32`)
+- `z` - indicates a minor version of the package. Changes to this parameter indicates only audits, performance improvements and some overall improvements that do not have effect on package usage.
 
 ## Getting started
 
-- The Easiest way to get started is to clone the starter GitHub
-  repository: `git clone git@github.com:becomesco/purple-cheetah-starter`.
+- The Easiest way to get started is to clone the starter GitHub repository: `git clone git@github.com:becomesco/purple-cheetah-starter`.
 - Install the project dependencies by running: `npm i`.
-- With this completed, development server can be started by
-  running: `npm run dev`.
-- By opening a browser and going to **http://localhost:1280/hello/world**, JSON
-  response from the server can be seen.
+- With this completed, development server can be started by running: `npm run dev`.
+- By opening a browser and going to **http://localhost:1280/hello/world**, JSON response from the server can be seen.
 
 ## Creating Purple Cheetah application
 
-To create Express application powered by Purple Cheetah tool
-set, `createPurpleCheetah` function is used. This is also the main entry point
-for the application which is used to configure it. Application configuration is
-pretty simple. There are 4 important properties in configuration object:
+To create Express application powered by Purple Cheetah tool set, `createPurpleCheetah` function is used. This is also the main entry point for the application which is used to configure it. Application configuration is pretty simple. There are 4 important properties in configuration object:
 
-- `port` - Specify the port on which server Express server will be available,
+- `port` - Specify the port on which Express server will be available,
 - `controllers` - Array of controller objects which will be mounted in order,
 - `middleware` - Array of middleware object which will be mounted in order,
 - `modules` - Array of module objects which will be mounted in order,
 
 This will be explained in more detail.
 
-- First step is mounting [modules](#modules). They are mounded in FIFO order and
-  once 1 module is mounted, it will trigger a callback which will mount the next
-  module, and so on.
-- With all modules mounted, if `start` function is present in the configuration,
-  it will be called.
-- Next step is mounting [middleware](#middleware) objects which have flag **
-  after** equal to _false_.
-- After that, is `middle` function is present in the configuration, it will be
-  called.
-- In next step, all [controller](#controller) objects will be mounted in FIFO
-  order.
-- With all controllers mounted successfully, all middleware objects, with
-  flag **after** equal to _true_, will be mounted.
+- First step is mounting [modules](#modules). They are mounded in FIFO order and once 1 module is mounted, it will trigger a callback which will mount the next module, and so on.
+- With all modules mounted, if `start` function is present in the configuration, it will be called.
+- Next step is mounting [middleware](#middleware) objects which have flag **after** equal to _false_.
+- After that, is `middle` function is present in the configuration, it will be called.
+- In next step, all [controller](#controller) objects will be mounted in FIFO order.
+- With all controllers mounted successfully, all middleware objects, with flag **after** equal to _true_, will be mounted.
 - If `finalize` function is present in the configuration, it will be called.
-- With all above steps completed successfully, HTTP server will be started, and
-  it will print like shown below:
+- With all above steps completed successfully, HTTP server will be started, and it will print message like one shown below:
 
 ```text
 Purple Cheetah - Started Successfully
@@ -95,40 +72,28 @@ response. This is as easy as creating an HTTP route handler for specified
 method. In pure Express application this could be done like shown in Snippet 1.
 
 ```ts
-app.get(
-  '/user',
-  (request, response) => {
-    // Get user from the database
-    // ...
-    response.json(user);
-  }
-);
+app.get('/user', (request, response) => {
+  // Get user from the database
+  // ...
+  response.json(user);
+});
 ```
 
 _Snippet 1 - Creating an endpoint using ExpressJS_
 
-This is all very nice but writing a code this way can be messy and organizing it
-can be a challenge. Because of this, abstracts like Controller, Controller
-method and Middleware exist in the Purple Cheetah tool set. In this section,
-Controller abstract will be covered.
+This is all very nice but writing a code this way can be messy and organizing it can be a challenge. Because of this, abstracts like Controller, Controller method and Middleware exist in the Purple Cheetah tool set. In this section, Controller abstract will be covered.
 
-Controller is an abstraction which provides clean and unified way for creating
-group of REST endpoints. Controller object is created by
-calling `createController` function which accepts configuration object as a
-parameter. Controller by itself if just a _"placeholder"_ and does not hold any
-logic. To implement a logic and to add REST endpoints, Controller method is
-used.
+Controller is an abstraction which provides clean and unified way for creating group of REST endpoints. Controller object is created by calling `createController` function which accepts configuration object as a parameter. Controller by itself if just a _"placeholder"_ and does not hold any complex logic. To implement a logic, and to add REST endpoints, Controller method is used.
 
-By using the Purple Cheetah Controller approach, code from Snippet 1 can be
-rewritten lite shown in Snippet 2.
+By using the Purple Cheetah Controller approach, code from Snippet 1 can be rewritten lite shown in Snippet 2.
 
 ```ts
-createController({
-  name: 'User controller',
+const UserController = createController({
+  name: 'User',
   path: '/user',
   methods() {
     return {
-      getUser: createControllerMethod({
+      getUser: createControllerMethod<unknown, User>({
         type: 'get',
         async handler() {
           // Get user from the database
@@ -141,16 +106,9 @@ createController({
 });
 ```
 
-_Snippet 2 - Create an endpoint using Purple Cheetah controller/method
-approach._
+_Snippet 2 - Create an endpoint using the Purple Cheetah controller/method approach._
 
-Much more code is written in Snippet 2 compared to 1, so why is this better?
-Second example provides structure and consistency (which is not easy to spot on
-such a short example) and unified way to create REST endpoints. This means that
-navigation in project is much quicker, and it is easier to understand what is
-the end result of each endpoint.
-
-Please see [Todo](examples/todo-fsdb) for more detailed example.
+Much more code is written in Snippet 2 compared to 1, so why is this better? Second example provides structure, consistency (which is not easy to spot on such a short example) and unified way to create REST endpoints. This means that navigation in project is much quicker, and it is easier to understand what is the end result of each endpoint. In addition to that, return type of the method can be specified.
 
 ## Middleware
 
@@ -212,6 +170,7 @@ Module is the core abstract in the Purple Cheetah which allows external code to
 access the pipe. Modules are passed to the configuration object in `modules`
 array.
 
-[npm-image]: https://img.shields.io/npm/v/@becomes/purple-cheetah.svg
+To learn more about modules visit [modules repository](https://github.com/becomesco/purple-cheetah-modules)
 
+[npm-image]: https://img.shields.io/npm/v/@becomes/purple-cheetah.svg
 [npm-url]: https://npmjs.org/package/@becomes/purple-cheetah

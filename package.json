@@ -1,6 +1,6 @@
 {
   "name": "@becomes/purple-cheetah",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "description": "Purple Cheetah is not a framework but rather a utility set for ExpressJS, written in Typescript.",
   "main": "./index.js",
   "types": "./index.d.ts",
@@ -30,7 +30,7 @@
   "bugs": {
     "url": "https://github.com/becomesco/purple-cheetah/issues"
   },
-  "homepage": "https://purple-cheetah.dev",
+  "homepage": "https://github.com/becomesco/purple-cheetah",
   "dependencies": {
     "bcrypt": "^5.0.1",
     "body-parser": "^1.19.0",

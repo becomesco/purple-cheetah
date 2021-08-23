@@ -124,11 +124,16 @@ export function createPurpleCheetah(
       }
       const timeOffset = Date.now();
       try {
+        let nextCalled = false;
         module.initialize({
           name: module.name,
           rootConfig: config,
           purpleCheetah: self,
           next(error, data) {
+            if (nextCalled) {
+              return;
+            }
+            nextCalled = true;
             if (error) {
               logger.error('loadModule', {
                 name: module.name,

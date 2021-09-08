@@ -75,10 +75,13 @@ export function createPurpleCheetah(
   const server = http.createServer(app);
   let ready = false;
 
-  function initializeControllers(controllers: Controller[]): void {
-    controllers.forEach((controller) => {
+  async function initializeControllers(
+    controllers: Controller[],
+  ): Promise<void> {
+    for (let i = 0; i < controllers.length; i++) {
+      const controller = controllers[i];
       if (controller) {
-        const data = controller();
+        const data = await controller();
         logger.info('controller', `${data.name}`);
         const methods = data.methods();
         methods.forEach((method) => {
@@ -87,12 +90,12 @@ export function createPurpleCheetah(
           app[method.type](path, method.handler);
         });
       }
-    });
+    }
   }
-  function initializeMiddleware(
+  async function initializeMiddleware(
     _middleware: Middleware[],
     after: boolean,
-  ): void {
+  ): Promise<void> {
     const middleware = _middleware.map((e) => e());
     middleware
       .filter((mv) => mv.after === after)
@@ -167,7 +170,8 @@ export function createPurpleCheetah(
             }
           },
         });
-      } catch (e) {
+      } catch (error) {
+        const e = error as Error;
         logger.error(`loadModule`, {
           name: module.name,
           error: ('' + e.stack).split('\n'),
@@ -176,32 +180,36 @@ export function createPurpleCheetah(
       }
     }
   }
+  async function init() {
+    if (!config.middleware) {
+      config.middleware = [];
+    }
+    if (!config.controllers) {
+      config.controllers = [];
+    }
+    if (config.staticContentDir) {
+      app.use(express.static(config.staticContentDir));
+    }
+    if (config.start) {
+      config.start();
+    }
+    initializeMiddleware(config.middleware, false);
+    if (config.middle) {
+      config.middle();
+    }
+    await initializeControllers(config.controllers);
+    initializeMiddleware(config.middleware, true);
+    if (config.finalize) {
+      config.finalize();
+    }
+  }
 
   modules.push({
     name: 'Purple Cheetah Initialize',
-    initialize(moduleConfig) {
-      if (!config.middleware) {
-        config.middleware = [];
-      }
-      if (!config.controllers) {
-        config.controllers = [];
-      }
-      if (config.staticContentDir) {
-        app.use(express.static(config.staticContentDir));
-      }
-      if (config.start) {
-        config.start();
-      }
-      initializeMiddleware(config.middleware, false);
-      if (config.middle) {
-        config.middle();
-      }
-      initializeControllers(config.controllers);
-      initializeMiddleware(config.middleware, true);
-      if (config.finalize) {
-        config.finalize();
-      }
-      moduleConfig.next();
+    initialize({ next }) {
+      init()
+        .then(() => next())
+        .catch((err) => next(err));
     },
   });
   modules.push({
@@ -210,6 +218,7 @@ export function createPurpleCheetah(
       try {
         logger.info(moduleConfig.name, 'working...');
         server.listen(config.port, () => {
+          // eslint-disable-next-line no-console
           console.log(`
             ${ConsoleColors.FgMagenta}Purple Cheetah${ConsoleColors.Reset} - ${
             ConsoleColors.FgGreen
@@ -226,7 +235,7 @@ export function createPurpleCheetah(
           moduleConfig.next();
         });
       } catch (error) {
-        moduleConfig.next(error);
+        moduleConfig.next(error as Error);
       }
     },
   });

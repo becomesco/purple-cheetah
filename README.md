@@ -45,6 +45,15 @@ To create Express application powered by Purple Cheetah tool set, `createPurpleC
 - `middleware` - Array of middleware object which will be mounted in order,
 - `modules` - Array of module objects which will be mounted in order,
 
+```ts
+const app = createPurpleCheetah({
+  port: 1280,
+  modules: [/* List of modules */],
+  controllers: [/* List of controllers */],
+  middleware: [/* Middleware list */]
+})
+```
+
 This will be explained in more detail.
 
 - First step is mounting [modules](#modules). They are mounded in FIFO order and once 1 module is mounted, it will trigger a callback which will mount the next module, and so on.
@@ -83,7 +92,7 @@ _Snippet 1 - Creating an endpoint using ExpressJS_
 
 This is all very nice but writing a code this way can be messy and organizing it can be a challenge. Because of this, abstracts like Controller, Controller method and Middleware exist in the Purple Cheetah tool set. In this section, Controller abstract will be covered.
 
-Controller is an abstraction which provides clean and unified way for creating group of REST endpoints. Controller object is created by calling `createController` function which accepts configuration object as a parameter. Controller by itself if just a _"placeholder"_ and does not hold any complex logic. To implement a logic, and to add REST endpoints, Controller method is used.
+Controller is an abstraction which provides clean and unified way for creating a group of REST endpoints. Controller object is created by calling `createController` function which accepts configuration object as a parameter. Controller by itself if just a _"placeholder"_ and does not hold any complex logic. To implement a logic, and to add REST endpoints, Controller method is used.
 
 By using the Purple Cheetah Controller approach, code from Snippet 1 can be rewritten lite shown in Snippet 2.
 

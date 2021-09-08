@@ -23,7 +23,7 @@ export interface ControllerConfig<SetupResult> {
   setup?(config: {
     controllerName: string;
     controllerPath: string;
-  }): SetupResult;
+  }): SetupResult | Promise<SetupResult>;
 
   /**
    * Method which returns a map of controller methods. This method is
@@ -37,7 +37,7 @@ export interface ControllerConfig<SetupResult> {
   };
 }
 
-export type Controller = () => ControllerData;
+export type Controller = () => Promise<ControllerData>;
 
 export interface ControllerData {
   /**

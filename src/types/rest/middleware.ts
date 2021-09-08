@@ -40,10 +40,16 @@ export interface MiddlewareConfig {
     | RequestHandler
     | RequestHandler[]
     | ErrorRequestHandler
-    | NextHandleFunction;
+    | NextHandleFunction
+    | Promise<
+        | RequestHandler
+        | RequestHandler[]
+        | ErrorRequestHandler
+        | NextHandleFunction
+      >;
 }
 
-export type Middleware = () => MiddlewareData;
+export type Middleware = () => Promise<MiddlewareData>;
 
 export interface MiddlewareData {
   name: string;

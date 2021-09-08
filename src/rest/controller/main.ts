@@ -20,7 +20,7 @@ export function createControllerMethod<PreRequestHandlerReturnType, ReturnType>(
 
 function wrapControllerMethod<SetupResult, PreRequestHandlerResult, ReturnType>(
   logger: Logger,
-  setupResult: SetupResult,
+  _setupResult: SetupResult,
   methodName: string,
   config: ControllerMethodConfig<PreRequestHandlerResult, ReturnType>,
 ): ControllerMethod {
@@ -89,7 +89,7 @@ function wrapControllerMethod<SetupResult, PreRequestHandlerResult, ReturnType>(
 export function createController<SetupResult>(
   config: ControllerConfig<SetupResult>,
 ): Controller {
-  return () => {
+  return async () => {
     const logger = useLogger({
       name: config.name,
     });
@@ -97,7 +97,7 @@ export function createController<SetupResult>(
       config.path = '/' + config.path;
     }
     const setupResult = config.setup
-      ? config.setup({
+      ? await config.setup({
           controllerName: config.name,
           controllerPath: config.path,
         })

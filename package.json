@@ -1,6 +1,6 @@
 {
   "name": "@becomes/purple-cheetah",
-  "version": "3.1.4",
+  "version": "3.1.5",
   "description": "Purple Cheetah is not a framework but rather a utility set for ExpressJS, written in Typescript.",
   "main": "./index.js",
   "types": "./index.d.ts",

@@ -30,7 +30,7 @@ export function createHTTPExceptionHandlerMiddleware(): Middleware {
               path: request.url,
               error: {
                 message: error.message,
-                stack: error.stack.split('\n'),
+                stack: error.stack ? error.stack.split('\n') : '',
               },
             });
             response.status(500).json({ message: 'Unknown exception' });

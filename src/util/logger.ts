@@ -44,7 +44,21 @@ export enum ConsoleColors {
   BgWhite = '\x1b[47m',
 }
 
+function circularReplacer() {
+  const cache: unknown[] = [];
+  return (_key: string, value: unknown) => {
+    if (typeof value === 'object' && value !== null) {
+      // Duplicate reference found, discard key
+      if (cache.includes(value)) return;
+
+      // Store value in our collection
+      cache.push(value);
+    }
+    return value;
+  };
+}
 function toOutput(messageParts: string[]) {
+  // eslint-disable-next-line no-console
   console.log(messageParts.join(' '));
   messageParts = [...messageParts, '\n'];
   outputBuffer.push(messageParts.join(' '));
@@ -76,6 +90,7 @@ export function updateLogger(config: UpdateLoggerConfig) {
     clearInterval(saveInterval);
     saveInterval = setInterval(() => {
       save().catch((error) => {
+        // eslint-disable-next-line no-console
         console.error(error);
         process.exit(1);
       });
@@ -89,6 +104,7 @@ export function initializeLogger() {
   if (!saveInterval) {
     saveInterval = setInterval(() => {
       save().catch((error) => {
+        // eslint-disable-next-line no-console
         console.error(error);
         process.exit(1);
       });
@@ -102,7 +118,7 @@ export function useLogger(config: UseLoggerConfig): Logger {
       if (typeof message === 'object') {
         print = `\r\n${ConsoleColors.FgWhite}${JSON.stringify(
           message,
-          null,
+          circularReplacer(),
           2,
         )}${ConsoleColors.Reset}`;
       } else {
@@ -125,7 +141,7 @@ export function useLogger(config: UseLoggerConfig): Logger {
       if (typeof message === 'object') {
         print = `\r\n${ConsoleColors.FgYellow}${JSON.stringify(
           message,
-          null,
+          circularReplacer(),
           2,
         )}${ConsoleColors.Reset}`;
       } else {
@@ -154,7 +170,7 @@ export function useLogger(config: UseLoggerConfig): Logger {
         }
         print = `\r\n${ConsoleColors.FgRed}${JSON.stringify(
           message,
-          null,
+          circularReplacer(),
           '  ',
         )}${ConsoleColors.Reset}`;
         if (stack) {

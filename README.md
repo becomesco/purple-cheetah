@@ -38,7 +38,7 @@ It is important to know how Purple Cheetah package versions work. All versions a
 
 ## Creating Purple Cheetah application
 
-To create Express application powered by Purple Cheetah tool set, `createPurpleCheetah` function is used. This is also the main entry point for the application which is used to configure it. Application configuration is pretty simple. There are 4 important properties in configuration object:
+To create Express application powered by Purple Cheetah tool set, `createPurpleCheetah` function is used. This is also the main entry point for the application which is used to configure it. Application configuration is pretty simple. There are 4 important properties in configuration object (see Snippet 1):
 
 - `port` - Specify the port on which Express server will be available,
 - `controllers` - Array of controller objects which will be mounted in order,
@@ -48,11 +48,19 @@ To create Express application powered by Purple Cheetah tool set, `createPurpleC
 ```ts
 const app = createPurpleCheetah({
   port: 1280,
-  modules: [/* List of modules */],
-  controllers: [/* List of controllers */],
-  middleware: [/* Middleware list */]
-})
+  modules: [
+    /* List of modules */
+  ],
+  controllers: [
+    /* List of controllers */
+  ],
+  middleware: [
+    /* Middleware list */
+  ],
+});
 ```
+
+_Snippet 1 - Create a Purple Cheetah application._
 
 This will be explained in more detail.
 
@@ -78,7 +86,7 @@ TTS: 0.007s
 Most important tools for creating REST APIs are tools for connecting HTTP
 requests with some business logic, doing a required work and creating a
 response. This is as easy as creating an HTTP route handler for specified
-method. In pure Express application this could be done like shown in Snippet 1.
+method. In pure Express application this could be done like shown in Snippet 2.
 
 ```ts
 app.get('/user', (request, response) => {
@@ -88,13 +96,13 @@ app.get('/user', (request, response) => {
 });
 ```
 
-_Snippet 1 - Creating an endpoint using ExpressJS_
+_Snippet 2 - Creating an endpoint using ExpressJS_
 
 This is all very nice but writing a code this way can be messy and organizing it can be a challenge. Because of this, abstracts like Controller, Controller method and Middleware exist in the Purple Cheetah tool set. In this section, Controller abstract will be covered.
 
 Controller is an abstraction which provides clean and unified way for creating a group of REST endpoints. Controller object is created by calling `createController` function which accepts configuration object as a parameter. Controller by itself if just a _"placeholder"_ and does not hold any complex logic. To implement a logic, and to add REST endpoints, Controller method is used.
 
-By using the Purple Cheetah Controller approach, code from Snippet 1 can be rewritten lite shown in Snippet 2.
+By using the Purple Cheetah Controller approach, code from Snippet 2 can be rewritten lite shown in Snippet 3.
 
 ```ts
 const UserController = createController({
@@ -115,21 +123,94 @@ const UserController = createController({
 });
 ```
 
-_Snippet 2 - Create an endpoint using the Purple Cheetah controller/method approach._
+_Snippet 3 - Create an endpoint using the Purple Cheetah controller/method approach._
 
-Much more code is written in Snippet 2 compared to 1, so why is this better? Second example provides structure, consistency (which is not easy to spot on such a short example) and unified way to create REST endpoints. This means that navigation in project is much quicker, and it is easier to understand what is the end result of each endpoint. In addition to that, return type of the method can be specified.
+Much more code is written in Snippet 3 compared to 2, so why is this better? Second example provides structure, consistency (which is not easy to spot on such a short example) and unified way to create REST endpoints. This means that navigation in project is much quicker, and it is easier to understand what is the end result of each endpoint. In addition to that, return type of the method can be specified.
+
+### Controller setup
+
+Setup is a method inside of the controller configuration object which is called when a controller is mounted. It can be asynchronous and it is designed to some work with will be required for all (or majority) of method in specified controller. Output from the setup method is piped into methods and made available in that way.
+
+```ts
+const MyController = createController<{ baseMessage: string }>({
+  name: 'My controller',
+  path: '/hello',
+  setup() {
+    return {
+      baseMessage: 'Hello, ',
+    }
+  }
+  methods({ baseMessage }) {
+    return {
+      world: createControllerMethod<unknown, { message: string }>({
+        path: '/:name',
+        type: 'get',
+        async handler({ request }) {
+          return {
+            message: `${baseMessage}${request.params.name}`
+          };
+        },
+      }),
+    };
+  },
+});
+```
+
+_Snippet 4 - Setup method in a controller_
+
+Code from Snippet 4 is trivial but it illustrates how the setup methods works and how it is used. Some more relevant example would be to get security keys from other application which are required in controller methods.
+
+### Pre request handler
+
+It is a method inside of a Controller Method configuration object. It is executed before each required to specified route and output from it is piped to handler method. Example for Snippet 4 can be modified to use pre request handler to which will convert a first letter of request parameter in upper-case like shown in Snippet 5.
+
+```ts
+const MyController = createController<{ baseMessage: string }>({
+  name: 'My controller',
+  path: '/hello',
+  setup() {
+    return {
+      baseMessage: 'Hello, ',
+    }
+  }
+  methods({ baseMessage }) {
+    return {
+      world: createControllerMethod<{ name: string }, { message: string }>({
+        path: '/:name',
+        type: 'get',
+        async preRequestHandler({request}) {
+          return {
+            name: 
+              request.params.name.substring(0, 1).toUpperCase 
+              + request.params.name.substring(1).toLowerCase(),
+          }
+        }
+        async handler({ name }) {
+          return {
+            message: `${baseMessage}${name}`
+          };
+        },
+      }),
+    };
+  },
+});
+```
+
+_Snippet 5 - Controller method pre request handler_
+
+Again, example from Snippet 5 is trivial but it illustrates how pre request handler is used. As it can be seen, pre request handler functions like a [middleware](#middleware) but only for specific route. It is useful when different routes use different mechanisms for security and resource protection.
 
 ## Middleware
 
 Middleware is similar to a controller, but it is usually used to transform
 incoming or outgoing data in some shape or form. Because of this, middleware is
 triggered for all methods on all routes which are starting with a specified
-route.
+path.
 
 Like the `createController` function, `createMiddleware` function returns the
 _Middleware_ object which is used in Purple Cheetah configuration object in the
 middleware array property. Example for creating a middleware object is shown in
-Snippet 3.
+Snippet 6.
 
 ```ts
 createMiddleware({
@@ -143,7 +224,9 @@ createMiddleware({
 });
 ```
 
-_Snippet 3 - Creating a simple middleware object._
+_Snippet 6 - Creating a simple middleware object._
+
+It is important to know that handler method can be asynchronous and will be called only once when the middleware is mounted. So before returning a request handler function, setup of the middleware can be done.
 
 Purple Cheetah comes with few predefined middleware objects:
 
@@ -165,7 +248,7 @@ Purple Cheetah comes with few predefined middleware objects:
   client will receive response with status 500 and no details. This middleware
   is added to the Purple Cheetah by default and can be overwritten in the
   configuration object.
-- Endpoint not found (404) - Is a simple middleware which return JSON object to
+- Route not found (404) - Is a simple middleware which return JSON object to
   the client if requested route does not exist. This middleware is added to the
   Purple Cheetah by default and can be overwritten in the configuration object.
 - Request logger - Is a simple middleware which uses logger to log all incoming

@@ -89,7 +89,7 @@ function wrapControllerMethod<SetupResult, PreRequestHandlerResult, ReturnType>(
 export function createController<SetupResult>(
   config: ControllerConfig<SetupResult>,
 ): Controller {
-  return async () => {
+  return async ({ expressApp }) => {
     const logger = useLogger({
       name: config.name,
     });
@@ -100,6 +100,7 @@ export function createController<SetupResult>(
       ? await config.setup({
           controllerName: config.name,
           controllerPath: config.path,
+          expressApp,
         })
       : ({} as never);
 

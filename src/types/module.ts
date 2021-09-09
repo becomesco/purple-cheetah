@@ -1,3 +1,4 @@
+import type { Express } from 'express';
 import type { PurpleCheetah, PurpleCheetahConfig } from './main';
 import type { Controller, Middleware } from './rest';
 
@@ -5,6 +6,7 @@ export interface ModuleConfig {
   name: string;
   rootConfig: PurpleCheetahConfig;
   purpleCheetah: PurpleCheetah;
+  expressApp: Express;
   next(
     error?: Error,
     data?: {

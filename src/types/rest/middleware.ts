@@ -49,15 +49,13 @@ export interface MiddlewareConfig {
       >;
 }
 
-export type Middleware = () => Promise<MiddlewareData>;
+export type Middleware = () => MiddlewareData;
 
 export interface MiddlewareData {
   name: string;
   path: string;
   after: boolean;
-  handler:
-    | RequestHandler
-    | RequestHandler[]
-    | ErrorRequestHandler
-    | NextHandleFunction;
+  handler: () => Promise<
+    RequestHandler | RequestHandler[] | ErrorRequestHandler | NextHandleFunction
+  >;
 }

@@ -81,7 +81,7 @@ export function createPurpleCheetah(
     for (let i = 0; i < controllers.length; i++) {
       const controller = controllers[i];
       if (controller) {
-        const data = await controller();
+        const data = await controller({ expressApp: app });
         logger.info('controller', `${data.name}`);
         const methods = data.methods();
         methods.forEach((method) => {
@@ -97,26 +97,27 @@ export function createPurpleCheetah(
     after: boolean,
   ): Promise<void> {
     const middleware = _middleware.map((e) => e());
-    middleware
-      .filter((mv) => mv.after === after)
-      .forEach((mv) => {
+    for (let i = 0; i < middleware.length; i++) {
+      const mv = middleware[i];
+      if (mv.after === after) {
         logger.info('middleware', `${mv.name} --> ${mv.path}`);
-        app.use(mv.path, mv.handler);
-      });
+        app.use(mv.path, await mv.handler());
+      }
+    }
     if (after) {
       const exceptionMin = config.httpExceptionHandlerMiddleware
         ? config.httpExceptionHandlerMiddleware()
         : createHTTPExceptionHandlerMiddleware()();
       exceptionMin.after = true;
       logger.info('middleware', `Exception handler --> /*`);
-      app.use(exceptionMin.handler);
+      app.use(await exceptionMin.handler());
 
       const notFoundMid = config.notFoundMiddleware
         ? config.notFoundMiddleware()
         : createNotFoundMiddleware()();
       notFoundMid.after = true;
       logger.info('middleware', `404 --> /*`);
-      app.use(notFoundMid.handler);
+      app.use(await notFoundMid.handler());
     }
   }
   function loadNextModule() {
@@ -132,6 +133,7 @@ export function createPurpleCheetah(
           name: module.name,
           rootConfig: config,
           purpleCheetah: self,
+          expressApp: app,
           next(error, data) {
             if (nextCalled) {
               return;
@@ -193,12 +195,12 @@ export function createPurpleCheetah(
     if (config.start) {
       config.start();
     }
-    initializeMiddleware(config.middleware, false);
+    await initializeMiddleware(config.middleware, false);
     if (config.middle) {
       config.middle();
     }
     await initializeControllers(config.controllers);
-    initializeMiddleware(config.middleware, true);
+    await initializeMiddleware(config.middleware, true);
     if (config.finalize) {
       config.finalize();
     }
@@ -214,9 +216,9 @@ export function createPurpleCheetah(
   });
   modules.push({
     name: 'Start Server',
-    initialize(moduleConfig) {
+    initialize({ next, name }) {
       try {
-        logger.info(moduleConfig.name, 'working...');
+        logger.info(name, 'working...');
         server.listen(config.port, () => {
           // eslint-disable-next-line no-console
           console.log(`
@@ -232,10 +234,10 @@ export function createPurpleCheetah(
           if (config.onReady) {
             config.onReady(self);
           }
-          moduleConfig.next();
+          next();
         });
       } catch (error) {
-        moduleConfig.next(error as Error);
+        next(error as Error);
       }
     },
   });

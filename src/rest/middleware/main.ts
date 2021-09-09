@@ -11,17 +11,19 @@ export function createMiddleware(config: MiddlewareConfig): Middleware {
     path = config.path.startsWith('/') ? config.path : '/' + config.path;
   }
   const logger = useLogger({ name: config.name });
-  return async () => {
+  return () => {
     return {
       path,
       after,
       name: config.name,
-      handler: await config.handler({
-        name: config.name,
-        after,
-        path,
-        logger,
-      }),
+      handler: async () => {
+        return await config.handler({
+          name: config.name,
+          after,
+          path,
+          logger,
+        });
+      },
     };
   };
 }

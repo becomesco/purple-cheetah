@@ -1,3 +1,4 @@
+import type { Express } from 'express';
 import type { Logger } from '../../util';
 import type { ControllerMethod, ControllerMethodConfig } from './method';
 
@@ -23,6 +24,7 @@ export interface ControllerConfig<SetupResult> {
   setup?(config: {
     controllerName: string;
     controllerPath: string;
+    expressApp: Express;
   }): SetupResult | Promise<SetupResult>;
 
   /**
@@ -37,7 +39,9 @@ export interface ControllerConfig<SetupResult> {
   };
 }
 
-export type Controller = () => Promise<ControllerData>;
+export type Controller = (data: {
+  expressApp: Express;
+}) => Promise<ControllerData>;
 
 export interface ControllerData {
   /**

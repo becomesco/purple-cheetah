@@ -20,12 +20,13 @@ export function useFS(config?: CreateFSConfig): FS {
     config = {};
   }
   const baseRoot = config.base ? config.base : '';
+  const slash = process.cwd().charAt(1) === ':' ? '\\' : '/';
 
   const self: FS = {
     async save(root, data) {
-      let parts = root.split('/').filter((e) => !!e);
-      let base = root.startsWith('/') ? '' : `${baseRoot}`;
-      if (root.startsWith('/')) {
+      let parts = root.split(slash).filter((e) => !!e);
+      let base = root.startsWith(slash) ? '' : `${baseRoot}`;
+      if (root.startsWith(slash) || root.charAt(1) === ':') {
         base = '';
       } else {
         parts = ['', ...parts];
@@ -35,7 +36,7 @@ export function useFS(config?: CreateFSConfig): FS {
         if (base) {
           base = path.join(base, parts[j]);
         } else {
-          base = path.join('/', parts[j]);
+          base = path.join(slash, parts[j]);
         }
         try {
           if (!(await self.exist(base))) {
@@ -53,7 +54,10 @@ export function useFS(config?: CreateFSConfig): FS {
     },
     async exist(root, isFile) {
       return new Promise<boolean>((resolve, reject) => {
-        const pth = root.startsWith('/') ? root : path.join(baseRoot, root);
+        const pth =
+          root.startsWith('/') || root.charAt(1) === ':'
+            ? root
+            : path.join(baseRoot, root);
         fs.stat(pth, (err, stats) => {
           if (err) {
             if (err.code === 'ENOENT') {
@@ -73,37 +77,43 @@ export function useFS(config?: CreateFSConfig): FS {
       });
     },
     async mkdir(root: string) {
-      const parts = root.split('/');
-      let base = `${baseRoot}`;
-      for (let j = 0; j < parts.length; j = j + 1) {
-        if (parts[j].indexOf('.') === -1) {
-          base = path.join(base, parts[j]);
-          try {
-            if (!(await self.exist(base))) {
-              await util.promisify(fs.mkdir)(base);
-            }
-          } catch (error) {
-            logger.warn('mkdir', `Failed to create directory '${base}'`);
-          }
-        }
+      if (root.startsWith('/') || root.charAt(1) === ':') {
+        return await fse.mkdirp(root);
       }
+      return await fse.mkdirp(path.join(baseRoot, root));
     },
     async read(root: string) {
+      if (root.startsWith('/') || root.charAt(1) === ':') {
+        return await util.promisify(fs.readFile)(root);
+      }
       return await util.promisify(fs.readFile)(path.join(baseRoot, root));
     },
     async readdir(root: string) {
+      if (root.startsWith('/') || root.charAt(1) === ':') {
+        return await util.promisify(fs.readdir)(root);
+      }
       return await util.promisify(fs.readdir)(path.join(baseRoot, root));
     },
     async deleteFile(root: string) {
+      if (root.startsWith('/') || root.charAt(1) === ':') {
+        return await util.promisify(fs.unlink)(root);
+      }
       await util.promisify(fs.unlink)(path.join(baseRoot, root));
     },
     async deleteDir(root: string) {
+      if (root.startsWith('/') || root.charAt(1) === ':') {
+        await fse.remove(root);
+      }
       await fse.remove(path.join(baseRoot, root));
     },
     async rename(oldRoot: string, newRoot: string) {
       await util.promisify(fs.rename)(
-        path.join(baseRoot, oldRoot),
-        path.join(baseRoot, newRoot),
+        oldRoot.startsWith('/') || oldRoot.charAt(1) === ':'
+          ? oldRoot
+          : path.join(baseRoot, oldRoot),
+        newRoot.startsWith('/') || newRoot.charAt(1) === ':'
+          ? newRoot
+          : path.join(baseRoot, newRoot),
       );
     },
   };

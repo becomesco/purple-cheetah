@@ -3,6 +3,8 @@
 /doc
 /node_modules
 /typedoc
+/_test
+/_test2
 
 # Environment
 

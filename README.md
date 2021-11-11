@@ -19,16 +19,6 @@ Purple Cheetah is not a framework but rather a utility set for [ExpressJS](https
 - [Middleware](#middleware)
 - [Modules](#modules)
 
-## Versioning
-
-It is important to know how Purple Cheetah package versions work. All versions are annotated as `x.y.z` where:
-
-- `x` - indicates a major version of the package. This number between versions indicates that there are some braking changes in the package.
-- `y` - indicates if a package is a stable production ready version, or a development version, and it can only be 0 or 1.
-  - **1** - stable production ready (ex. `3.1.12`)
-  - **0** - development (ex. `3.0.32`)
-- `z` - indicates a minor version of the package. Changes to this parameter indicates only audits, performance improvements and some overall improvements that do not have effect on package usage.
-
 ## Getting started
 
 - The Easiest way to get started is to clone the starter GitHub repository: `git clone git@github.com:becomesco/purple-cheetah-starter`.

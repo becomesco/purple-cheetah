@@ -62,9 +62,10 @@ export function createPurpleCheetah(
   if (!config.middleware) {
     config.middleware = [];
   }
-  if (config.logPath) {
+  if (config.logPath || config.silentLogs) {
     updateLogger({
       output: config.logPath,
+      silent: config.silentLogs
     });
   }
   const modules = config.modules ? config.modules : [];

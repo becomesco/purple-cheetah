@@ -16,4 +16,8 @@ export interface UpdateLoggerConfig {
    * Default: 1000
    */
   saveInterval?: number;
+  /**
+   * Should display logs in console.
+   */
+  silent?: boolean;
 }

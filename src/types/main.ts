@@ -19,6 +19,10 @@ export interface PurpleCheetahConfig {
    */
   logPath?: string;
   /**
+   * Should logs be displayed in console. Defaults to false.
+   */
+  silentLogs?: boolean;
+  /**
    * Absolute path to the directory which holds, public static
    * assets.
    */

@@ -221,16 +221,18 @@ export function createPurpleCheetah(
       try {
         logger.info(name, 'working...');
         server.listen(config.port, () => {
-          // eslint-disable-next-line no-console
-          console.log(`
-            ${ConsoleColors.FgMagenta}Purple Cheetah${ConsoleColors.Reset} - ${
-            ConsoleColors.FgGreen
-          }Started Successfully${ConsoleColors.Reset}
-            -------------------------------------             
-            PORT: ${config.port}
-            PID: ${process.pid}
-            TTS: ${(Date.now() - rootTimeOffset) / 1000}s
-            \n`);
+          if (!config.silentLogs) {
+            // eslint-disable-next-line no-console
+            console.log(`
+              ${ConsoleColors.FgMagenta}Purple Cheetah${ConsoleColors.Reset} - ${
+              ConsoleColors.FgGreen
+            }Started Successfully${ConsoleColors.Reset}
+              -------------------------------------             
+              PORT: ${config.port}
+              PID: ${process.pid}
+              TTS: ${(Date.now() - rootTimeOffset) / 1000}s
+              \n`);
+          }
           ready = true;
           if (config.onReady) {
             config.onReady(self);

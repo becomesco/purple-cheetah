@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import type { ObjectSchema } from '../../util';
+import type { ObjectSchema } from '@banez/object-utility/types';
 
 export interface HTTPSignature<T> {
   nonce: string;

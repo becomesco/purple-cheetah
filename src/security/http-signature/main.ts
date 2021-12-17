@@ -1,11 +1,11 @@
 import * as crypto from 'crypto';
+import { ObjectUtilityError } from '@banez/object-utility/types';
 import {
   HTTPSignature,
   HTTPSignatureManager,
   HTTPSignatureManagerCreateData,
   HTTPSignatureScope,
   HttpSignatureSchema,
-  ObjectUtilityError,
   HTTPSignatureError,
 } from '../../types';
 import { useObjectUtility } from '../../util';

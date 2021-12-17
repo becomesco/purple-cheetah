@@ -36,6 +36,9 @@
   },
   "dependencies": {
     "@banez/fs": "^1.0.1",
+    "@banez/object-utility": "^1.0.0",
+    "@banez/queue": "^1.0.0",
+    "@banez/string-utility": "^1.0.1",
     "@types/body-parser": "^1.19.0",
     "@types/cors": "^2.8.9",
     "@types/fs-extra": "^9.0.11",

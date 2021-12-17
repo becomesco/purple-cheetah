@@ -10,7 +10,6 @@ Purple Cheetah is not a framework but rather a utility set for [ExpressJS](https
 
 ## Table of contents
 
-- [Versioning](#versioning)
 - [Getting started](#getting-started)
 - [Creating Purple Cheetah application](#creating-purple-cheetah-application)
 - [Controller](#controller)

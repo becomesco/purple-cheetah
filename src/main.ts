@@ -8,7 +8,6 @@ import type {
 } from './types';
 import {
   ConsoleColors,
-  initializeFS,
   initializeLogger,
   updateLogger,
   useLogger,
@@ -54,7 +53,6 @@ export function createPurpleCheetah(
   config: PurpleCheetahConfig,
 ): PurpleCheetah {
   const rootTimeOffset = Date.now();
-  initializeFS();
   initializeLogger();
   if (!config.controllers) {
     config.controllers = [];

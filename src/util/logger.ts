@@ -1,8 +1,8 @@
+import type { FS } from '@banez/fs/types';
 import * as nodeFS from 'fs';
 import * as path from 'path';
 import * as util from 'util';
 import {
-  FS,
   Logger,
   UpdateLoggerConfig,
   UseLoggerConfig,

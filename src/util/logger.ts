@@ -1,8 +1,8 @@
+import type { FS } from '@banez/fs/types';
 import * as nodeFS from 'fs';
 import * as path from 'path';
 import * as util from 'util';
 import {
-  FS,
   Logger,
   UpdateLoggerConfig,
   UseLoggerConfig,
@@ -14,6 +14,7 @@ let output = path.join(process.cwd(), 'logs');
 let fs: FS;
 const outputBuffer: string[] = [];
 let saveInterval: NodeJS.Timeout;
+let silent = false;
 
 // eslint-disable-next-line no-shadow
 export enum ConsoleColors {
@@ -58,8 +59,10 @@ function circularReplacer() {
   };
 }
 function toOutput(messageParts: string[]) {
-  // eslint-disable-next-line no-console
-  console.log(messageParts.join(' '));
+  if (!silent) {
+    // eslint-disable-next-line no-console
+    console.log(messageParts.join(' '));
+  }
   messageParts = [...messageParts, '\n'];
   outputBuffer.push(messageParts.join(' '));
 }
@@ -95,6 +98,9 @@ export function updateLogger(config: UpdateLoggerConfig) {
         process.exit(1);
       });
     }, config.saveInterval);
+  }
+  if (typeof config.silent === 'boolean') {
+    silent = config.silent;
   }
 }
 export function initializeLogger() {

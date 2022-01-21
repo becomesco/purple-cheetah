@@ -1,8 +1,7 @@
+import { ObjectSchema, ObjectUtilityError } from '@banez/object-utility/types';
 import {
   ControllerMethodPreRequestHandler,
-  ObjectSchema,
   HTTPStatus,
-  ObjectUtilityError,
   BodyValidationPreRequestHandlerResult,
 } from '../../types';
 import { useObjectUtility } from '../../util';

@@ -1,42 +1,17 @@
-export interface ObjectPropSchemaArrayChild {
-  __type?: 'string' | 'number' | 'boolean' | 'object' | 'function';
-  __content?: ObjectSchema;
-}
-export type ObjectPropSchemaValidateType =
-  | string
-  | string[]
-  | number
-  | number[]
-  | boolean
-  | boolean[];
-export interface ObjectPropSchema {
-  __type: 'string' | 'number' | 'boolean' | 'object' | 'array' | 'function';
-  __required: boolean;
-  __validate?<T>(value: T | ObjectPropSchemaValidateType): boolean;
-  __child?: ObjectPropSchemaArrayChild | ObjectSchema;
-}
-export interface ObjectSchema {
-  [key: string]: ObjectPropSchema;
-}
+import {
+  ObjectUtilityError as OUError,
+  ObjecUtilityErrorCode as OUErrorCode,
+  ObjectSchema as OS,
+  ObjectPropSchema as OPS,
+  ObjectPropSchemaArrayChild as OPSAC,
+  ObjectPropSchemaValidateType as OPSVT,
+} from '@banez/object-utility/types';
+import type { ObjectUtility as OU } from '@banez/object-utility';
 
-export type ObjecUtilityErrorCode =
-  | 'e1'
-  | 'e2'
-  | 'e3'
-  | 'e4'
-  | 'e5'
-  | 'e6'
-  | 'e7'
-  | 'e8';
-export class ObjectUtilityError {
-  constructor(public errorCode: string, public message: string) {}
-}
-
-export interface ObjectUtility {
-  compareWithSchema(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    object: any,
-    schema: ObjectSchema,
-    level?: string,
-  ): void | ObjectUtilityError;
-}
+export const ObjectUtilityError = OUError;
+export type ObjectUtilityErrorCode = OUErrorCode;
+export type ObjectSchema = OS;
+export type ObjectPropSchema = OPS;
+export type ObjectPropSchemaArrayChild = OPSAC;
+export type ObjectPropSchemaValidateType = OPSVT;
+export type ObjectUtility = typeof OU;

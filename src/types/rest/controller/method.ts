@@ -23,7 +23,10 @@ export interface ControllerMethod {
 /**
  * Configuration object for creating a controller method.
  */
-export interface ControllerMethodConfig<PreRequestHandlerResult, ReturnType> {
+export interface ControllerMethodConfig<
+  PreRequestHandlerResult = unknown,
+  ReturnType = unknown,
+> {
   /**
    * Type of the HTTP request which will be handled by this controller method.
    */
@@ -80,7 +83,9 @@ export type ControllerMethodPreRequestHandlerData = {
   response: Response;
 };
 
-export type ControllerMethodPreRequestHandler<PreRequestHandlerResult> = (
+export type ControllerMethodPreRequestHandler<
+  PreRequestHandlerResult = unknown,
+> = (
   data: ControllerMethodPreRequestHandlerData,
 ) => Promise<PreRequestHandlerResult>;
 
@@ -110,8 +115,8 @@ export type ControllerMethodRequestHandlerData = {
 };
 
 export type ControllerMethodRequestHandler<
-  PreRequestHandlerResult,
-  ReturnType,
+  PreRequestHandlerResult = unknown,
+  ReturnType = unknown,
 > = (
   data: ControllerMethodRequestHandlerData & PreRequestHandlerResult,
 ) => Promise<ReturnType>;

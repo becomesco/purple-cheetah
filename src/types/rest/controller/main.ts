@@ -2,7 +2,7 @@ import type { Express } from 'express';
 import type { Logger } from '../../util';
 import type { ControllerMethod, ControllerMethodConfig } from './method';
 
-export interface ControllerConfig<SetupResult> {
+export interface ControllerConfig<SetupResult = unknown> {
   /**
    * Name of the controller. Used for generated logger
    * and to organize errors.

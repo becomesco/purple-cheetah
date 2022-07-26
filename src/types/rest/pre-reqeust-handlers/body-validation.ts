@@ -1,3 +1,3 @@
-export interface BodyValidationPreRequestHandlerResult<T> {
-  body: T;
+export interface BodyValidationPreRequestHandlerResult<Body = unknown> {
+  body: Body;
 }

@@ -10,9 +10,11 @@ import { useObjectUtility } from '../../util';
  * Creates a Controller pre request handler function for validating
  * request body using the Object Utility.
  */
-export function createBodyValidationPreRequestHandler<T>(
+export function createBodyValidationPreRequestHandler<Body>(
   schema: ObjectSchema,
-): ControllerMethodPreRequestHandler<BodyValidationPreRequestHandlerResult<T>> {
+): ControllerMethodPreRequestHandler<
+  BodyValidationPreRequestHandlerResult<Body>
+> {
   const objectUtil = useObjectUtility();
 
   return async ({ request, errorHandler }) => {

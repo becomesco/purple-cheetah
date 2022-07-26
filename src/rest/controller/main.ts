@@ -12,13 +12,18 @@ import { createHTTPError } from '../error';
  * Function which creates a Controller method object. This function is mant to
  * be used in a Controller object.
  */
-export function createControllerMethod<PreRequestHandlerReturnType, ReturnType>(
-  config: ControllerMethodConfig<PreRequestHandlerReturnType, ReturnType>,
-) {
+export function createControllerMethod<
+  PreRequestHandlerReturnType = unknown,
+  ReturnType = unknown,
+>(config: ControllerMethodConfig<PreRequestHandlerReturnType, ReturnType>) {
   return config;
 }
 
-function wrapControllerMethod<SetupResult, PreRequestHandlerResult, ReturnType>(
+function wrapControllerMethod<
+  SetupResult = unknown,
+  PreRequestHandlerResult = unknown,
+  ReturnType = unknown,
+>(
   logger: Logger,
   _setupResult: SetupResult,
   methodName: string,

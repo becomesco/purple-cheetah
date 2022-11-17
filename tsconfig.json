@@ -11,7 +11,10 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
-    "importsNotUsedAsValues": "error"
+    "importsNotUsedAsValues": "error",
+    "skipLibCheck": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist", "public"],
@@ -35,8 +38,7 @@
           "useRefreshTokenService": "module/rest_refresh_token_service"
         },
         "Security": {
-          "createAES256GCM": "modules/security_aes",
-
+          "createAES256GCM": "modules/security_aes"
         }
       }
     ]

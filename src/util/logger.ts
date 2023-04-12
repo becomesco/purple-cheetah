@@ -165,7 +165,7 @@ export function useLogger(config: UseLoggerConfig): Logger {
       ];
       toOutput(o);
       if (onInfo) {
-        onInfo(place, message).catch((err) => {
+        onInfo(config, place, message).catch((err) => {
           // eslint-disable-next-line no-console
           console.error('CRIT', err);
         });
@@ -194,7 +194,7 @@ export function useLogger(config: UseLoggerConfig): Logger {
       ];
       toOutput(o);
       if (onWarn) {
-        onWarn(place, message).catch((err) => {
+        onWarn(config, place, message).catch((err) => {
           // eslint-disable-next-line no-console
           console.error('CRIT', err);
         });
@@ -233,7 +233,7 @@ export function useLogger(config: UseLoggerConfig): Logger {
       ];
       toOutput(o);
       if (onError) {
-        onError(place, message).catch((err) => {
+        onError(config, place, message).catch((err) => {
           // eslint-disable-next-line no-console
           console.error('CRIT', err);
         });

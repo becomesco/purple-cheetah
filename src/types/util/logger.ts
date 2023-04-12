@@ -12,15 +12,15 @@ export interface LoggerOnSave {
 }
 
 export interface LoggerOnInfo {
-  (place: string, message: unknown): Promise<void>;
+  (config: UseLoggerConfig, place: string, message: unknown): Promise<void>;
 }
 
 export interface LoggerOnWarn {
-  (place: string, message: unknown): Promise<void>;
+  (config: UseLoggerConfig, place: string, message: unknown): Promise<void>;
 }
 
 export interface LoggerOnError {
-  (place: string, message: unknown): Promise<void>;
+  (config: UseLoggerConfig, place: string, message: unknown): Promise<void>;
 }
 
 export interface UpdateLoggerConfig {

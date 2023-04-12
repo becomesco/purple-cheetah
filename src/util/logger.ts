@@ -7,6 +7,10 @@ import {
   UpdateLoggerConfig,
   UseLoggerConfig,
   HTTPException,
+  LoggerOnSave,
+  LoggerOnWarn,
+  LoggerOnInfo,
+  LoggerOnError,
 } from '../types';
 import { useFS } from './fs';
 
@@ -15,6 +19,10 @@ let fs: FS;
 const outputBuffer: string[] = [];
 let saveInterval: NodeJS.Timeout;
 let silent = false;
+let onSave: LoggerOnSave | null = null;
+let onInfo: LoggerOnInfo | null = null;
+let onWarn: LoggerOnWarn | null = null;
+let onError: LoggerOnError | null = null;
 
 // eslint-disable-next-line no-shadow
 export enum ConsoleColors {
@@ -78,6 +86,9 @@ async function save() {
   const outputData = outputBuffer.splice(0, outputBuffer.length);
   if (outputData.length > 0) {
     await util.promisify(nodeFS.appendFile)(filePath, outputData.join(''));
+    if (onSave) {
+      await onSave(date, outputData);
+    }
   }
 }
 
@@ -101,6 +112,18 @@ export function updateLogger(config: UpdateLoggerConfig) {
   }
   if (typeof config.silent === 'boolean') {
     silent = config.silent;
+  }
+  if (config.onSave) {
+    onSave = config.onSave;
+  }
+  if (config.onInfo) {
+    onInfo = config.onInfo;
+  }
+  if (config.onWarn) {
+    onWarn = config.onWarn;
+  }
+  if (config.onError) {
+    onError = config.onError;
   }
 }
 export function initializeLogger() {
@@ -141,6 +164,12 @@ export function useLogger(config: UseLoggerConfig): Logger {
         print,
       ];
       toOutput(o);
+      if (onInfo) {
+        onInfo(place, message).catch((err) => {
+          // eslint-disable-next-line no-console
+          console.error('CRIT', err);
+        });
+      }
     },
     warn(place, message) {
       let print = '';
@@ -164,6 +193,12 @@ export function useLogger(config: UseLoggerConfig): Logger {
         print,
       ];
       toOutput(o);
+      if (onWarn) {
+        onWarn(place, message).catch((err) => {
+          // eslint-disable-next-line no-console
+          console.error('CRIT', err);
+        });
+      }
     },
     error(place, message) {
       let print = '';
@@ -197,6 +232,12 @@ export function useLogger(config: UseLoggerConfig): Logger {
         print,
       ];
       toOutput(o);
+      if (onError) {
+        onError(place, message).catch((err) => {
+          // eslint-disable-next-line no-console
+          console.error('CRIT', err);
+        });
+      }
     },
   };
 }

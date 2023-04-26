@@ -2,6 +2,7 @@ import type { Controller, Middleware } from './rest';
 import type { Express } from 'express';
 import type { Server } from 'http';
 import type { Module } from './module';
+import type { LoggerConfig } from './util';
 
 /**
  * Configuration object for creating Express
@@ -12,12 +13,7 @@ export interface PurpleCheetahConfig {
    * Port on which HTTP server will listen.
    */
   port: number;
-  /**
-   * Path to a directory where log files will be stored.
-   *
-   * Default: ${process.cwd()}/logs
-   */
-  logPath?: string;
+  logger?: LoggerConfig;
   /**
    * Should logs be displayed in console. Defaults to false.
    */

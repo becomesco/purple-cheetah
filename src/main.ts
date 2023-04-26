@@ -7,15 +7,10 @@ import type {
   PurpleCheetahConfig,
 } from './types';
 import {
-  ConsoleColors,
-  initializeLogger,
-  updateLogger,
-  useLogger,
-} from './util';
-import {
   createHTTPExceptionHandlerMiddleware,
   createNotFoundMiddleware,
 } from './rest';
+import { ConsoleColors, Logger, createLogger } from './util';
 
 /**
  * Will create a Purple Cheetah object. This includes mounting all module,
@@ -53,23 +48,15 @@ export function createPurpleCheetah(
   config: PurpleCheetahConfig,
 ): PurpleCheetah {
   const rootTimeOffset = Date.now();
-  initializeLogger();
   if (!config.controllers) {
     config.controllers = [];
   }
   if (!config.middleware) {
     config.middleware = [];
   }
-  if (config.logPath || config.silentLogs) {
-    updateLogger({
-      output: config.logPath,
-      silent: config.silentLogs
-    });
-  }
-  const modules = config.modules ? config.modules : [];
-  const logger = useLogger({
-    name: 'Purple Cheetah',
-  });
+  let modules = config.modules ? config.modules : [];
+  modules = [createLogger(config.logger), ...modules];
+  const logger = new Logger('Purple cheetah');
   const app = express();
   const server = http.createServer(app);
   let ready = false;
@@ -122,7 +109,7 @@ export function createPurpleCheetah(
   function loadNextModule() {
     if (modules.length > 0) {
       const module = modules.splice(0, 1)[0];
-      if (modules.length > 1) {
+      if (modules.length > 1 && module.name !== 'Logger') {
         logger.info('loadModule', module.name + ' ...');
       }
       const timeOffset = Date.now();
@@ -205,43 +192,47 @@ export function createPurpleCheetah(
     }
   }
 
-  modules.push({
-    name: 'Purple Cheetah Initialize',
-    initialize({ next }) {
-      init()
-        .then(() => next())
-        .catch((err) => next(err));
+  modules.push(
+    {
+      name: 'Purple Cheetah Initialize',
+      initialize({ next }) {
+        init()
+          .then(() => next())
+          .catch((err) => next(err));
+      },
     },
-  });
-  modules.push({
-    name: 'Start Server',
-    initialize({ next, name }) {
-      try {
-        logger.info(name, 'working...');
-        server.listen(config.port, () => {
-          if (!config.silentLogs) {
-            // eslint-disable-next-line no-console
-            console.log(`
-              ${ConsoleColors.FgMagenta}Purple Cheetah${ConsoleColors.Reset} - ${
-              ConsoleColors.FgGreen
-            }Started Successfully${ConsoleColors.Reset}
+    {
+      name: 'Start Server',
+      initialize({ next, name }) {
+        try {
+          logger.info(name, 'working...');
+          server.listen(config.port, () => {
+            if (!config.silentLogs) {
+              // eslint-disable-next-line no-console
+              console.log(`
+              ${ConsoleColors.FgMagenta}Purple Cheetah${
+                ConsoleColors.Reset
+              } - ${ConsoleColors.FgGreen}Started Successfully${
+                ConsoleColors.Reset
+              }
               -------------------------------------             
               PORT: ${config.port}
               PID: ${process.pid}
               TTS: ${(Date.now() - rootTimeOffset) / 1000}s
               \n`);
-          }
-          ready = true;
-          if (config.onReady) {
-            config.onReady(self);
-          }
-          next();
-        });
-      } catch (error) {
-        next(error as Error);
-      }
+            }
+            ready = true;
+            if (config.onReady) {
+              config.onReady(self);
+            }
+            next();
+          });
+        } catch (error) {
+          next(error as Error);
+        }
+      },
     },
-  });
+  );
 
   const self: PurpleCheetah = {
     getExpress() {

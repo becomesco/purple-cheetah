@@ -1,56 +1,169 @@
-import type { FS } from '@banez/fs/types';
-import * as nodeFS from 'fs';
 import * as path from 'path';
-import * as util from 'util';
-import {
-  Logger,
-  UpdateLoggerConfig,
-  UseLoggerConfig,
-  HTTPException,
-  LoggerOnSave,
-  LoggerOnWarn,
-  LoggerOnInfo,
-  LoggerOnError,
-} from '../types';
-import { useFS } from './fs';
+import { createFS } from '@banez/fs';
+import { HTTPException, LoggerConfig, Module } from '../types';
+import { StringUtility } from './string';
+import * as nodeFs from 'fs/promises';
 
-let output = path.join(process.cwd(), 'logs');
-let fs: FS;
-const outputBuffer: string[] = [];
-let saveInterval: NodeJS.Timeout;
-let silent = false;
-let onSave: LoggerOnSave | null = null;
-let onInfo: LoggerOnInfo | null = null;
-let onWarn: LoggerOnWarn | null = null;
-let onError: LoggerOnError | null = null;
+type Write = (
+  str: Uint8Array | string,
+  encoding?: BufferEncoding,
+  cb?: (err?: Error) => void,
+) => boolean;
 
-// eslint-disable-next-line no-shadow
-export enum ConsoleColors {
-  Reset = '\x1b[0m',
-  Bright = '\x1b[1m',
-  Dim = '\x1b[2m',
-  Underscore = '\x1b[4m',
-  Blink = '\x1b[5m',
-  Reverse = '\x1b[7m',
-  Hidden = '\x1b[8m',
+export class ConsoleColors {
+  // TEXT
+  static Reset = '\x1b[0m';
+  static Bright = '\x1b[1m';
+  static Dim = '\x1b[2m';
+  static Underscore = '\x1b[4m';
+  static Blink = '\x1b[5m';
+  static Reverse = '\x1b[7m';
+  static Hidden = '\x1b[8m';
+  // FG
+  static FgBlack = '\x1b[30m';
+  static FgRed = '\x1b[31m';
+  static FgGreen = '\x1b[32m';
+  static FgYellow = '\x1b[33m';
+  static FgBlue = '\x1b[34m';
+  static FgMagenta = '\x1b[35m';
+  static FgCyan = '\x1b[36m';
+  static FgWhite = '\x1b[37m';
+  // BG
+  static BgBlack = '\x1b[40m';
+  static BgRed = '\x1b[41m';
+  static BgGreen = '\x1b[42m';
+  static BgYellow = '\x1b[43m';
+  static BgBlue = '\x1b[44m';
+  static BgMagenta = '\x1b[45m';
+  static BgCyan = '\x1b[46m';
+  static BgWhite = '\x1b[47m';
+}
 
-  FgBlack = '\x1b[30m',
-  FgRed = '\x1b[31m',
-  FgGreen = '\x1b[32m',
-  FgYellow = '\x1b[33m',
-  FgBlue = '\x1b[34m',
-  FgMagenta = '\x1b[35m',
-  FgCyan = '\x1b[36m',
-  FgWhite = '\x1b[37m',
+export function createLogger(config?: LoggerConfig): Module {
+  return {
+    name: 'Logger',
+    initialize({ next }) {
+      const outputBuffer: string[] = [];
+      const outputPath =
+        config && config.saveToFile
+          ? `${
+              config.saveToFile.output.startsWith('/')
+                ? config.saveToFile.output
+                : path.join(
+                    process.cwd(),
+                    ...config.saveToFile.output.split('/'),
+                  )
+            }`
+          : path.join(process.cwd(), 'logs');
+      const fs = createFS({
+        base: outputPath,
+      });
 
-  BgBlack = '\x1b[40m',
-  BgRed = '\x1b[41m',
-  BgGreen = '\x1b[42m',
-  BgYellow = '\x1b[43m',
-  BgBlue = '\x1b[44m',
-  BgMagenta = '\x1b[45m',
-  BgCyan = '\x1b[46m',
-  BgWhite = '\x1b[47m',
+      if (config && config.saveToFile) {
+        setInterval(() => {
+          save().catch((err) => {
+            // eslint-disable-next-line no-console
+            console.error(err);
+          });
+        }, config.saveToFile.interval);
+      }
+
+      async function save() {
+        if (config && config.saveToFile) {
+          const dateObj = new Date();
+          const date = `${dateObj.getFullYear()}-${dateObj.getMonth()}-${dateObj.getDate()}.log`;
+          if (!(await fs.exist(date, true))) {
+            await fs.save(date, '');
+          }
+          const outputDate = outputBuffer.splice(0, outputBuffer.length);
+          if (outputDate.length > 0) {
+            await nodeFs.appendFile(
+              path.join(outputPath, date),
+              outputDate.join(''),
+            );
+          }
+        }
+      }
+
+      function createOutWrapper(
+        write: Write,
+        type: 'stdout' | 'stderr',
+      ): Write {
+        return (str, encoding, cb) => {
+          if (!config || !config.silent) {
+            const stack = (Error().stack as string).split('\n');
+            let location = '';
+            for (let i = 0; i < stack.length; i++) {
+              const item = stack[i];
+              if (
+                item.includes(`console.log`) ||
+                item.includes(`console.warn`) ||
+                item.includes(`console.error`)
+              ) {
+                i++;
+                while (i < stack.length) {
+                  if (
+                    !stack[i].includes('/logger')
+                    // !stack[i].includes('/node_modules')
+                  ) {
+                    location = StringUtility.textBetween(
+                      stack[i].replace(process.cwd(), ''),
+                      '(',
+                      ')',
+                    );
+                    break;
+                  }
+                  i++;
+                }
+                break;
+              }
+            }
+            // location = stack.join('\n');
+            str = [
+              type === 'stdout'
+                ? `${ConsoleColors.FgWhite}[INFO]${ConsoleColors.Reset}`
+                : `${ConsoleColors.BgRed}${ConsoleColors.FgBlack}[ERROR]${ConsoleColors.Reset}`,
+              `[${ConsoleColors.FgCyan}${new Date().toLocaleString()}${
+                ConsoleColors.Reset
+              }]`,
+              location,
+              str,
+            ].join(' ');
+            write.apply(process[type], [str, encoding, cb]);
+            if (config && config.onMessage) {
+              config.onMessage({ data: str, type });
+            }
+          }
+          return true;
+        };
+      }
+      (process.stdout.write as Write) = createOutWrapper(
+        process.stdout.write,
+        'stdout',
+      );
+      (process.stderr.write as Write) = createOutWrapper(
+        process.stderr.write,
+        'stderr',
+      );
+
+      async function init() {
+        if (config && config.saveToFile) {
+          if (!(await fs.exist(''))) {
+            await fs.save('temp.log', 'temp');
+            await fs.deleteFile('temp.log');
+          }
+        }
+      }
+
+      init()
+        .then(() => {
+          next();
+        })
+        .catch((err) => {
+          next(err);
+        });
+    },
+  };
 }
 
 function circularReplacer() {
@@ -66,178 +179,86 @@ function circularReplacer() {
     return value;
   };
 }
-function toOutput(messageParts: string[]) {
-  if (!silent) {
-    // eslint-disable-next-line no-console
-    console.log(messageParts.join(' '));
-  }
-  messageParts = [...messageParts, '\n'];
-  outputBuffer.push(messageParts.join(' '));
+
+function toOutput(messageParts: string[], type: 'log' | 'warn' | 'error') {
+  // eslint-disable-next-line no-console
+  console[type](messageParts.join(' '));
 }
-async function save() {
-  const date = new Date();
-  const filePath = path.join(
-    output,
-    `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}.log`,
-  );
-  if (!(await fs.exist(filePath, true))) {
-    await fs.save(filePath, '');
-  }
-  const outputData = outputBuffer.splice(0, outputBuffer.length);
-  if (outputData.length > 0) {
-    await util.promisify(nodeFS.appendFile)(filePath, outputData.join(''));
-    if (onSave) {
-      await onSave(date, outputData);
+
+export class Logger {
+  constructor(public name: string) {}
+
+  info(place: string, message: unknown) {
+    let print = '';
+    if (typeof message === 'object') {
+      print = `\r\n${ConsoleColors.FgWhite}${JSON.stringify(
+        message,
+        circularReplacer(),
+        2,
+      )}${ConsoleColors.Reset}`;
+    } else {
+      print = message as string;
     }
+    const o: string[] = [
+      `${ConsoleColors.Bright}${ConsoleColors.FgMagenta}${this.name}${ConsoleColors.Reset}`,
+      `${ConsoleColors.FgMagenta}${place}${ConsoleColors.Reset}`,
+      '>',
+      print,
+    ];
+    toOutput(o, 'log');
+  }
+
+  warn(place: string, message: unknown) {
+    let print = '';
+    if (typeof message === 'object') {
+      print = `\r\n${ConsoleColors.FgYellow}${JSON.stringify(
+        message,
+        circularReplacer(),
+        2,
+      )}${ConsoleColors.Reset}`;
+    } else {
+      print = message as string;
+    }
+    const o = [
+      `${ConsoleColors.Bright}${ConsoleColors.FgMagenta}${this.name}${ConsoleColors.Reset}`,
+      `${ConsoleColors.FgMagenta}${place}${ConsoleColors.Reset}`,
+      '>',
+      print,
+    ];
+    toOutput(o, 'warn');
+  }
+
+  error(place: string, message: unknown) {
+    let print = '';
+    if (typeof message === 'object') {
+      let stack: string | undefined;
+      if (message instanceof Error) {
+        stack = message.stack;
+      } else if (message instanceof HTTPException) {
+        stack = message.stack.join('\n');
+      }
+      print = `\r\n${ConsoleColors.FgRed}${JSON.stringify(
+        message,
+        circularReplacer(),
+        '  ',
+      )}${ConsoleColors.Reset}`;
+      if (stack) {
+        print =
+          print + `\r\n${ConsoleColors.FgRed}${stack}${ConsoleColors.Reset}`;
+      }
+    } else {
+      print = message as string;
+    }
+    const o = [
+      `${ConsoleColors.Bright}${ConsoleColors.FgMagenta}${this.name}${ConsoleColors.Reset}`,
+      `${ConsoleColors.FgMagenta}${place}${ConsoleColors.Reset}`,
+      '>',
+      print,
+    ];
+    toOutput(o, 'error');
   }
 }
 
-export function updateLogger(config: UpdateLoggerConfig) {
-  if (config.output) {
-    if (config.output.startsWith('/')) {
-      output = config.output;
-    } else {
-      output = path.join(process.cwd(), config.output);
-    }
-  }
-  if (config.saveInterval) {
-    clearInterval(saveInterval);
-    saveInterval = setInterval(() => {
-      save().catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error(error);
-        process.exit(1);
-      });
-    }, config.saveInterval);
-  }
-  if (typeof config.silent === 'boolean') {
-    silent = config.silent;
-  }
-  if (config.onSave) {
-    onSave = config.onSave;
-  }
-  if (config.onInfo) {
-    onInfo = config.onInfo;
-  }
-  if (config.onWarn) {
-    onWarn = config.onWarn;
-  }
-  if (config.onError) {
-    onError = config.onError;
-  }
-}
-export function initializeLogger() {
-  if (!fs) {
-    fs = useFS();
-  }
-  if (!saveInterval) {
-    saveInterval = setInterval(() => {
-      save().catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error(error);
-        process.exit(1);
-      });
-    }, 10000);
-  }
-}
-export function useLogger(config: UseLoggerConfig): Logger {
-  return {
-    info(place, message) {
-      let print = '';
-      if (typeof message === 'object') {
-        print = `\r\n${ConsoleColors.FgWhite}${JSON.stringify(
-          message,
-          circularReplacer(),
-          2,
-        )}${ConsoleColors.Reset}`;
-      } else {
-        print = message as string;
-      }
-      const o: string[] = [
-        `${ConsoleColors.FgWhite}[INFO]${ConsoleColors.Reset}`,
-        `[${ConsoleColors.FgCyan}${new Date().toLocaleString()}${
-          ConsoleColors.Reset
-        }]`,
-        `${ConsoleColors.Bright}${ConsoleColors.FgMagenta}${config.name}${ConsoleColors.Reset}`,
-        `${ConsoleColors.FgMagenta}${place}${ConsoleColors.Reset}`,
-        '>',
-        print,
-      ];
-      toOutput(o);
-      if (onInfo) {
-        onInfo(config, place, message).catch((err) => {
-          // eslint-disable-next-line no-console
-          console.error('CRIT', err);
-        });
-      }
-    },
-    warn(place, message) {
-      let print = '';
-      if (typeof message === 'object') {
-        print = `\r\n${ConsoleColors.FgYellow}${JSON.stringify(
-          message,
-          circularReplacer(),
-          2,
-        )}${ConsoleColors.Reset}`;
-      } else {
-        print = message as string;
-      }
-      const o = [
-        `${ConsoleColors.BgYellow}${ConsoleColors.FgBlack}[WARN]${ConsoleColors.Reset}`,
-        `[${ConsoleColors.FgCyan}${new Date().toLocaleString()}${
-          ConsoleColors.Reset
-        }]`,
-        `${ConsoleColors.Bright}${ConsoleColors.FgMagenta}${config.name}${ConsoleColors.Reset}`,
-        `${ConsoleColors.FgMagenta}${place}${ConsoleColors.Reset}`,
-        '>',
-        print,
-      ];
-      toOutput(o);
-      if (onWarn) {
-        onWarn(config, place, message).catch((err) => {
-          // eslint-disable-next-line no-console
-          console.error('CRIT', err);
-        });
-      }
-    },
-    error(place, message) {
-      let print = '';
-      if (typeof message === 'object') {
-        let stack: string | undefined;
-        if (message instanceof Error) {
-          stack = message.stack;
-        } else if (message instanceof HTTPException) {
-          stack = message.stack.join('\n');
-        }
-        print = `\r\n${ConsoleColors.FgRed}${JSON.stringify(
-          message,
-          circularReplacer(),
-          '  ',
-        )}${ConsoleColors.Reset}`;
-        if (stack) {
-          print =
-            print + `\r\n${ConsoleColors.FgRed}${stack}${ConsoleColors.Reset}`;
-        }
-      } else {
-        print = message as string;
-      }
-      const o = [
-        `${ConsoleColors.BgRed}${ConsoleColors.FgBlack}[ERROR]${ConsoleColors.Reset}`,
-        `[${ConsoleColors.FgCyan}${new Date().toLocaleString()}${
-          ConsoleColors.Reset
-        }]`,
-        `${ConsoleColors.Bright}${ConsoleColors.FgMagenta}${config.name}${ConsoleColors.Reset}`,
-        `${ConsoleColors.FgMagenta}${place}${ConsoleColors.Reset}`,
-        '>',
-        print,
-      ];
-      toOutput(o);
-      if (onError) {
-        onError(config, place, message).catch((err) => {
-          // eslint-disable-next-line no-console
-          console.error('CRIT', err);
-        });
-      }
-    },
-  };
+export function useLogger(config: { name: string }) {
+  return new Logger(config.name);
 }

@@ -129,6 +129,7 @@ export function createLogger(config?: LoggerConfig): Module {
               location,
               str,
             ].join(' ');
+            outputBuffer.push(str); 
             write.apply(process[type], [str, encoding, cb]);
             if (config && config.onMessage) {
               config.onMessage({ data: str, type });

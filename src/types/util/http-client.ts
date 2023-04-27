@@ -48,7 +48,7 @@ export class HttpClientResponseError<T> {
 }
 
 export interface HttpClient {
-  send<T, K, R>(
-    config: HttpClientRequestConfig<K>,
-  ): Promise<HttpClientResponse<T> | HttpClientResponseError<R>>;
+  send<ResponseData = unknown, RequestData = unknown>(
+    config: HttpClientRequestConfig<RequestData>,
+  ): Promise<HttpClientResponse<ResponseData>>;
 }

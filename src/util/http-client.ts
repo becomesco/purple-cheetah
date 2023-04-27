@@ -21,102 +21,107 @@ export function createHttpClient(config: HttpClientConfig): HttpClient {
   const defaultHost = config.host ? config.host.name : 'localhost';
   const defaultPort = config.host && config.host.port ? config.host.port : '80';
   const client: HttpClient = {
-    async send<ResponseData, RequestData, ErrorData>(
+    async send<
+      ResponseData = unknown,
+      RequestData = unknown,
+    >(
       conf: HttpClientRequestConfig<RequestData>,
-    ): Promise<HttpClientResponse<ResponseData> | HttpClientResponseError<ErrorData>> {
-      return await new Promise<
-        HttpClientResponse<ResponseData> | HttpClientResponseError<ErrorData>
-      >((resolve, reject) => {
-        const requestConfig: RequestOptions = {
-          host: conf.host ? conf.host.name : defaultHost,
-          port: conf.host && conf.host.port ? conf.host.port : defaultPort,
-          headers: conf.headers
-            ? { ...headers, ...conf.headers }
-            : { ...headers },
-          method: conf.method,
-          path: `${basePath}${conf.path}`,
-        };
-        let data: string | undefined = undefined;
-        if (typeof conf.data === 'object') {
-          data = JSON.stringify(conf.data);
-          (requestConfig.headers as HttpClientHeaders)['content-type'] =
-            'application/json';
-        } else if (typeof conf.data !== 'undefined') {
-          data = `${conf.data}`;
-          (requestConfig.headers as HttpClientHeaders)['content-type'] =
-            'text/plain';
-        }
-        const q: HttpClientQuery = conf.query
-          ? { ...query, ...conf.query }
-          : { ...query };
-        const queryString = Object.keys(q)
-          .map((e) => `${e}=${encodeURIComponent(q[e])}`)
-          .join('&');
-        if (queryString !== '') {
-          if (conf.path.indexOf('?') !== -1) {
-            requestConfig.path += '&' + queryString;
-          } else {
-            requestConfig.path += '?' + queryString;
+    ): Promise<HttpClientResponse<ResponseData>> {
+      return await new Promise<HttpClientResponse<ResponseData>>(
+        (resolve, reject) => {
+          const requestConfig: RequestOptions = {
+            host: conf.host ? conf.host.name : defaultHost,
+            port: conf.host && conf.host.port ? conf.host.port : defaultPort,
+            headers: conf.headers
+              ? { ...headers, ...conf.headers }
+              : { ...headers },
+            method: conf.method,
+            path: `${basePath}${conf.path}`,
+          };
+          let data: string | undefined = undefined;
+          if (typeof conf.data === 'object') {
+            data = JSON.stringify(conf.data);
+            (requestConfig.headers as HttpClientHeaders)['content-type'] =
+              'application/json';
+          } else if (typeof conf.data !== 'undefined') {
+            data = `${conf.data}`;
+            (requestConfig.headers as HttpClientHeaders)['content-type'] =
+              'text/plain';
           }
-        }
-        const sender =
-          config.host && config.host.port
-            ? config.host.port === '443'
+          const q: HttpClientQuery = conf.query
+            ? { ...query, ...conf.query }
+            : { ...query };
+          const queryString = Object.keys(q)
+            .map((e) => `${e}=${encodeURIComponent(q[e])}`)
+            .join('&');
+          if (queryString !== '') {
+            if (conf.path.indexOf('?') !== -1) {
+              requestConfig.path += '&' + queryString;
+            } else {
+              requestConfig.path += '?' + queryString;
+            }
+          }
+          const sender =
+            config.host && config.host.port
+              ? config.host.port === '443'
+                ? httpsRequest
+                : httpRequest
+              : defaultPort === '443'
               ? httpsRequest
-              : httpRequest
-            : defaultPort === '443'
-            ? httpsRequest
-            : httpRequest;
+              : httpRequest;
 
-        const request = sender(requestConfig, (res) => {
-          let rawData = '';
-          res.on('data', (chunk) => {
-            rawData += chunk;
-          });
-          res.on('error', (err) => {
-            const output = new HttpClientResponseError(
-              res.statusCode ? res.statusCode : 0,
-              res.headers,
-              res.headers['content-type'] === 'application/json'
-                ? JSON.parse(rawData)
-                : rawData,
-              err,
-            );
-            resolve(output);
-            return;
-          });
-          res.on('end', () => {
-            if (res.statusCode !== 200) {
+          const request = sender(requestConfig, (res) => {
+            let rawData = '';
+            res.on('data', (chunk) => {
+              rawData += chunk;
+            });
+            res.on('error', (err) => {
               const output = new HttpClientResponseError(
                 res.statusCode ? res.statusCode : 0,
                 res.headers,
                 res.headers['content-type'] === 'application/json'
                   ? JSON.parse(rawData)
                   : rawData,
-                res,
+                err,
               );
-              resolve(output);
+              reject(output);
               return;
-            }
-            resolve({
-              status: res.statusCode,
-              headers: res.headers,
-              data:
-                res.headers['content-type'] &&
-                res.headers['content-type'].indexOf('application/json') !== -1
-                  ? JSON.parse(rawData)
-                  : rawData,
+            });
+            res.on('end', () => {
+              if (res.statusCode !== 200) {
+                const output = new HttpClientResponseError(
+                  res.statusCode ? res.statusCode : 0,
+                  res.headers,
+                  res.headers['content-type'] === 'application/json'
+                    ? JSON.parse(rawData)
+                    : rawData,
+                  res,
+                );
+                reject(output);
+                return;
+              } else {
+                resolve({
+                  status: res.statusCode,
+                  headers: res.headers,
+                  data:
+                    res.headers['content-type'] &&
+                    res.headers['content-type'].indexOf('application/json') !==
+                      -1
+                      ? JSON.parse(rawData)
+                      : rawData,
+                });
+              }
             });
           });
-        });
-        request.on('error', (e) => {
-          reject(e);
-        });
-        if (typeof data !== 'undefined') {
-          request.write(data);
-        }
-        request.end();
-      });
+          request.on('error', (e) => {
+            reject(e);
+          });
+          if (typeof data !== 'undefined') {
+            request.write(data);
+          }
+          request.end();
+        },
+      );
     },
   };
   clients[config.name] = client;

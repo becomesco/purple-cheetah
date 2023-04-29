@@ -1,10 +1,14 @@
 export interface LoggerOnMessage {
-  (event: { data: string | Buffer; type: 'stdout' | 'stderr' }): void;
+  (event: {
+    data: string | Buffer | Uint8Array;
+    type: 'stdout' | 'stderr';
+  }): void;
 }
 
 export interface LoggerConfig {
   onMessage?: LoggerOnMessage;
   silent?: boolean;
+  doNotOverrideProcess?: boolean;
   saveToFile?: {
     output: string;
     interval: number;

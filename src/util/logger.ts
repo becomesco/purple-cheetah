@@ -118,8 +118,7 @@ export function createLogger(config?: LoggerConfig): Module {
                 break;
               }
             }
-            // location = stack.join('\n');
-            str = [
+            const output = [
               type === 'stdout'
                 ? `${ConsoleColors.FgWhite}[INFO]${ConsoleColors.Reset}`
                 : `${ConsoleColors.BgRed}${ConsoleColors.FgBlack}[ERROR]${ConsoleColors.Reset}`,
@@ -129,7 +128,8 @@ export function createLogger(config?: LoggerConfig): Module {
               location,
               str,
             ].join(' ');
-            outputBuffer.push(str); 
+            str = config && config.doNotOverrideProcess ? str : output;
+            outputBuffer.push(output); 
             write.apply(process[type], [str, encoding, cb]);
             if (config && config.onMessage) {
               config.onMessage({ data: str, type });

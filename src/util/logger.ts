@@ -39,7 +39,10 @@ export class ConsoleColors {
   static BgWhite = '\x1b[47m';
 }
 
+let loggerConfig: LoggerConfig | undefined;
+
 export function createLogger(config?: LoggerConfig): Module {
+  loggerConfig = config;
   return {
     name: 'Logger',
     initialize({ next }) {
@@ -129,7 +132,7 @@ export function createLogger(config?: LoggerConfig): Module {
               str,
             ].join(' ');
             str = config && config.doNotOverrideProcess ? str : output;
-            outputBuffer.push(output); 
+            outputBuffer.push(output);
             write.apply(process[type], [str, encoding, cb]);
             if (config && config.onMessage) {
               config.onMessage({ data: str, type });
@@ -182,8 +185,10 @@ function circularReplacer() {
 }
 
 function toOutput(messageParts: string[], type: 'log' | 'warn' | 'error') {
-  // eslint-disable-next-line no-console
-  console[type](messageParts.join(' '));
+  if (!loggerConfig || !loggerConfig.silentLogger) {
+    // eslint-disable-next-line no-console
+    console[type](messageParts.join(' '));
+  }
 }
 
 export class Logger {

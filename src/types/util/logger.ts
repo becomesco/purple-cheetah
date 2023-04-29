@@ -8,6 +8,7 @@ export interface LoggerOnMessage {
 export interface LoggerConfig {
   onMessage?: LoggerOnMessage;
   silent?: boolean;
+  silentLogger?: boolean;
   doNotOverrideProcess?: boolean;
   saveToFile?: {
     output: string;

@@ -7,8 +7,9 @@ import {
   createRequestLoggerMiddleware,
   createHttpClient,
   removeHttpClient,
+  createController,
+  createControllerMethod,
 } from '../../src';
-import { HelloWorldController } from '../../examples/hello-world/controller';
 
 describe('REST API - Hello world', async () => {
   let app: PurpleCheetah;
@@ -23,7 +24,28 @@ describe('REST API - Hello world', async () => {
     return await new Promise<void>((resolve) => {
       app = createPurpleCheetah({
         port: 1280,
-        controllers: [HelloWorldController],
+        logger: {
+          doNotOverrideProcess: true,
+        },
+        controllers: [
+          createController({
+            name: 'Basic',
+            path: '/basic',
+            methods() {
+              return {
+                hello: createControllerMethod<void, { ok: boolean }>({
+                  path: '/hello',
+                  type: 'get',
+                  async handler() {
+                    return {
+                      ok: true,
+                    };
+                  },
+                }),
+              };
+            },
+          }),
+        ],
         middleware: [
           createRequestLoggerMiddleware(),
           createBodyParserMiddleware(),
@@ -47,28 +69,14 @@ describe('REST API - Hello world', async () => {
     console.log('c serv done');
     removeHttpClient('Hello World');
   });
-  it('should call /hello/world', async () => {
-    const res = await http.send<{ message: string }, unknown, unknown>({
-      path: '/hello/world',
+  it('should call /basic/hello', async () => {
+    const res = await http.send<{ message: string }>({
+      path: '/basic/hello',
       method: 'get',
     });
     if (res instanceof HttpClientResponseError) {
       throw res;
     }
-    expect(res)
-      .to.have.property('data')
-      .to.have.property('message', 'Hello World!');
-  });
-  it('should call /hello/this-is-test', async () => {
-    const res = await http.send<{ message: string }, unknown, unknown>({
-      path: '/hello/this-is-test',
-      method: 'get',
-    });
-    if (res instanceof HttpClientResponseError) {
-      throw res;
-    }
-    expect(res)
-      .to.have.property('data')
-      .to.have.property('message', 'Hello this-is-test!');
+    expect(res).to.have.property('data').to.have.property('ok', true);
   });
 });

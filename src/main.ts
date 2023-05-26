@@ -87,7 +87,7 @@ export function createPurpleCheetah(
               description: '',
               type: method.type,
               response: {
-                json: {
+                jsonSchema: {
                   unknown: {
                     __type: 'string',
                     __required: false,

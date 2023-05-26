@@ -30,12 +30,14 @@ export interface DocObject<
   description: string;
   query?: ObjectSchema;
   body?: {
-    json?: keyof Components | ObjectSchema;
+    json?: keyof Components;
+    jsonSchema?: ObjectSchema;
     file?: string;
   };
   security?: Array<keyof Security>;
   response: {
-    json?: keyof Components | ObjectSchema;
+    json?: keyof Components;
+    jsonSchema?: ObjectSchema;
     file?: boolean;
   };
 }

@@ -10,6 +10,7 @@ import {
   createController,
   createControllerMethod,
   createDocObject,
+  createComponents,
 } from '../../src';
 
 describe('REST API - Hello world', async () => {
@@ -22,12 +23,27 @@ describe('REST API - Hello world', async () => {
     },
   });
   before('start server', async () => {
+    const docComponents = createComponents({
+      BasicBody: {
+        yourMessage: {
+          __type: 'string',
+          __required: true,
+        },
+      },
+      BasicResponse: {
+        message: {
+          __type: 'string',
+          __required: true,
+        },
+      },
+    });
+    type Components = typeof docComponents;
     return await new Promise<void>((resolve) => {
       app = createPurpleCheetah({
         port: 1280,
         doc: {
           name: 'Test docs',
-          components: {},
+          components: docComponents,
         },
         logger: {
           doNotOverrideProcess: true,
@@ -41,15 +57,19 @@ describe('REST API - Hello world', async () => {
                 hello: createControllerMethod<void, { ok: boolean }>({
                   path: '/hello',
                   type: 'get',
-                  doc: createDocObject({
+                  doc: createDocObject<Components>({
                     description: 'Say Hello!',
-                    response: {
-                      json: {
-                        ok: {
-                          __type: 'boolean',
-                          __required: true,
-                        },
+                    body: {
+                      json: 'BasicBody',
+                    },
+                    query: {
+                      join: {
+                        __type: 'string',
+                        __required: true,
                       },
+                    },
+                    response: {
+                      json: 'BasicResponse',
                     },
                   }),
                   async handler() {

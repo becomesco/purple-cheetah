@@ -11,6 +11,7 @@ import {
   createNotFoundMiddleware,
 } from './rest';
 import { ConsoleColors, Logger, createLogger } from './util';
+import { createDocs, PurpleCheetahDocs } from './doc';
 
 /**
  * Will create a Purple Cheetah object. This includes mounting all module,
@@ -68,9 +69,33 @@ export function createPurpleCheetah(
       const controller = controllers[i];
       if (controller) {
         const data = await controller({ expressApp: app });
+        PurpleCheetahDocs[data.name] = {
+          description: data.description || '',
+          path: data.path,
+          methods: {},
+        };
         logger.info('controller', `${data.name}`);
         const methods = data.methods();
         methods.forEach((method) => {
+          if (method.doc) {
+            PurpleCheetahDocs[data.name].methods[method.path] = {
+              ...method.doc,
+              type: method.type,
+            };
+          } else {
+            PurpleCheetahDocs[data.name].methods[method.path] = {
+              description: '',
+              type: method.type,
+              response: {
+                json: {
+                  unknown: {
+                    __type: 'string',
+                    __required: false,
+                  },
+                },
+              },
+            };
+          }
           const path = (data.path + method.path).replace(/\/\//g, '/');
           logger.info('controller', `    --> ${path}`);
           app[method.type](path, method.handler);
@@ -201,6 +226,7 @@ export function createPurpleCheetah(
           .catch((err) => next(err));
       },
     },
+    createDocs(),
     {
       name: 'Start Server',
       initialize({ next, name }) {

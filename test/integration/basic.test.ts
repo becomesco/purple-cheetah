@@ -9,6 +9,7 @@ import {
   removeHttpClient,
   createController,
   createControllerMethod,
+  createDocObject,
 } from '../../src';
 
 describe('REST API - Hello world', async () => {
@@ -24,6 +25,10 @@ describe('REST API - Hello world', async () => {
     return await new Promise<void>((resolve) => {
       app = createPurpleCheetah({
         port: 1280,
+        doc: {
+          name: 'Test docs',
+          components: {},
+        },
         logger: {
           doNotOverrideProcess: true,
         },
@@ -36,6 +41,17 @@ describe('REST API - Hello world', async () => {
                 hello: createControllerMethod<void, { ok: boolean }>({
                   path: '/hello',
                   type: 'get',
+                  doc: createDocObject({
+                    description: 'Say Hello!',
+                    response: {
+                      json: {
+                        ok: {
+                          __type: 'boolean',
+                          __required: true,
+                        },
+                      },
+                    },
+                  }),
                   async handler() {
                     return {
                       ok: true,

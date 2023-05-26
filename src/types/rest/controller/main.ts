@@ -18,6 +18,11 @@ export interface ControllerConfig<SetupResult = unknown> {
   path: string;
 
   /**
+   * Describe what this controller is for.
+   */
+  description?: string;
+
+  /**
    * This method will be called once it controller is mounted. Output
    * from setup method is parsed to the `methods` method.
    */
@@ -49,6 +54,7 @@ export interface ControllerData {
    * and to organize errors.
    */
   name: string;
+  description?: string;
   /**
    * Path of the controller name the same way as
    * Express route.

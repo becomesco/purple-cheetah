@@ -3,6 +3,7 @@ import type { Express } from 'express';
 import type { Server } from 'http';
 import type { Module } from './module';
 import type { LoggerConfig } from './util';
+import type { DocComponents, DocSecurityOptions } from './doc';
 
 /**
  * Configuration object for creating Express
@@ -33,6 +34,13 @@ export interface PurpleCheetahConfig {
    * which means that first item in the array will be mounted first.
    */
   middleware?: Middleware[];
+  doc?: {
+    name: string;
+    description?: string;
+    components?: DocComponents;
+    security?: DocSecurityOptions
+    output?: string;
+  };
   /**
    * Middleware object which will override default 404 middleware.
    */

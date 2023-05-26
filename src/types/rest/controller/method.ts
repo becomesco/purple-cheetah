@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import type { DocComponents, DocObject } from '../../../types';
 import type { Logger } from '../../util';
 import type { HTTPError } from '../error';
 
@@ -13,6 +14,7 @@ export type ControllerMethodType = 'get' | 'post' | 'put' | 'delete';
 export interface ControllerMethod {
   type: ControllerMethodType;
   path: string;
+  doc?: DocObject<DocComponents>;
   handler: (
     request: Request,
     response: Response,
@@ -35,6 +37,10 @@ export interface ControllerMethodConfig<
    * Path on which controller method will be available.
    */
   path?: string;
+  /**
+   * Object for auto-generated documentation.
+   */
+  doc?: DocObject<DocComponents>;
   /**
    * Method which will be called before `handler` method on each request.
    * Output from `preRequestHandler` method is available in `handler` method.

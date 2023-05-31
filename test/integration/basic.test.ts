@@ -29,6 +29,25 @@ describe('REST API - Hello world', async () => {
           __type: 'string',
           __required: true,
         },
+        a: {
+          __type: 'object',
+          __required: true,
+          __child: {
+            b: {
+              __type: 'array',
+              __required: false,
+              __child: {
+                __type: 'object',
+                __content: {
+                  c: {
+                    __type: 'string',
+                    __required: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       BasicResponse: {
         message: {
@@ -42,8 +61,21 @@ describe('REST API - Hello world', async () => {
       app = createPurpleCheetah({
         port: 1280,
         doc: {
+          type: 'open-api-3',
           name: 'Test docs',
           components: docComponents,
+          contact: {
+            name: 'Test',
+            email: 'test@test.com',
+          },
+          security: {
+            JWT: {
+              inputNames: ['JWT'],
+              handler: async (inputs, req) => {
+                console.log({ inputs, req });
+              },
+            },
+          },
         },
         logger: {
           doNotOverrideProcess: true,
@@ -58,16 +90,29 @@ describe('REST API - Hello world', async () => {
                   path: '/hello',
                   type: 'get',
                   doc: createDocObject<Components>({
-                    description: 'Say Hello!',
+                    summary: 'Say Hello!',
+                    security: ['JWT'],
                     body: {
                       json: 'BasicBody',
                     },
-                    query: {
-                      join: {
-                        __type: 'string',
-                        __required: true,
+                    params: [
+                      {
+                        name: 'join',
+                        type: 'query',
+                        required: true,
+                        description: 'Join us',
                       },
-                    },
+                      {
+                        name: 'name',
+                        type: 'path',
+                        required: true,
+                        description: 'Your name',
+                      },
+                      {
+                        name: 'head',
+                        type: 'header',
+                      },
+                    ],
                     response: {
                       json: 'BasicResponse',
                     },

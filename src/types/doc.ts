@@ -23,12 +23,20 @@ export interface DocSecurityOptions {
   [key: string]: DocSecurityItem;
 }
 
+export interface DocObjectParam {
+  type: 'header' | 'path' | 'query';
+  name: string;
+  required?: boolean;
+  description?: string;
+}
+
 export interface DocObject<
   Components extends DocComponents = DocComponents,
   Security extends DocSecurityOptions = DocSecurityOptions,
 > {
-  description: string;
-  query?: ObjectSchema;
+  summary: string;
+  description?: string;
+  params?: DocObjectParam[];
   body?: {
     json?: keyof Components;
     jsonSchema?: ObjectSchema;

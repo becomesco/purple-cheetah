@@ -42,6 +42,7 @@ function wrapControllerMethod<
   return {
     type: config.type,
     path,
+    doc: config.doc,
     handler: async (request, response, next) => {
       try {
         let preRequestHandlerResult: PreRequestHandlerResult = {} as never;
@@ -119,6 +120,7 @@ export function createController<SetupResult>(
           wrapControllerMethod(logger, setupResult, methodNames[i], {
             type: method.type,
             path: method.path,
+            doc: method.doc,
             preRequestHandler: method.preRequestHandler,
             handler: method.handler,
           }),

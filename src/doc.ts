@@ -5,6 +5,8 @@ import type {
   DocObject,
   DocSecurityOptions,
   Module,
+  ObjectSchema,
+  PurpleCheetahConfig,
   PurpleCheetahDocs as PurpleCheetahDocsType,
 } from './types';
 
@@ -23,6 +25,20 @@ export function createComponents<
 
 export const PurpleCheetahDocs: PurpleCheetahDocsType = {};
 
+interface DocOutput {
+  version: string;
+  name: string;
+  description: string;
+  components: DocComponents;
+  security: DocSecurityOptions;
+  endpoints: PurpleCheetahDocsType;
+  contact: {
+    name: string;
+    email: string;
+    url?: string;
+  };
+}
+
 export function createDocs(): Module {
   return {
     name: 'Docs',
@@ -37,20 +53,25 @@ export function createDocs(): Module {
               ? rootConfig.doc.output
               : path.join(process.cwd(), ...rootConfig.doc.output.split('/')),
           });
-          const output: {
-            name: string;
-            description: string;
-            components: DocComponents;
-            security: DocSecurityOptions;
-            endpoints: PurpleCheetahDocsType;
-          } = {
+          const output: DocOutput = {
+            version: '',
             name: rootConfig.doc.name,
             description: rootConfig.doc.description || '',
             components: rootConfig.doc.components || {},
             security: rootConfig.doc.security || {},
             endpoints: PurpleCheetahDocs,
+            contact: rootConfig.doc.contact,
           };
-          await fs.save('docs.json', JSON.stringify(output, null, '  '));
+          const packageJson = JSON.parse(
+            await fs.readString(path.join(process.cwd(), 'package.json')),
+          );
+          output.version = packageJson.version;
+          if (rootConfig.doc.type === 'open-api-3') {
+            await fs.save(
+              `${packageJson.version.replace(/\./g, '-')}_open-api.yml`,
+              await generateOpenApi3(output, rootConfig),
+            );
+          }
         }
       }
       init()
@@ -58,4 +79,208 @@ export function createDocs(): Module {
         .catch((err) => next(err));
     },
   };
+}
+
+async function generateOpenApi3(
+  input: DocOutput,
+  rootConfig: PurpleCheetahConfig,
+): Promise<string> {
+  const output = `openapi: '3.0.2'
+info:
+  version: '${input.version}'
+  title: ${input.name}
+  description: '${input.description}'
+  contact:
+    name: '${input.contact.name}'
+    email: '${input.contact.email}'
+    ${input.contact.url ? `url: ${input.contact.url}` : ''}    
+servers:
+  - url: 'http://localhost:${rootConfig.port}'
+    description: 'Local development' 
+components:
+  schemas:
+${Object.keys(input.components)
+  .map((componentName) => {
+    const component = input.components[componentName];
+    return [
+      `    ${componentName}:`,
+      objectSchemaToYamlSchema('        ', component),
+    ].join('\n');
+  })
+  .join('\n')}
+  ${
+    Object.keys(input.security).length > 0
+      ? [
+          'securitySchemes:',
+          ...Object.keys(input.security).map((securityName) => {
+            const security = input.security[securityName];
+            return [
+              `    ${securityName}:`,
+              `      type: http`,
+              `      scheme: bearer`,
+              `      inputs: '${security.inputNames.join(',')}'`,
+              `      handler: '${security.handler.toString()}'`,
+            ].join('\n');
+          }),
+        ].join('\n')
+      : ''
+  }
+paths:
+${Object.keys(input.endpoints)
+  .map((collectionName) => {
+    const collection = input.endpoints[collectionName];
+    return Object.keys(collection.methods)
+      .map((methodPath) => {
+        const method = collection.methods[methodPath];
+        const methodArr = [
+          `  ${collection.path}${methodPath}:`,
+          `    ${method.type}:`,
+          `      tags:`,
+          `        - ${collectionName}${
+            method.security
+              ? [
+                  '\n      security:',
+                  ...method.security.map((e) => {
+                    return `        - ${e}: []`;
+                  }),
+                ].join('\n')
+              : ''
+          }`,
+          `      summary: '${method.summary}'${
+            method.description
+              ? `\n      description: '${method.description}'`
+              : ''
+          }${
+            method.params
+              ? `\n      parameters:\n${method.params
+                  .map((param) => {
+                    const result = [
+                      `        - in: ${param.type}`,
+                      `          name: ${param.name}`,
+                      `          schema:`,
+                      `            type: string`,
+                      `          required: ${!!param.required}`,
+                    ];
+                    if (param.description) {
+                      result.push(
+                        `          description: '${param.description}'`,
+                      );
+                    }
+                    return result.join('\n');
+                  })
+                  .join('\n')}`
+              : ''
+          }`,
+          `      responses:`,
+          `        '200':`,
+          `          description: OK`,
+          `          content:`,
+          `            application/json:`,
+          `              schema:`,
+        ];
+        if (method.response.json) {
+          methodArr.push(
+            `                $ref: '#/components/schemas/${method.response.json}'`,
+          );
+        } else if (method.response.jsonSchema) {
+          methodArr.push(
+            objectSchemaToYamlSchema(
+              '                  ',
+              method.response.jsonSchema,
+            ),
+          );
+        } else if (method.response.file) {
+          // TODO
+        }
+        if (method.body) {
+          methodArr.push(
+            `      requestBody:`,
+            `        required: true`,
+            `        content:`,
+            `          application/json:`,
+            `            schema:`,
+          );
+          if (method.body.json) {
+            methodArr.push(
+              `              $ref: '#/components/schemas/${method.body.json}'`,
+            );
+          } else if (method.body.jsonSchema) {
+            methodArr.push(
+              objectSchemaToYamlSchema(
+                '              ',
+                method.body.jsonSchema,
+              ),
+            );
+          } else if (method.body.file) {
+            // TODO
+          }
+        }
+        return methodArr.join('\n');
+      })
+      .join('\n');
+  })
+  .join('\n')}
+`;
+  return output;
+}
+
+function objectSchemaToYamlSchema(
+  indent: string,
+  schema: ObjectSchema,
+): string {
+  const requiredProps: string[] = [];
+  return [
+    `${indent}type: object`,
+    `${indent}properties:`,
+    ...Object.keys(schema).map((propName) => {
+      const prop = schema[propName];
+      if (prop.__required) {
+        requiredProps.push(propName);
+      }
+      if (prop.__type === 'object' && prop.__child) {
+        return [
+          `${indent}  ${propName}:`,
+          objectSchemaToYamlSchema(
+            `${indent}    `,
+            prop.__child as ObjectSchema,
+          ),
+        ].join(`\n`);
+      } else if (prop.__type === 'array' && prop.__child) {
+        if (prop.__child.__type === 'object') {
+          return [
+            `${indent}  ${propName}:`,
+            `${indent}    type: array`,
+            `${indent}    items:`,
+            `${indent}      type: object`,
+            `${indent}      properties:`,
+            objectSchemaToYamlSchema(
+              `${indent}      `,
+              prop.__child.__content as ObjectSchema,
+            )
+              .split('\n')
+              .slice(2)
+              .join('\n'),
+          ].join('\n');
+        } else {
+          return [
+            `${indent}  ${propName}:`,
+            `${indent}    type: array`,
+            `${indent}    items:`,
+            `${indent}      type: ${prop.__child.__type}`,
+          ].join('\n');
+        }
+      } else {
+        return [`${indent}  ${propName}:`, `    type: ${prop.__type}`].join(
+          '\n' + indent,
+        );
+      }
+    }),
+    requiredProps.length > 0
+      ? `${indent}required:\n${requiredProps
+          .map((item) => {
+            return `${indent}  - ${item}`;
+          })
+          .join('\n')}`
+      : '',
+  ].join('\n');
 }

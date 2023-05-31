@@ -86,6 +86,7 @@ export function createPurpleCheetah(
             PurpleCheetahDocs[data.name].methods[method.path] = {
               description: '',
               type: method.type,
+              summary: '',
               response: {
                 jsonSchema: {
                   unknown: {

@@ -36,10 +36,16 @@ export interface PurpleCheetahConfig {
   middleware?: Middleware[];
   doc?: {
     name: string;
+    type: 'open-api-3'
     description?: string;
     components?: DocComponents;
     security?: DocSecurityOptions
     output?: string;
+    contact: {
+      name: string;
+      email: string;
+      url?: string;
+    }
   };
   /**
    * Middleware object which will override default 404 middleware.

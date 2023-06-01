@@ -37,6 +37,7 @@ export interface DocObject<
   summary: string;
   description?: string;
   params?: DocObjectParam[];
+  ignore?: boolean;
   body?: {
     json?: keyof Components;
     jsonSchema?: ObjectSchema;
@@ -55,7 +56,9 @@ export interface PurpleCheetahDocs {
     description: string;
     path: string;
     methods: {
-      [path: string]: DocObject & { type: ControllerMethodType };
+      [path: string]: Array<
+        DocObject & { type: ControllerMethodType; path: string }
+      >;
     };
   };
 }

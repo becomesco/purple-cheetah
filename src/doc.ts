@@ -131,90 +131,109 @@ ${Object.keys(input.endpoints)
     const collection = input.endpoints[collectionName];
     return Object.keys(collection.methods)
       .map((methodPath) => {
-        const method = collection.methods[methodPath];
+        const methods = collection.methods[methodPath];
+        if (methods.length === 1 && methods[0].ignore) {
+          return '';
+        }
         const methodArr = [
-          `  ${collection.path}${methodPath}:`,
-          `    ${method.type}:`,
-          `      tags:`,
-          `        - ${collectionName}${
-            method.security
-              ? [
-                  '\n      security:',
-                  ...method.security.map((e) => {
-                    return `        - ${e}: []`;
-                  }),
-                ].join('\n')
-              : ''
-          }`,
-          `      summary: '${method.summary}'${
-            method.description
-              ? `\n      description: '${method.description}'`
-              : ''
-          }${
-            method.params
-              ? `\n      parameters:\n${method.params
-                  .map((param) => {
-                    const result = [
-                      `        - in: ${param.type}`,
-                      `          name: ${param.name}`,
-                      `          schema:`,
-                      `            type: string`,
-                      `          required: ${!!param.required}`,
-                    ];
-                    if (param.description) {
-                      result.push(
-                        `          description: '${param.description}'`,
-                      );
-                    }
-                    return result.join('\n');
-                  })
-                  .join('\n')}`
-              : ''
-          }`,
-          `      responses:`,
-          `        '200':`,
-          `          description: OK`,
-          `          content:`,
-          `            application/json:`,
-          `              schema:`,
+          `  ${`${collection.path}${methods[0].path}`
+            .split('/')
+            .map((e) => {
+              if (e.startsWith(':')) {
+                return `{${e.substring(1)}}`;
+              }
+              return e;
+            })
+            .join('/')}:`,
+          ...methods.map((method) => {
+            if (method.ignore) {
+              return '';
+            }
+            const methodLines = [
+              `    ${method.type}:`,
+              `      tags:`,
+              `        - ${collectionName}${
+                method.security
+                  ? [
+                      '\n      security:',
+                      ...method.security.map((e) => {
+                        return `        - ${e}: []`;
+                      }),
+                    ].join('\n')
+                  : ''
+              }`,
+              `      summary: '${method.summary}'${
+                method.description
+                  ? `\n      description: '${method.description}'`
+                  : ''
+              }${
+                method.params
+                  ? `\n      parameters:\n${method.params
+                      .map((param) => {
+                        const result = [
+                          `        - in: ${param.type}`,
+                          `          name: ${param.name}`,
+                          `          schema:`,
+                          `            type: string`,
+                          `          required: ${!!param.required}`,
+                        ];
+                        if (param.description) {
+                          result.push(
+                            `          description: '${param.description}'`,
+                          );
+                        }
+                        return result.join('\n');
+                      })
+                      .join('\n')}`
+                  : ''
+              }`,
+              `      responses:`,
+              `        '200':`,
+              `          description: OK`,
+              `          content:`,
+              `            application/json:`,
+              `              schema:`,
+            ];
+            if (method.response.json) {
+              methodLines.push(
+                `                $ref: '#/components/schemas/${method.response.json}'`,
+              );
+            } else if (method.response.jsonSchema) {
+              methodLines.push(
+                objectSchemaToYamlSchema(
+                  '                  ',
+                  method.response.jsonSchema,
+                ),
+              );
+            } else if (method.response.file) {
+              // TODO
+            }
+            if (method.body) {
+              methodLines.push(
+                `      requestBody:`,
+                `        required: true`,
+                `        content:`,
+                `          application/json:`,
+                `            schema:`,
+              );
+              if (method.body.json) {
+                methodLines.push(
+                  `              $ref: '#/components/schemas/${method.body.json}'`,
+                );
+              } else if (method.body.jsonSchema) {
+                methodLines.push(
+                  objectSchemaToYamlSchema(
+                    '              ',
+                    method.body.jsonSchema,
+                  ),
+                );
+              } else if (method.body.file) {
+                // TODO
+              }
+            }
+            return methodLines.join('\n');
+          }),
         ];
-        if (method.response.json) {
-          methodArr.push(
-            `                $ref: '#/components/schemas/${method.response.json}'`,
-          );
-        } else if (method.response.jsonSchema) {
-          methodArr.push(
-            objectSchemaToYamlSchema(
-              '                  ',
-              method.response.jsonSchema,
-            ),
-          );
-        } else if (method.response.file) {
-          // TODO
-        }
-        if (method.body) {
-          methodArr.push(
-            `      requestBody:`,
-            `        required: true`,
-            `        content:`,
-            `          application/json:`,
-            `            schema:`,
-          );
-          if (method.body.json) {
-            methodArr.push(
-              `              $ref: '#/components/schemas/${method.body.json}'`,
-            );
-          } else if (method.body.jsonSchema) {
-            methodArr.push(
-              objectSchemaToYamlSchema(
-                '              ',
-                method.body.jsonSchema,
-              ),
-            );
-          } else if (method.body.file) {
-            // TODO
-          }
-        }
         return methodArr.join('\n');
       })
       .join('\n');

@@ -77,15 +77,20 @@ export function createPurpleCheetah(
         logger.info('controller', `${data.name}`);
         const methods = data.methods();
         methods.forEach((method) => {
+          if (!PurpleCheetahDocs[data.name].methods[method.path]) {
+            PurpleCheetahDocs[data.name].methods[method.path] = [];
+          }
           if (method.doc) {
-            PurpleCheetahDocs[data.name].methods[method.path] = {
+            PurpleCheetahDocs[data.name].methods[method.path].push({
               ...method.doc,
               type: method.type,
-            };
+              path: method.path,
+            });
           } else {
-            PurpleCheetahDocs[data.name].methods[method.path] = {
+            PurpleCheetahDocs[data.name].methods[method.path].push({
               description: '',
               type: method.type,
+              path: method.path,
               summary: '',
               response: {
                 jsonSchema: {
@@ -95,7 +100,7 @@ export function createPurpleCheetah(
                   },
                 },
               },
-            };
+            });
           }
           const path = (data.path + method.path).replace(/\/\//g, '/');
           logger.info('controller', `    --> ${path}`);

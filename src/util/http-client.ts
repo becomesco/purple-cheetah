@@ -88,7 +88,7 @@ export function createHttpClient(config: HttpClientConfig): HttpClient {
               return;
             });
             res.on('end', () => {
-              if (res.statusCode !== 200) {
+              if (res.statusCode !== 200 && res.statusCode !== 201) {
                 const output = new HttpClientResponseError(
                   res.statusCode ? res.statusCode : 0,
                   res.headers,

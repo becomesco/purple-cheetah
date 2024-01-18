@@ -41,24 +41,37 @@ export class ConsoleColors {
 
 let loggerConfig: LoggerConfig | undefined;
 
+function getOutputPath(config?: LoggerConfig): string {
+  if (!config || !config.saveToFile) {
+    return path.join(process.cwd(), 'logs');
+  }
+  const outputPath = config.saveToFile.output;
+  const isAbsolutePath =
+    outputPath.startsWith('/') || outputPath.includes(':\\');
+  return isAbsolutePath
+    ? outputPath
+    : path.join(process.cwd(), ...outputPath.split('/'));
+}
+
 export function createLogger(config?: LoggerConfig): Module {
   loggerConfig = config;
   return {
     name: 'Logger',
     initialize({ next }) {
       const outputBuffer: string[] = [];
-      const outputPath =
-        config && config.saveToFile
-          ? `${
-              config.saveToFile.output.startsWith('/') ||
-              config.saveToFile.output.includes(':\\')
-                ? config.saveToFile.output
-                : path.join(
-                    process.cwd(),
-                    ...config.saveToFile.output.split('/'),
-                  )
-            }`
-          : path.join(process.cwd(), 'logs');
+      // const outputPath =
+      //   config && config.saveToFile
+      //     ? `${
+      //         config.saveToFile.output.startsWith('/') ||
+      //         config.saveToFile.output.includes(':\\')
+      //           ? config.saveToFile.output
+      //           : path.join(
+      //               process.cwd(),
+      //               ...config.saveToFile.output.split('/'),
+      //             )
+      //       }`
+      //     : path.join(process.cwd(), 'logs');
+      const outputPath = getOutputPath(config);
       const fs = createFS({
         base: outputPath,
       });

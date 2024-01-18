@@ -50,7 +50,8 @@ export function createLogger(config?: LoggerConfig): Module {
       const outputPath =
         config && config.saveToFile
           ? `${
-              config.saveToFile.output.startsWith('/')
+              config.saveToFile.output.startsWith('/') ||
+              config.saveToFile.output.includes(':\\')
                 ? config.saveToFile.output
                 : path.join(
                     process.cwd(),
